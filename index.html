@@ -480,7 +480,29 @@ button,.btn,.ghost,.cls,.plus,.x,.ico{cursor:url(data:image/png;base64,iVBORw0KG
 
 <div id="app">
   <canvas id="cv"></canvas>
-  <div id="hud">
+  <style>
+/* celular na horizontal: painéis do personagem e da missão compactos */
+@media (max-height:520px){
+  #me{width:min(210px,30vw);gap:5px;border-width:8px;border-image-width:14px;padding:0 2px}
+  #me .crestf{width:30px;height:30px}#me .crestf canvas{width:26px;height:26px}
+  #me .meta{gap:2px}
+  #me .nm{font-size:11px}#me .nm small{font-size:9.5px}
+  #me .bar{height:13px;border-width:3px 6px;border-image-width:3px 6px}
+  #me .bar span{font-size:9px;line-height:7px}
+  #me .bar.xp{height:7px;border-width:2px 4px;border-image-width:2px 4px}
+  #quest{border-width:8px;border-image-width:14px;padding:0 2px;gap:0}
+  #quest .eyebrow{font-size:8.5px;letter-spacing:.05em}
+  #qTitle{font-size:11.5px;line-height:1.15}#qProg{font-size:10.5px}
+  body.touch #quest{top:68px;left:8px;width:min(165px,22vw)}
+  body.touch #party{top:136px}
+  body.touch #chatBtn{right:auto;top:auto;left:8px;bottom:8px;width:30px;height:30px}
+}
+body.touch #quest{pointer-events:auto;cursor:pointer}
+body.touch #quest .eyebrow::after{content:' ▾'}
+#quest.min #qTitle,#quest.min #qBody,#quest.min #qProg{display:none}
+#quest.min .eyebrow::after{content:' ▸'}
+</style>
+<div id="hud">
     <section class="plate" id="me" aria-label="Seu personagem">
       <div class="crestf" aria-hidden="true"><canvas id="crest" width="64" height="64"></canvas></div>
       <div class="meta">
@@ -3229,6 +3251,9 @@ function setupTouch() {
   $('atkBtn').addEventListener('pointerdown', ev => { ev.preventDefault(); attackNearest(); });
   $('tgtBtn').addEventListener('pointerdown', ev => { ev.preventDefault(); nextTarget(); });
   window.addEventListener('resize', layoutTouch);
+  // toque no painel da missão: recolhe ou abre (fica lembrado)
+  const q = $('quest'); try { if (localStorage.getItem('valdora-qmin') === '1') q.classList.add('min'); } catch (e) {}
+  q.addEventListener('click', () => { q.classList.toggle('min'); try { localStorage.setItem('valdora-qmin', q.classList.contains('min') ? '1' : '0'); } catch (e) {} });
   // toques rápidos nos botões não podem virar zoom nem rolar a página (a tela subia e ficava preta)
   document.addEventListener('touchstart', ev => {
     const t = ev.target.closest && ev.target.closest('#atkBtn,#tgtBtn,#bar .sk,#bar button,#joy');
