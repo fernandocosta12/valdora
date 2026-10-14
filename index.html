@@ -389,6 +389,14 @@ body.online #chatBtn{display:block}
 .acct.ok i{color:#8fd18a;font-style:normal}.acct.err i{color:var(--warn);font-style:normal}
 .ctform{display:grid;gap:8px}
 #ctMsg.err{color:var(--warn)}
+.rklist{display:grid;gap:3px;max-height:52vh;overflow:auto;margin:6px 0}
+.rkrow{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:center;padding:4px 8px;background:rgba(29,18,14,.55);border:1px solid #4a3324;border-radius:3px}
+.rkrow .n{font-family:var(--display);color:var(--gold2);text-align:right}
+.rkrow b{font-family:var(--display);font-size:15px}.rkrow small{color:var(--muted);font-size:12px;display:block}
+.rkrow .lv{text-align:right;font-size:13px}.rkrow.me{border-color:var(--gold);background:rgba(90,60,20,.45)}
+.rkrow.top1 .n{color:#ffd27a}.rkrow.top2 .n{color:#e0e6ee}.rkrow.top3 .n{color:#e0a070}
+.fld textarea{font:inherit;font-family:var(--body);font-size:14px;background:#1d120e;color:#fff;border:2px solid var(--navy);border-radius:3px;padding:6px 8px;resize:vertical;user-select:text}
+#fbMsg.err{color:var(--warn)}#fbMsg.ok{color:#8fd18a}
 .fld{display:grid;gap:3px;font-family:var(--display);font-size:13px;color:var(--gold2)}
 .fld input{font:inherit;font-family:var(--body);font-size:14px;background:#1d120e;color:#fff;border:2px solid var(--navy);border-radius:3px;padding:6px 8px;user-select:text}
 body.touch #chatBtn{left:auto;right:150px;bottom:auto;top:8px}
@@ -558,6 +566,8 @@ button,.btn,.ghost,.cls,.plus,.x,.ico{cursor:url(data:image/png;base64,iVBORw0KG
         <button class="btn alt" type="button" id="mute" aria-pressed="false">Som</button>
         <button class="btn alt" type="button" id="musicBtn">Música</button>
         <button class="btn alt" type="button" id="onlineBtn">Online</button>
+        <button class="btn alt" type="button" id="rankBtn">Ranking</button>
+        <button class="btn alt" type="button" id="fbBtn">Relatar bug ou ideia</button>
         <button class="btn alt" type="button" id="charsBtn">Trocar de personagem</button>
         <button class="btn" type="button" id="startBtn">Jogar</button>
       </div>
@@ -603,6 +613,28 @@ button,.btn,.ghost,.cls,.plus,.x,.ico{cursor:url(data:image/png;base64,iVBORw0KG
       <p class="sub">O obelisco leva a qualquer região que você já visitou.</p>
       <div class="trips" id="trList"></div>
       <div class="actions"><button class="btn alt" type="button" data-close>Ficar aqui</button></div>
+    </div>
+  </div>
+  <div class="overlay" id="rank" hidden>
+    <div class="card wide" role="dialog" aria-labelledby="rkTitle">
+      <button class="x" type="button" data-close aria-label="Fechar"></button>
+      <h3>Os aventureiros mais fortes de Valdora</h3>
+      <h2 id="rkTitle" class="ribbon">Ranking</h2>
+      <p class="sub" id="rkMsg">Carregando…</p>
+      <div class="rklist" id="rkList"></div>
+      <div class="actions"><button class="btn alt" type="button" id="rkReload">Atualizar</button><button class="btn" type="button" data-close>Fechar</button></div>
+    </div>
+  </div>
+  <div class="overlay" id="fb" hidden>
+    <div class="card" role="dialog" aria-labelledby="fbTitle">
+      <button class="x" type="button" data-close aria-label="Fechar"></button>
+      <h3>Ajude a melhorar o jogo</h3>
+      <h2 id="fbTitle" class="ribbon">Relatar</h2>
+      <form id="fbForm" class="ctform">
+        <label class="fld">O que aconteceu ou qual a sua ideia?<textarea id="fbText" maxlength="1500" rows="5" placeholder="Ex.: no celular, o botão de ataque some quando abro a mochila."></textarea></label>
+        <p class="sub" id="fbMsg">Junto com a mensagem vão o mapa, o nível e o tipo de aparelho, para ajudar a achar o problema.</p>
+        <div class="actions"><button class="btn alt" type="button" data-close>Cancelar</button><button class="btn" type="submit" id="fbSend">Enviar</button></div>
+      </form>
     </div>
   </div>
   <div class="overlay" id="conta" hidden>
@@ -1707,7 +1739,7 @@ function updateAct() {
   const a = $('actBtn'); if (!S || P.dead) { a.hidden = true; return; }
   const n = P.gather ? null : nearAction(); a.hidden = !n; if (n && a.textContent !== n.label) a.textContent = n.label;
 }
-const OVERLAYS = ['dialog', 'bag', 'help', 'classes', 'travel', 'chars', 'sheet', 'shop', 'online', 'conta'];
+const OVERLAYS = ['dialog', 'bag', 'help', 'classes', 'travel', 'chars', 'sheet', 'shop', 'online', 'conta', 'rank', 'fb'];
 function open(id) { OVERLAYS.forEach(o => $(o) && ($(o).hidden = o !== id)); }
 function closeAll() { if (!S) return; OVERLAYS.forEach(o => $(o) && ($(o).hidden = true)); }
 function anyOpen() { return OVERLAYS.some(o => $(o) && !$(o).hidden); }
@@ -4115,6 +4147,49 @@ function wbTick() {
   if (cur && cur.alive && host && (!w.active || cur.wbWin !== w.win)) { cur.alive = false; cur.deadT = 9; cur.aggro = null; toast('O Avatar do Véu se desfez no ar...', 'small'); }
 }
 setInterval(wbTick, 1000);
+
+/* ================= Ranking e relatos de bugs/ideias (Supabase) ================= */
+async function openRank() {
+  open('rank');
+  const msg = $('rkMsg'), list = $('rkList'); list.innerHTML = '';
+  if (!ctCfg()) { msg.textContent = 'O ranking só funciona na versão publicada do jogo (com o online ligado).'; return; }
+  msg.textContent = 'Carregando…';
+  try {
+    const rows = await rpc('valdora_ranking', {});
+    const mine = new Set((SAVE.slots || []).filter(Boolean).map(c => c.name));
+    msg.textContent = rows && rows.length ? 'Só aparecem personagens salvos em uma conta. Crie a sua na tela de personagens.' : 'Ninguém no ranking ainda. Crie uma conta na tela de personagens e seja o primeiro!';
+    (rows || []).forEach((r, i) => {
+      const cl = classOf(r.classe in CLASSES ? r.classe : 'aprendiz', r.evo in EVOS ? r.evo : null);
+      const d = document.createElement('div'); d.className = 'rkrow' + (i < 3 ? ' top' + (i + 1) : '') + (CT.token && mine.has(r.nome) ? ' me' : '');
+      d.innerHTML = `<span class="n">${i + 1}º</span><span><b>${esc(r.nome || '?')}</b><small>${esc(cl.name)}${r.titulo ? ' · « ' + esc(r.titulo) + ' »' : ''}</small></span><span class="lv">Nv ${+r.nivel || 1}<small>Classe ${+r.nivel_classe || 1}</small></span>`;
+      list.appendChild(d);
+    });
+  } catch (e) { msg.textContent = 'Não consegui carregar o ranking: ' + e.message; }
+}
+function openFb() {
+  open('fb'); const m = $('fbMsg');
+  m.className = 'sub'; m.textContent = ctCfg() ? 'Junto com a mensagem vão o mapa, o nível e o tipo de aparelho, para ajudar a achar o problema.' : 'O envio só funciona na versão publicada do jogo.';
+  setTimeout(() => $('fbText').focus(), 50);
+}
+async function sendFb() {
+  const t = $('fbText').value.trim(), m = $('fbMsg');
+  if (t.length < 3) { m.className = 'sub err'; m.textContent = 'Escreva um pouco mais.'; return; }
+  $('fbSend').disabled = true; m.className = 'sub'; m.textContent = 'Enviando…';
+  const ctx = { zona: W.zone ? W.zone.name : null, nivel: S ? S.blvl : null, classe: S ? S.cls : null, toque: !!TOUCH, tela: `${innerWidth}x${innerHeight}`, ua: navigator.userAgent.slice(0, 160), online: !!NET.ws };
+  try { await rpc('valdora_feedback', { p_token: CT.token || null, p_texto: t, p_contexto: ctx }); $('fbText').value = ''; m.className = 'sub ok'; m.textContent = 'Recebido! Obrigado por ajudar.'; sfx('missao_ok', .4); }
+  catch (e) { m.className = 'sub err'; m.textContent = e.message; }
+  $('fbSend').disabled = false;
+}
+function setupRank() {
+  $('rankBtn').onclick = () => { initAudio(); sfx('clique', .3); openRank(); };
+  $('fbBtn').onclick = () => { initAudio(); sfx('clique', .3); openFb(); };
+  $('rkReload').onclick = () => openRank();
+  $('fbForm').onsubmit = ev => { ev.preventDefault(); sendFb(); };
+  $('fbText').addEventListener('keydown', ev => ev.stopPropagation());
+  // sem personagem em jogo, fechar volta para a ajuda
+  ['rank', 'fb'].forEach(id => $(id).querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => { if (!S) open('help'); })));
+}
+setupRank();
 
 start();
 window.__game = { W, get P() { return P; }, get PET() { return PET; }, S: () => S, SAVE: () => SAVE, castSkill, setTarget, loadZone, changeClass, evolveTo, gainXp, dropLoot, openSheet, playChar, openNpc, openShop, openBag, startGather, npcById, mkItem, giveItem, grant, CL, netConnect: () => netConnect(), netChat: t => netChat(t), NET: () => NET };

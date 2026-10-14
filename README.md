@@ -10,3 +10,8 @@ RPG 2D de navegador (PC e celular, na horizontal). Jogue em: https://fernandocos
 - Conta com nome + senha (sem e-mail). Os 3 personagens ficam no navegador e no Supabase (esquema `valdora`, separado do resto do banco).
 - O jogo só usa funções RPC públicas (`valdora_registrar`, `valdora_entrar`, `valdora_carregar`, `valdora_sincronizar`, `valdora_sair`, `valdora_ranking`, `valdora_feedback`); as tabelas não são acessíveis diretamente.
 - Senhas guardadas com bcrypt. Ao sincronizar, cada personagem fica com a versão de maior progresso (nível, depois XP).
+
+## Ranking e relatos
+
+- Ranking dos 50 personagens de maior nível (só os salvos em conta): botão "Ranking" na ajuda.
+- Relatos de bugs e ideias: botão "Relatar bug ou ideia" na ajuda. Ficam na tabela `valdora.feedback` do Supabase (Table Editor → esquema `valdora`).
