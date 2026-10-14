@@ -366,6 +366,7 @@ body.touch #side{grid-template-rows:auto auto auto}
 #party .pm span{display:grid;flex:1;min-width:0}
 #party .pm b{font-family:var(--display);font-size:13px;color:#9fe08a;line-height:1}
 #party .pm small{font-size:11px;color:var(--muted);line-height:1.1}
+#party .pm.real b{color:#9fe08a}#party .pm.far{opacity:.62}
 #party .hb{display:block;height:5px;background:#3a1a18;border-radius:2px;overflow:hidden;margin-top:2px}
 #party .hb i{display:block;height:100%;background:#7ad46a;width:100%}
 @media (max-height:520px){#party{top:96px;left:8px}#party .pm{width:140px;padding:2px 6px 2px 2px}#party .pm canvas{width:26px;height:26px}}
@@ -1293,7 +1294,7 @@ const inLake = (z, x, y, pad) => z.lake && ((x - z.lake[0]) / (z.lake[2] + pad))
 function loadZone(i, from) {
   const z = ZONES[i], r = seeded(31 + i * 97);
   if (S) { S.zone = i; if (!S.visited.includes(i)) S.visited.push(i); }
-  W.zone = z; W.zi = i; W.props = []; W.enemies = []; W.bots = W.bots.filter(b => b.party); W.loot = []; W.projs = []; W.fx = W.fx.filter(f => f.keep); W.parts = []; W.texts = []; W.npcs = [];
+  W.ready = false; W.zone = z; W.zi = i; W.props = []; W.enemies = []; W.bots = W.bots.filter(b => b.party); W.loot = []; W.projs = []; W.fx = W.fx.filter(f => f.keep); W.parts = []; W.texts = []; W.npcs = [];
   W.ground = paintGround(z, r);
   const inVillage = (x, y) => z.village && x < 1180 && y > 250 && y < 1420;
   const nearExit = (x, y) => z.exits.some(e => { const p = exitPoint(z, e); return Math.hypot(p.x - x, p.y - y) < 260; });
@@ -1339,7 +1340,7 @@ function spawnEnemy(type, x, y, fixed) {
   const d = ENEMIES[type];
   if (!fixed) for (let k = 0; k < 10 && (blocked(x, y, 20) || inLake(W.zone, x, y, 40)); k++) { x = rnd(W.zone.area[0], W.zone.area[2]); y = rnd(W.zone.area[1], W.zone.area[3]); }
   const key = variant(d.sprite, d.tint, d.sc);
-  const e = { kind: 'enemy', type, d, x, y, r: d.r || 16, home: { x, y }, hp: d.hp, max: d.hp, alive: true, aggro: null, cd: 1, stun: 0, slow: 0, root: 0, mark: 0, markAmt: .3, frozen: 0, respawn: 0, wt: rnd(0, 2), goal: null, tagged: false, moving: false, special: 6, body: body(key) };
+  const e = { kind: 'enemy', id: W.enemies.length, dyn: !!W.ready, type, d, x, y, r: d.r || 16, home: { x, y }, hp: d.hp, max: d.hp, alive: true, aggro: null, cd: 1, stun: 0, slow: 0, root: 0, mark: 0, markAmt: .3, frozen: 0, respawn: 0, wt: rnd(0, 2), goal: null, tagged: false, moving: false, special: 6, body: body(key) };
   e.body.dir = ['s', 'sw', 'se', 'w', 'e'][rint(0, 4)];
   W.enemies.push(e); return e;
 }
@@ -2019,7 +2020,7 @@ function tryTalk() {
 }
 function face(o, t) { o.body.dir = dirOf(t.x - o.x, t.y - o.y); }
 function enemiesNear(x, y, r) { return W.enemies.filter(e => e.alive && Math.hypot(e.x - x, e.y - y) <= r); }
-function alliesNear(x, y, r) { return [P, ...W.bots].filter(a => !a.dead && !a.decoy && Math.hypot(a.x - x, a.y - y) <= r); }
+function alliesNear(x, y, r) { return [P, ...W.bots, ...(typeof netAllies === 'function' ? netAllies() : [])].filter(a => !a.dead && !a.decoy && Math.hypot(a.x - x, a.y - y) <= r); }
 const maxOf = a => a === P ? maxHp() : a.max;
 function healUnit(a, amt) {
   const mx = a === P ? maxHp() : a.max; const before = a.hp; a.hp = Math.min(mx, a.hp + amt);
@@ -2158,7 +2159,8 @@ function hitEnemy(e, amt, src, big) {
   if (src === P && Math.random() < critCh()) { crit = true; amt *= 1.6; }
   if (e.mark > 0) amt *= 1 + (e.markAmt || .3);
   amt = Math.max(1, Math.round(amt));
-  e.hp -= amt;
+  const relay = typeof netRelayHit === 'function' && netRelayHit(e, amt);
+  e.hp -= amt; if (relay) e.hp = Math.max(1, e.hp);
   if (src === P) { e.tagged = true; const ls = buffOf('steal') + gpct('steal'); if (ls > 0) { P.hp = Math.min(maxHp(), P.hp + amt * ls); } if (typeof onHitDealt === 'function') onHitDealt(e, amt, crit); }
   if (src && src.summon) e.tagged = true;
   if (!e.aggro || (src === P && e.aggro.kind === 'bot' && Math.random() < .5)) e.aggro = src;
@@ -2172,6 +2174,7 @@ function killEnemy(e) {
   burst(e.x, e.y, e.d.boss ? '#ffb35a' : '#e8e0c8', e.d.boss ? 50 : 12, e.d.boss ? 260 : 120, { z: 20 });
   if (e.d.boss) { FX.boom(e.x, e.y, 160, '#ff8a3a'); W.shake = .6; toast(`${e.d.name} caiu!`); }
   if (typeof onKill === 'function') onKill(e);
+  if (typeof netOnKill === 'function') netOnKill(e);
   if (P.target === e) { P.target = null; P.pending = 0; }
   if (e.tagged) reward(e);
   e.aggro = null; e.tagged = false;
@@ -2184,7 +2187,7 @@ function respawnEnemy(e) {
 }
 // Tudo que o monstro deixa vai para o chão
 function reward(e) {
-  const d = e.d, party = W.bots.filter(b => b.party && !b.dead).length, bonus = 1 + party * .1;
+  const d = e.d, party = W.bots.filter(b => b.party && !b.dead).length + (typeof netPartyNear === 'function' ? netPartyNear(e) : 0), bonus = 1 + party * .1;
   const xp = Math.round(d.xp * bonus);
   log(`<b>${d.name}</b> derrotado · +${xp} XP`);
   gainXp(xp, Math.round(d.xp * bonus * (S.cls === 'aprendiz' ? 1.3 : 1)));
@@ -2270,6 +2273,7 @@ function completeQuest() {
 }
 function damageActor(a, amt, src) {
   if (a.dead) return;
+  if (a.kind === 'remote') { if (typeof netEnemyAttack === 'function') netEnemyAttack(a, amt, src); return; }
   if (a === P) {
     if (Math.random() < dodgeCh()) { float(a.x, a.y - a.body.h - 6, 'Esquivou', '#bff3ff', 13); return; }
     amt *= (1 - defense()) * (P.dr > 0 ? 1 - (P.drAmt || .5) : 1);
@@ -2344,6 +2348,7 @@ function updatePlayer(dt) {
   if (W.T - P.lastHit > 5) P.hp = Math.min(maxHp(), P.hp + maxHp() * .04 * dt);
 }
 function updateEnemies(dt) {
+  if (typeof netEnemyMode === 'function' && netEnemyMode(dt)) return;
   for (const e of W.enemies) {
     e.moving = false;
     if (!e.alive) { e.deadT += dt; if (e.noRespawn) continue; e.respawn -= dt; if (e.respawn <= 0) respawnEnemy(e); continue; }
@@ -2354,6 +2359,7 @@ function updateEnemies(dt) {
     let a = e.aggro;
     if (a && (a.dead || dist(e, e.home) > (d.boss ? 700 : 520))) { e.aggro = a = null; e.hp = e.max; e.tagged = false; e.goal = { x: e.home.x, y: e.home.y }; }
     if (!a && d.aggroR && !P.dead && dist(e, P) < d.aggroR) e.aggro = a = P;
+    if (!a && d.aggroR && typeof netAggro === 'function') { const ra = netAggro(e, d.aggroR); if (ra) e.aggro = a = ra; }
     if (a) {
       const dd = dist(e, a);
       if (d.boss) bossSpecial(e, dt);
@@ -2377,6 +2383,7 @@ function updateEnemies(dt) {
 // ataques especiais dos chefes: fogo do dragão ou pisão no chão
 function bossSpecial(e, dt) {
   const d = e.d; e.special -= dt; if (e.special > 0) return;
+  if (typeof netBossFx === 'function') netBossFx(e);
   if (d.priest) { e.special = 9; setAnim(e, 'attack'); priestSpecial(e); return; }
   e.special = d.stomp ? 7 : 8; const x = e.x, y = e.y, R = d.stomp ? 210 : 170;
   setAnim(e, 'attack');
@@ -2868,6 +2875,7 @@ function onZoneLoaded(i, from) {
   if (S && typeof netJoin === 'function') netJoin(i);
   if (i === 0 && ZONES[0].village) VILLAGERS.forEach((v, k) => { if (!IMG[v.sprite]) return; const [x, y] = VWAY[(k * 3) % VWAY.length]; const n = { kind: 'npc', walker: true, id: 'ald' + k, name: v.name, title: 'Aldeão', sprite: v.sprite, lines: v.lines, x, y, r: 12, wait: rnd(1, 4), goal: null, say: '', sayT: 0 }; n.body = body(v.sprite); W.npcs.push(n); });
   if (typeof onZoneLoaded2 === 'function') onZoneLoaded2(i, from);
+  W.ready = true;
 }
 function updateVillagers(dt) {
   const night = isNight();
@@ -3293,14 +3301,15 @@ function openBoard() {
 }
 function buildPartyHud() {
   const el = $('party'); if (!el) return; const list = partyBots(); el.innerHTML = '';
-  el.hidden = !list.length;
+  const real = typeof ptHud === 'function' ? ptHud(el) : 0; el.hidden = !list.length && !real;
   list.forEach(b => { const d = document.createElement('div'); d.className = 'pm'; d.dataset.name = b.name; d.appendChild(portrait(CLASSES[b.cls].sprite, 40)); d.insertAdjacentHTML('beforeend', `<span><b>${esc(b.name)}</b><small>${CLASSES[b.cls].name}</small><i class="hb"><i></i></i></span>`); d.onclick = () => openBotMenu(b); el.appendChild(d); });
 }
 function updateHudExtra() {
   partyBots().forEach(b => { const d = document.querySelector(`#party .pm[data-name="${b.name}"] .hb i`); if (d) d.style.width = (b.dead ? 0 : b.hp / b.max * 100) + '%'; });
+  if (typeof ptHudTick === 'function') ptHudTick();
 }
 // clique em bots e na caverna, no quadro e no baú
-function hitTestExtra(wx, wy) {
+function hitTestBots(wx, wy) {
   const b = W.bots.find(b => !b.dead && !b.summon && Math.abs(wx - b.x) < 30 && wy > b.y - b.body.h - 10 && wy < b.y + 12);
   if (b) return { kind: 'goto', x: b.x, y: b.y + 20, stop: 70, run: () => openBotMenu(b) };
   const p = W.props.find(p => p.act && !p.gone && Math.abs(wx - p.x) < (p.actW || 50) && wy > p.y - (p.actH || 90) && wy < p.y + 20);
@@ -3427,7 +3436,8 @@ const NET_KEY = 'valdora-online';
 const NET = { ws: null, ref: 1, topic: null, joinRef: null, others: {}, id: Math.random().toString(36).slice(2, 10), last: 0, lastPos: '', hb: null, status: 'desligado', cfg: null, retry: 0 };
 function netCfg() { try { return JSON.parse(localStorage.getItem(NET_KEY) || 'null'); } catch (e) { return null; } }
 function netSaveCfg(c) { try { localStorage.setItem(NET_KEY, JSON.stringify(c)); } catch (e) {} }
-function netSend(topic, event, payload) { if (!NET.ws || NET.ws.readyState !== 1) return; NET.ws.send(JSON.stringify({ topic, event, payload, ref: String(NET.ref++), join_ref: NET.joinRef })); }
+function netSend(topic, event, payload, jref) { if (!NET.ws || NET.ws.readyState !== 1) return; NET.ws.send(JSON.stringify({ topic, event, payload, ref: String(NET.ref++), join_ref: jref || NET.joinRef })); }
+function netCast(event, payload, topic, jref) { netSend(topic || NET.topic, 'broadcast', { type: 'broadcast', event, payload: Object.assign({ id: NET.id }, payload) }, jref); }
 function netStatus(s) { NET.status = s; document.body.classList.toggle('online', !!NET.ws); const el = $('netStatus'); if (el) el.textContent = s; const b = $('onlineBadge'); if (b) { b.hidden = !NET.ws; b.textContent = s === 'conectado' ? `Online · ${Object.keys(NET.others).length + 1}` : 'Online…'; } }
 function netConnect() {
   const c = NET.cfg = netCfg(); if (!c || !c.url || !c.key) { netStatus('sem configuração'); return; }
@@ -3437,7 +3447,7 @@ function netConnect() {
   netStatus('conectando…');
   let ws; try { ws = new WebSocket(url); } catch (e) { netStatus('bloqueado neste navegador'); return; }
   NET.ws = ws;
-  ws.onopen = () => { NET.retry = 0; netStatus('conectado'); NET.hb = setInterval(() => netSend('phoenix', 'heartbeat', {}), 25000); if (S) netJoin(S.zone); };
+  ws.onopen = () => { NET.retry = 0; netStatus('conectado'); NET.hb = setInterval(() => netSend('phoenix', 'heartbeat', {}), 25000); if (S) netJoin(S.zone); if (typeof netOnOpen === 'function') netOnOpen(); };
   ws.onmessage = ev => { let m; try { m = JSON.parse(ev.data); } catch (e) { return; } netOnMessage(m); };
   ws.onclose = () => { clearInterval(NET.hb); NET.hb = null; const was = NET.ws === ws; NET.ws = null; NET.topic = null; NET.others = {}; if (was && NET.cfg && NET.cfg.on) { netStatus('reconectando…'); setTimeout(() => { if (!NET.ws && NET.cfg && NET.cfg.on) netConnect(); }, Math.min(30000, 2000 * ++NET.retry)); } else netStatus('desligado'); };
   ws.onerror = () => netStatus('erro de conexão');
@@ -3447,17 +3457,20 @@ function netJoin(zone) {
   if (!NET.ws || NET.ws.readyState !== 1) return;
   if (NET.topic) { netSend(NET.topic, 'broadcast', { type: 'broadcast', event: 'bye', payload: { id: NET.id } }); netSend(NET.topic, 'phx_leave', {}); }
   NET.others = {};
-  NET.topic = 'realtime:valdora-mapa-' + zone; NET.joinRef = String(NET.ref);
+  NET.topic = 'realtime:' + (typeof netTopicFor === 'function' ? netTopicFor(zone) : 'valdora-mapa-' + zone); NET.joinRef = String(NET.ref); NET.jt = Date.now();
   netSend(NET.topic, 'phx_join', { config: { broadcast: { ack: false, self: false }, presence: { key: NET.id }, postgres_changes: [], private: false }, access_token: NET.cfg.key.trim() });
   NET.lastPos = ''; netSendPos(true);
+  if (typeof netAfterJoin === 'function') netAfterJoin();
 }
 function netOnMessage(m) {
+  if (m.event === 'broadcast' && m.topic !== NET.topic) { if (typeof netTopicMsg === 'function') netTopicMsg(m); return; }
   if (m.event === 'broadcast' && m.topic === NET.topic) {
     const b = m.payload || {}, d = b.payload || {};
     if (!d.id || d.id === NET.id) return;
-    if (b.event === 'p') { const o = NET.others[d.id] || (NET.others[d.id] = { kind: 'remote', x: d.x, y: d.y, body: null, say: '', sayT: 0 }); Object.assign(o, { id: d.id, n: d.n, c: d.c, e: d.e, tx: d.x, ty: d.y, dir: d.d, an: d.a, hp: d.hp, mh: d.mh, lv: d.lv, ti: d.t, seen: performance.now() }); const key = classOf(d.c in CLASSES ? d.c : 'aprendiz', d.e in EVOS ? d.e : null).sprite; if (!o.body || o.body.key !== key) o.body = body(key); }
+    if (b.event === 'p') { const isNew = !NET.others[d.id]; const o = NET.others[d.id] || (NET.others[d.id] = { kind: 'remote', r: 14, x: d.x, y: d.y, body: null, say: '', sayT: 0 }); Object.assign(o, { id: d.id, n: String(d.n || '?').slice(0, 16), c: d.c, e: d.e, tx: d.x, ty: d.y, dir: d.d, an: d.a, hp: d.hp, mh: d.mh, lv: d.lv, ti: d.t, jt: +d.jt || Date.now(), g: d.g || '', dead: !!d.dd || d.hp <= 0, seen: performance.now() }); const key = classOf(d.c in CLASSES ? d.c : 'aprendiz', d.e in EVOS ? d.e : null).sprite; if (!o.body || o.body.key !== key) o.body = body(key); if (isNew) netSendPos(true); }
     else if (b.event === 'm') { const o = NET.others[d.id]; const txt = String(d.txt || '').slice(0, 80); if (o) { o.say = txt; o.sayT = 5; } log(`<span class="net">[${esc(d.n || '?')}]</span> ${esc(txt)}`); }
-    else if (b.event === 'bye') delete NET.others[d.id];
+    else if (b.event === 'bye') { if (NET.others[d.id]) NET.others[d.id].dead = true; delete NET.others[d.id]; }
+    else if (typeof netEvent === 'function') netEvent(b.event, d);
     netStatus(NET.status);
   }
 }
@@ -3466,7 +3479,7 @@ function netSendPos(force) {
   const now = performance.now(), st = `${Math.round(P.x)},${Math.round(P.y)},${P.body.dir},${P.body.anim},${Math.round(P.hp)}`;
   if (!force && (now - NET.last < 280 || (st === NET.lastPos && now - NET.last < 2500))) return;
   NET.last = now; NET.lastPos = st;
-  netSend(NET.topic, 'broadcast', { type: 'broadcast', event: 'p', payload: { id: NET.id, n: S.name, c: S.cls, e: S.evo, x: Math.round(P.x), y: Math.round(P.y), d: P.body.dir, a: P.body.anim, hp: Math.round(P.hp), mh: maxHp(), lv: S.blvl, t: S.title || '' } });
+  netSend(NET.topic, 'broadcast', { type: 'broadcast', event: 'p', payload: { id: NET.id, n: S.name, c: S.cls, e: S.evo, x: Math.round(P.x), y: Math.round(P.y), d: P.body.dir, a: P.body.anim, hp: Math.round(P.hp), mh: maxHp(), lv: S.blvl, t: S.title || '', jt: NET.jt, g: typeof PT !== 'undefined' && PT ? PT.id : '', dd: P.dead ? 1 : 0 } });
 }
 function netChat(txt) {
   txt = txt.trim().slice(0, 80); if (!txt) return;
@@ -3479,7 +3492,7 @@ function updateRemotes(dt) {
   const now = performance.now();
   for (const k in NET.others) {
     const o = NET.others[k];
-    if (now - o.seen > 8000) { delete NET.others[k]; continue; }
+    if (now - o.seen > 8000) { o.dead = true; delete NET.others[k]; continue; }
     if (!o.body) continue;
     const dx = o.tx - o.x, dy = o.ty - o.y, d = Math.hypot(dx, dy);
     if (d > 400) { o.x = o.tx; o.y = o.ty; } else if (d > 1) { const s = Math.min(d, Math.max(180, d * 6) * dt); o.x += dx / d * s; o.y += dy / d * s; }
@@ -3488,13 +3501,14 @@ function updateRemotes(dt) {
     if (o.sayT > 0) o.sayT -= dt;
   }
   netSendPos(false);
+  if (typeof netWorldTick === 'function') netWorldTick(dt);
 }
 function drawRemotes(g, vis) {
   Object.values(NET.others).forEach(o => {
     if (!o.body || !vis(o)) return;
-    label(g, o.x, o.y - o.body.h - 6, `${o.n} · ${classOf(o.c in CLASSES ? o.c : 'aprendiz', o.e in EVOS ? o.e : null).name}`, '#7ad0ff', 13);
+    const inPt = typeof PT !== 'undefined' && PT && o.g === PT.id; label(g, o.x, o.y - o.body.h - 6, `${inPt ? '★ ' : ''}${o.n} · ${classOf(o.c in CLASSES ? o.c : 'aprendiz', o.e in EVOS ? o.e : null).name} · Nv ${o.lv || '?'}`, inPt ? '#9fe08a' : '#7ad0ff', 13);
     if (o.ti) label(g, o.x, o.y - o.body.h - 21, `« ${o.ti} »`, '#ffd27a', 11);
-    const w = 40, by = o.y - o.body.h - 2; g.fillStyle = 'rgba(26,13,12,.85)'; g.fillRect(o.x - w / 2 - 1, by - 1, w + 2, 5); g.fillStyle = '#7ad0ff'; g.fillRect(o.x - w / 2, by, w * clamp(o.hp / (o.mh || 1), 0, 1), 3);
+    const w = 40, by = o.y - o.body.h - 2; g.fillStyle = 'rgba(26,13,12,.85)'; g.fillRect(o.x - w / 2 - 1, by - 1, w + 2, 5); g.fillStyle = inPt ? '#7ad46a' : '#7ad0ff'; g.fillRect(o.x - w / 2, by, w * clamp(o.hp / (o.mh || 1), 0, 1), 3);
     if (o.sayT > 0) bubble(g, o.x, o.y - o.body.h - 30, o.say);
   });
   if (P && P.sayT > 0 && S) bubble(g, P.x, P.y - P.body.h - (S.title ? 40 : 28), P.say);
@@ -3639,6 +3653,290 @@ function setupConta() {
   wait();
 }
 setupConta();
+
+/* ================= Online de verdade: monstros em comum, grupo com jogadores e presentes ================= */
+// Em cada mapa, quem chegou primeiro é o "anfitrião": ele comanda os monstros e manda a posição deles
+// para os outros. Os golpes dos outros vão para o anfitrião. Cada um ganha o próprio saque.
+const NW = { host: true, lastSnap: 0, synced: false };
+let PT = null; // grupo com jogadores: { id, lead, topic, jref, members: { id: {...} }, last }
+const PT_MAX = 4;
+const NDIRS = ['s', 'se', 'e', 'ne', 'n', 'nw', 'w', 'sw'];
+const remotes = () => Object.values(NET.others).filter(o => o.body);
+function netShared() { return !!(S && NET.topic && NET.ws && NET.ws.readyState === 1 && remotes().length); }
+function netComputeHost() {
+  let best = { jt: NET.jt || 0, id: NET.id };
+  for (const o of remotes()) if (o.jt < best.jt || (o.jt === best.jt && o.id < best.id)) best = o;
+  return best.id === NET.id;
+}
+function netTopicFor(zone) {
+  if (zone === DUNGEON) return PT ? 'valdora-gruta-' + PT.id : 'valdora-gruta-solo-' + NET.id;
+  return 'valdora-mapa-' + zone;
+}
+function netAfterJoin() {
+  NW.synced = false; NW.host = true;
+  if (PT && W.zi === DUNGEON) netCast('pd', { n: S.name }, PT.topic, PT.jref);
+}
+function netWorldTick(dt) {
+  const shared = netShared(), was = NW.host;
+  NW.host = !shared || netComputeHost();
+  if (!was && NW.host) W.enemies.forEach(e => { e.aggro = null; e.goal = null; });
+  if (NW.host && shared) { const now = performance.now(); if (now - NW.lastSnap > 300) { NW.lastSnap = now; netSnap(); } }
+  ptTick(); giftTick();
+}
+
+/* ---------- monstros compartilhados ---------- */
+function netSnap() {
+  const l = W.enemies.map(e => { const r = [Math.round(e.x), Math.round(e.y), Math.max(0, Math.round(e.hp)), e.alive ? 1 : 0, Math.max(0, NDIRS.indexOf(e.body.dir)), e.alive && e.body.anim === 'attack' ? 1 : 0]; if (e.dyn) r.push(e.type); return r; });
+  netCast('es', { l });
+}
+function netQuietKill(e) { e.alive = false; e.deadT = 9; e.respawn = e.d.respawn || 12; e.aggro = null; e.tagged = false; if (P.target === e) { P.target = null; P.pending = 0; } }
+function netApplySnap(l) {
+  if (NW.host || !Array.isArray(l)) return;
+  const first = !NW.synced; NW.synced = true;
+  l.forEach((r, i) => {
+    if (!Array.isArray(r)) return;
+    let e = W.enemies[i];
+    if (!e) {
+      if (typeof r[6] !== 'string' || !ENEMIES[r[6]] || i !== W.enemies.length) return;
+      e = spawnEnemy(r[6], +r[0], +r[1], true); e.noRespawn = true; e.room = 99; e.fadeIn = 0; burst(e.x, e.y, '#b48cff', 12, 70, { up: 90 });
+    }
+    const x = +r[0], y = +r[1], hp = +r[2], al = !!r[3];
+    if (al && !e.alive) { Object.assign(e, { alive: true, x, y, hp, fadeIn: 0, tagged: false, stun: 0, aggro: null }); e.body.anim = ''; e.body.lock = 0; setAnim(e, 'idle', true); }
+    else if (!al && e.alive) netQuietKill(e);
+    e.tx = x; e.ty = y;
+    if (first || Math.hypot(e.x - x, e.y - y) > 300) { e.x = x; e.y = y; }
+    if (al) e.hp = W.T - (e.lastLocalHit || -9) < .7 ? Math.min(e.hp, hp) : hp;
+    if (r[5] && e.alive && e.body.anim !== 'attack') { e.body.dir = NDIRS[r[4]] || e.body.dir; setAnim(e, 'attack'); }
+  });
+}
+// quem não é anfitrião só acompanha as posições recebidas
+function netEnemyMode(dt) {
+  if (NW.host || !netShared()) return false;
+  for (const e of W.enemies) {
+    e.moving = false;
+    if (!e.alive) { e.deadT += dt; continue; }
+    if (e.fadeIn != null && e.fadeIn < 1) e.fadeIn += dt * 2;
+    if (e.tx == null) continue;
+    const dx = e.tx - e.x, dy = e.ty - e.y, d = Math.hypot(dx, dy);
+    if (d > 2) { const s = Math.min(d, Math.max(e.d.speed * 1.2, d * 5) * dt); e.x += dx / d * s; e.y += dy / d * s; if (e.body.anim !== 'attack') e.body.dir = dirOf(dx, dy); e.moving = d > 6; }
+  }
+  return true;
+}
+function netRelayHit(e, amt) {
+  if (NW.host || !netShared() || e.id == null) return false;
+  netCast('eh', { i: e.id, a: amt }); e.lastLocalHit = W.T; return true;
+}
+function netOnKill(e) {
+  const ids = [...(e.hitters || [])]; e.hitters = null;
+  if (!NW.host || !netShared()) return;
+  if (e.tagged && !ids.includes(NET.id)) ids.push(NET.id);
+  netCast('ek', { i: e.id, ids });
+  netPartyShare(e, ids);
+}
+function netAggro(e, R) {
+  if (!NW.host) return null;
+  let best = null, bd = R;
+  for (const o of remotes()) if (!o.dead) { const d = dist(e, o); if (d < bd) { bd = d; best = o; } }
+  return best;
+}
+function netAllies() { return NW.host && netShared() ? remotes().filter(o => !o.dead) : []; }
+function netEnemyAttack(a, amt, src) { if (NW.host) netCast('ea', { to: a.id, i: src && src.kind === 'enemy' ? src.id : -1, a: Math.round(amt) }); }
+function netBossFx(e) { if (NW.host && netShared()) netCast('bs', { i: e.id }); }
+function netBossVisual(e) {
+  const d = e.d; setAnim(e, 'attack');
+  if (d.priest) { toast(`${d.name} conjura algo!`, 'small warn'); sfx('sombra', .6, .6); FX.ring(e.x, e.y, 160, '#b48cff', .8, 6); return; }
+  const x = e.x, y = e.y, R = d.stomp ? 210 : 170;
+  if (d.stomp) { sfx('soco', .6, .6); toast(`${d.name} vai pisar no chão! Afaste-se`, 'small warn'); FX.telegraph(x, y, R, 1.3, '#ffb35a'); }
+  else { sfx('dragao', .5); toast('O dragão vai soltar fogo! Saia do círculo', 'small warn'); FX.telegraph(x, y, R, 1.2); }
+  W.fx[W.fx.length - 1].done = () => { if (d.stomp) { FX.crack(x, y, R); FX.ring(x, y, R, '#ffb35a', .6, 8); } else FX.boom(x, y, R, '#ff5a2a'); sfx('explosao2', .6); W.shake = .5; };
+}
+// colegas de grupo perto de um monstro derrotado ganham metade da experiência e o progresso da missão
+function netPartyShare(e, ids) {
+  if (!PT || !S || P.dead || ids.includes(NET.id) || !ids.some(id => PT.members[id])) return;
+  if (dist(P, e) > 1400) return;
+  const xp = Math.max(1, Math.round(e.d.xp * .5));
+  gainXp(xp, xp); log(`<span class="net">Grupo</span> · ${esc(e.d.name)} · +${xp} XP`);
+  const q = QUESTS[S.quest.i];
+  if (q && S.quest.status === 'active' && q.target === e.type && q.kind !== 'collect') questEvent(e.type);
+  save();
+}
+function netPartyNear(e) { if (!PT) return 0; return remotes().filter(o => o.g === PT.id && !o.dead && dist(o, e) < 1400).length; }
+
+function netEvent(ev, d) {
+  if (!S) return;
+  switch (ev) {
+    case 'es': netApplySnap(d.l); break;
+    case 'eh': { if (!NW.host) return; const e = W.enemies[d.i]; if (!e || !e.alive) return; (e.hitters || (e.hitters = new Set())).add(d.id); hitEnemy(e, clamp(+d.a || 0, 0, Math.max(60, e.max * .6)), NET.others[d.id] || null); break; }
+    case 'ek': { if (NW.host) return; const e = W.enemies[d.i]; if (!e) return; const ids = Array.isArray(d.ids) ? d.ids : [], mine = ids.includes(NET.id); if (e.alive) { e.tagged = mine; killEnemy(e); } else if (mine) reward(e); netPartyShare(e, ids); break; }
+    case 'ea': { if (d.to !== NET.id || P.dead) return; const e = W.enemies[d.i]; damageActor(P, clamp(+d.a || 0, 0, 5000), e && e.alive ? e : null); FX.impact(P.x, P.y, '#ff8a7a', .6); break; }
+    case 'bs': { if (NW.host) return; const e = W.enemies[d.i]; if (e && e.alive) netBossVisual(e); break; }
+    case 'gi': if (d.to === NET.id) ptGotInvite(d); break;
+    case 'gr': if (d.to === NET.id) ptGotReply(d); break;
+    case 'gf': if (d.to === NET.id) giftGot(d); break;
+    case 'ga': if (d.to === NET.id) giftReply(d); break;
+  }
+}
+
+/* ---------- grupo com jogadores reais ---------- */
+const ptCount = () => PT ? 1 + Object.keys(PT.members).length : 1;
+function ptSubscribe() {
+  if (!PT || !NET.ws || NET.ws.readyState !== 1 || !NET.cfg) return;
+  PT.jref = String(NET.ref);
+  netSend(PT.topic, 'phx_join', { config: { broadcast: { ack: false, self: false }, presence: { key: NET.id }, postgres_changes: [], private: false }, access_token: NET.cfg.key.trim() }, PT.jref);
+  setTimeout(ptStatus, 400);
+}
+function netOnOpen() { if (PT) ptSubscribe(); }
+function ptJoin(id, lead) {
+  if (PT && PT.id === id) return;
+  if (PT) ptLeave(true);
+  PT = { id, lead, topic: 'realtime:valdora-grupo-' + id, jref: null, members: {}, last: 0 };
+  ptSubscribe(); buildPartyHud(); netSendPos(true);
+}
+function ptStatus() {
+  if (!PT || !S) return;
+  netCast('ps', { n: S.name, c: S.cls, e: S.evo, lv: S.blvl, hp: Math.round(P.hp), mh: maxHp(), z: W.zi, dd: P.dead ? 1 : 0 }, PT.topic, PT.jref);
+  PT.last = performance.now();
+}
+function ptTick() {
+  if (!PT) return;
+  const now = performance.now();
+  if (now - PT.last > 2000) ptStatus();
+  for (const k in PT.members) if (now - PT.members[k].seen > 12000) { delete PT.members[k]; buildPartyHud(); }
+}
+function ptLeave(quiet) {
+  if (!PT) return;
+  netCast('pl', {}, PT.topic, PT.jref); netSend(PT.topic, 'phx_leave', {}, PT.jref);
+  PT = null; if (!quiet) toast('Você saiu do grupo', 'small');
+  buildPartyHud(); netSendPos(true);
+}
+function netTopicMsg(m) {
+  if (!PT || m.topic !== PT.topic) return;
+  const b = m.payload || {}, d = b.payload || {};
+  if (!d.id || d.id === NET.id) return;
+  if (b.event === 'ps') {
+    const isNew = !PT.members[d.id];
+    PT.members[d.id] = { id: d.id, n: String(d.n || '?').slice(0, 16), c: d.c in CLASSES ? d.c : 'aprendiz', e: d.e in EVOS ? d.e : null, lv: +d.lv || 1, hp: +d.hp || 0, mh: +d.mh || 1, z: +d.z, dd: !!d.dd, seen: performance.now() };
+    if (isNew) { toast(`${PT.members[d.id].n} está no seu grupo`, 'small'); buildPartyHud(); ptStatus(); }
+  } else if (b.event === 'pl') { const n = PT.members[d.id] && PT.members[d.id].n; delete PT.members[d.id]; if (n) toast(`${n} saiu do grupo`, 'small'); buildPartyHud(); }
+  else if (b.event === 'pd') toast(`${String(d.n || 'Um colega').slice(0, 16)} entrou na Gruta das Sombras. Vá até a caverna do Bosque Sussurrante para entrar junto!`);
+}
+function ptInvite(o) {
+  if (PT && ptCount() >= PT_MAX) { toast(`O grupo já está cheio (${PT_MAX} jogadores)`, 'small warn'); return; }
+  if (o.g) { toast(`${o.n} já está em um grupo`, 'small warn'); return; }
+  netCast('gi', { to: o.id, n: S.name, pid: PT ? PT.id : NET.id });
+  toast(`Convite enviado para ${o.n}`, 'small');
+}
+function ptGotInvite(d) {
+  if (PT) { netCast('gr', { to: d.id, ok: 0, why: 'já está em um grupo' }); return; }
+  const o = NET.others[d.id], cl = o ? classOf(o.c in CLASSES ? o.c : 'aprendiz', o.e in EVOS ? o.e : null) : CLASSES.aprendiz, at = performance.now(), nm = String(d.n || '?').slice(0, 16);
+  sfx('missao', .4, 1.3);
+  const D = dlgBase({ sprite: cl.sprite, name: nm, title: 'jogador' }, 'Convite para grupo', `${nm} convidou você para o grupo. Em grupo, quem estiver perto ganha experiência e progresso de missão juntos, e a Gruta das Sombras fica compartilhada.`);
+  D.btn('Recusar', () => { netCast('gr', { to: d.id, ok: 0 }); closeAll(); }, 'alt');
+  D.btn('Aceitar', () => { closeAll(); if (performance.now() - at > 60000) { toast('O convite expirou', 'small warn'); return; } ptJoin(String(d.pid), d.id); netCast('gr', { to: d.id, ok: 1 }); toast(`Você entrou no grupo de ${nm}`); });
+  open('dialog');
+}
+function ptGotReply(d) {
+  const o = NET.others[d.id], n = o ? o.n : 'O jogador';
+  if (d.ok) { if (!PT) ptJoin(NET.id, NET.id); toast(`${n} entrou no grupo!`); sfx('missao', .4, 1.2); }
+  else toast(`${n} recusou o convite${d.why ? ' (' + d.why + ')' : ''}`, 'small warn');
+}
+function ptHud(el) {
+  if (!PT) return 0;
+  const list = Object.values(PT.members);
+  list.forEach(m => {
+    const cl = classOf(m.c, m.e), here = m.z === W.zi, d = document.createElement('div');
+    d.className = 'pm real' + (here ? '' : ' far'); d.dataset.pid = m.id;
+    d.appendChild(portrait(cl.sprite, 40));
+    d.insertAdjacentHTML('beforeend', `<span><b>★ ${esc(m.n)}</b><small>${here ? `${cl.name} · Nv ${m.lv}` : esc((ZONES[m.z] || {}).name || 'longe')}</small><i class="hb"><i></i></i></span>`);
+    d.onclick = () => { const o = NET.others[m.id]; if (o) openPlayerMenu(o); else { const D = dlgBase({ sprite: cl.sprite, name: m.n, title: `${cl.name} · Nv ${m.lv}` }, 'Colega de grupo', `${m.n} está em ${(ZONES[m.z] || {}).name || 'outro lugar'}.`); D.btn('Sair do grupo', () => { ptLeave(); closeAll(); }, 'danger'); D.btn('Fechar', closeAll, 'alt'); open('dialog'); } };
+    el.appendChild(d);
+  });
+  if (!list.length) { const d = document.createElement('div'); d.className = 'pm real far'; d.innerHTML = '<span><b>★ Grupo</b><small>esperando colegas…</small></span>'; d.onclick = () => { const D = dlgBase({ sprite: CL().sprite, name: 'Grupo', title: 'jogadores' }, 'Seu grupo', 'Ninguém mais está conectado ao grupo agora.'); D.btn('Sair do grupo', () => { ptLeave(); closeAll(); }, 'danger'); D.btn('Fechar', closeAll, 'alt'); open('dialog'); }; el.appendChild(d); }
+  return 1;
+}
+function ptHudTick() {
+  if (!PT) return;
+  for (const m of Object.values(PT.members)) {
+    const bar = document.querySelector(`#party .pm[data-pid="${m.id}"] .hb i`); if (!bar) continue;
+    const o = NET.others[m.id], hp = o ? o.hp : m.hp, mh = o ? o.mh : m.mh, dead = o ? o.dead : m.dd;
+    bar.style.width = (dead ? 0 : clamp(hp / (mh || 1), 0, 1) * 100) + '%';
+  }
+}
+
+/* ---------- clique em outros jogadores ---------- */
+function hitTestExtra(wx, wy) {
+  if (S) { const o = remotes().find(o => Math.abs(wx - o.x) < 30 && wy > o.y - o.body.h - 10 && wy < o.y + 12); if (o) return { kind: 'goto', x: o.x, y: o.y + 20, stop: 90, run: () => { if (NET.others[o.id]) openPlayerMenu(o); } }; }
+  return hitTestBots(wx, wy);
+}
+function openPlayerMenu(o) {
+  const cl = classOf(o.c in CLASSES ? o.c : 'aprendiz', o.e in EVOS ? o.e : null), inPt = PT && o.g === PT.id;
+  const D = dlgBase({ sprite: cl.sprite, name: o.n, title: `${cl.name} · Nv ${o.lv || '?'} · jogador` }, inPt ? 'No seu grupo' : 'Aventureiro',
+    inPt ? 'Vocês dividem experiência e progresso de missão quando caçam perto um do outro.' : 'Em grupo, quem estiver perto ganha experiência e progresso de missão juntos, e a Gruta das Sombras fica compartilhada.');
+  if (!inPt) D.btn('Convidar para o grupo', () => { ptInvite(o); closeAll(); });
+  D.btn('Dar ouro', () => giftGoldMenu(o), 'alt');
+  D.btn('Dar item', () => giftItemMenu(o), 'alt');
+  if (inPt) D.btn('Sair do grupo', () => { ptLeave(); closeAll(); }, 'danger');
+  D.btn('Fechar', closeAll, 'alt'); open('dialog');
+}
+
+/* ---------- presentes: ouro e equipamentos ---------- */
+const GIFTS = {};
+function giftGoldMenu(o) {
+  const cl = classOf(o.c in CLASSES ? o.c : 'aprendiz', o.e in EVOS ? o.e : null);
+  const opts = [10, 50, 100, 500, 1000, 5000].filter(v => v <= S.gold);
+  const D = dlgBase({ sprite: cl.sprite, name: o.n, title: 'jogador' }, 'Dar ouro', opts.length ? `Você tem ${S.gold} ouro. Quanto quer dar para ${o.n}?` : 'Você não tem ouro suficiente.');
+  opts.forEach(v => D.btn(`${v} ouro`, () => { giftSend(o, { gold: v }); closeAll(); }, 'alt'));
+  D.btn('Voltar', () => openPlayerMenu(o)); open('dialog');
+}
+function giftItemMenu(o) {
+  const cl = classOf(o.c in CLASSES ? o.c : 'aprendiz', o.e in EVOS ? o.e : null), bag = S.bag.slice(0, 12);
+  const D = dlgBase({ sprite: cl.sprite, name: o.n, title: 'jogador' }, 'Dar item', bag.length ? `Escolha um equipamento da mochila para dar a ${o.n}. (Itens equipados não aparecem aqui.)` : 'Sua mochila não tem equipamentos para dar.');
+  bag.forEach(it => { const b = D.btn(itemName(it), () => { giftSend(o, { it }); closeAll(); }, 'alt'); b.style.color = itemColor(it); });
+  D.btn('Voltar', () => openPlayerMenu(o)); open('dialog');
+}
+function giftSend(o, g) {
+  if (!NET.others[o.id]) { toast(`${o.n} não está mais aqui`, 'small warn'); return; }
+  if (g.gold) { if (S.gold < g.gold) return; S.gold -= g.gold; }
+  if (g.it) { const i = S.bag.indexOf(g.it); if (i < 0) return; S.bag.splice(i, 1); }
+  save(); updateHud();
+  const gid = Math.random().toString(36).slice(2, 10);
+  GIFTS[gid] = { to: o.id, n: o.n, g, t: performance.now() };
+  netCast('gf', { to: o.id, gid, n: S.name, gold: g.gold || 0, it: g.it || null });
+  toast(`Oferta enviada para ${o.n}. Esperando resposta…`, 'small');
+}
+function giftRefund(gid, why) {
+  const x = GIFTS[gid]; if (!x) return; delete GIFTS[gid];
+  if (x.g.gold) S.gold += x.g.gold; if (x.g.it) S.bag.push(x.g.it);
+  save(); updateHud(); toast(`${x.n} ${why}. O presente voltou para você.`, 'small warn');
+}
+function giftTick() { const now = performance.now(); for (const k in GIFTS) if (now - GIFTS[k].t > 45000) giftRefund(k, 'não respondeu'); }
+function netSanitizeItem(it) {
+  if (!it || typeof it !== 'object' || !ITEMS[it.id]) return null;
+  const x = {}; if (it.x && typeof it.x === 'object') for (const [k] of ROLL_POOL) if (typeof it.x[k] === 'number' && isFinite(it.x[k])) x[k] = clamp(it.x[k], 0, 100);
+  const c = Array.isArray(it.c) ? it.c.filter(k => CARDS[k]).slice(0, 4) : [];
+  return mkItem(it.id, RARITY[it.r] ? it.r : 'comum', { up: clamp(Math.floor(+it.up || 0), 0, 10), x, c, s: clamp(Math.floor(+it.s || 0), c.length, 4) });
+}
+function giftGot(d) {
+  const gold = clamp(Math.floor(+d.gold || 0), 0, 1e6), it = netSanitizeItem(d.it), nm = String(d.n || '?').slice(0, 16), at = performance.now();
+  if (!gold && !it) return;
+  const o = NET.others[d.id], cl = o ? classOf(o.c in CLASSES ? o.c : 'aprendiz', o.e in EVOS ? o.e : null) : CLASSES.aprendiz;
+  sfx('moeda', .4);
+  const D = dlgBase({ sprite: cl.sprite, name: nm, title: 'jogador' }, 'Presente', `${nm} quer te dar ${it ? itemName(it) : gold + ' ouro'}.`);
+  D.btn('Recusar', () => { netCast('ga', { to: d.id, gid: d.gid, ok: 0 }); closeAll(); }, 'alt');
+  D.btn('Aceitar', () => {
+    closeAll();
+    if (performance.now() - at > 40000 || !NET.others[d.id]) { toast('A oferta expirou', 'small warn'); return; }
+    if (gold) S.gold += gold; if (it) giveItem(it, true);
+    save(); updateHud(); netCast('ga', { to: d.id, gid: d.gid, ok: 1 });
+    sfx('item', .5); toast(`Você recebeu ${it ? itemName(it) : gold + ' ouro'} de ${nm}!`);
+  });
+  open('dialog');
+}
+function giftReply(d) {
+  const x = GIFTS[d.gid]; if (!x) return;
+  if (d.ok) { delete GIFTS[d.gid]; toast(`${x.n} aceitou o presente!`, 'small'); sfx('moeda', .4); }
+  else giftRefund(d.gid, 'recusou');
+}
 
 start();
 window.__game = { W, get P() { return P; }, get PET() { return PET; }, S: () => S, SAVE: () => SAVE, castSkill, setTarget, loadZone, changeClass, evolveTo, gainXp, dropLoot, openSheet, playChar, openNpc, openShop, openBag, startGather, npcById, mkItem, giveItem, grant, CL, netConnect: () => netConnect(), netChat: t => netChat(t), NET: () => NET };
