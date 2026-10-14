@@ -362,6 +362,15 @@ body.touch #quest{position:fixed;left:8px;top:104px;width:min(240px,30vw)}
 @media (max-height:520px){body.touch #quest{top:112px;width:min(210px,26vw)}}
 body.touch #side{grid-template-rows:auto auto auto}
 @media (max-height:520px){body.touch #atkBtn{width:66px;height:66px;right:12px;bottom:12px}body.touch #atkBtn img{width:38px;height:38px}body.touch #bar{right:12px;bottom:12px;width:66px;height:66px}body.touch #bar .sk{left:10px;top:10px;width:46px;height:46px}body.touch #tgtBtn{right:20px;bottom:20px;width:46px;height:46px;font-size:21px}body.touch #actBtn{bottom:10px}}
+#treeBtn{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Ccircle cx='18' cy='18' r='16' fill='%233a1606'/%3E%3Ccircle cx='18' cy='18' r='13.5' fill='%237a5fb0'/%3E%3Cpath d='M18 18L18 8M18 18L9 23M18 18L27 23' stroke='%23e5b850' stroke-width='2.4'/%3E%3Ccircle cx='18' cy='18' r='3.6' fill='%23fff6dc' stroke='%233a1606' stroke-width='1.5'/%3E%3Ccircle cx='18' cy='8' r='3' fill='%23ff7a5a' stroke='%233a1606' stroke-width='1.5'/%3E%3Ccircle cx='9' cy='23' r='3' fill='%238fe0e6' stroke='%233a1606' stroke-width='1.5'/%3E%3Ccircle cx='27' cy='23' r='3' fill='%239fe08a' stroke='%233a1606' stroke-width='1.5'/%3E%3C/svg%3E") center/100% 100% no-repeat;position:relative}
+#treeBtn.alert::after{content:attr(data-n);position:absolute;top:-5px;right:-5px;min-width:16px;height:16px;border-radius:8px;background:var(--pink,#e0457b);color:#fff;font-size:10px;font-weight:700;line-height:16px;border:2px solid #1b1430}
+.ptcard{width:min(980px,96vw)}
+#ptCanvas{display:block;width:100%;height:min(58vh,560px);touch-action:none;border:2px solid #4a3324;border-radius:4px;cursor:grab;margin:6px 0}
+.pthead{padding-right:44px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-family:var(--display);color:var(--gold2,#e5b850)}
+.pthead .ghost{min-height:28px;font-size:13px;margin-left:4px}
+.ptinfo{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:46px;padding:6px 10px;background:rgba(29,18,14,.55);border:1px solid #4a3324;border-radius:3px;font-size:13px}
+.ptinfo span{display:grid;gap:1px}.ptinfo small{color:var(--muted,#cbb);font-size:11px}.ptinfo b{font-family:var(--display);font-size:16px}.ptinfo em{color:#9fe08a;font-style:normal}
+@media (max-height:520px){#ptCanvas{height:46vh}.ptcard h2{display:none}.ptinfo{min-height:36px;padding:4px 8px}}
 #dayBtn{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Ccircle cx='18' cy='18' r='16' fill='%233a1606'/%3E%3Ccircle cx='18' cy='18' r='13.5' fill='%23e5b850'/%3E%3Crect x='10' y='11' width='16' height='15' rx='2' fill='%23fff6dc' stroke='%233a1606' stroke-width='2'/%3E%3Crect x='10' y='11' width='16' height='5' fill='%23c2462e' stroke='%233a1606' stroke-width='2'/%3E%3Cpath d='M14 21l3 3 5-6' fill='none' stroke='%233a1606' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E") center/100% 100% no-repeat;position:relative}
 #dayBtn.alert::after{content:attr(data-n);position:absolute;top:-5px;right:-5px;min-width:16px;height:16px;border-radius:8px;background:var(--pink,#e0457b);color:#fff;font-size:10px;font-weight:700;line-height:16px;border:2px solid #1b1430}
 #dayBtn.alert{animation:dayPulse 1.6s ease-in-out infinite}
@@ -549,6 +558,7 @@ body.touch #quest .eyebrow::after{content:' ▾'}
         <span class="coin" id="gold" title="Ouro">0</span>
         <button class="ghost" id="bagBtn" type="button">Mochila</button>
         <button class="ghost" id="sheetBtn" type="button" title="Atributos e habilidades (tecla C)">Ficha</button>
+        <button class="ico" id="treeBtn" type="button" title="Árvore de talentos (tecla P)"><span>Talentos</span></button>
         <button class="ico" id="dayBtn" type="button" title="Diário: prêmio do dia e missões"><span>Diário</span></button>
         <button class="ico" id="exitBtn" type="button" title="Trocar de personagem"><span>Trocar de personagem</span></button>
         <button class="ico" id="helpBtn" type="button" title="Menu e ajuda"><span>Menu e ajuda</span></button>
@@ -666,6 +676,15 @@ body.touch #quest .eyebrow::after{content:' ▾'}
       <p class="sub">O obelisco leva a qualquer região que você já visitou.</p>
       <div class="trips" id="trList"></div>
       <div class="actions"><button class="btn alt" type="button" data-close>Ficar aqui</button></div>
+    </div>
+  </div>
+  <div class="overlay" id="tree" hidden>
+    <div class="card wide ptcard" role="dialog" aria-labelledby="ptTitle">
+      <button class="x" type="button" data-close aria-label="Fechar"></button>
+      <h2 id="ptTitle" class="ribbon">Talentos</h2>
+      <div class="pthead"><span id="ptPts"></span><span><button class="ghost" type="button" id="ptZout">−</button><button class="ghost" type="button" id="ptZin">+</button><button class="ghost" type="button" id="ptCenter">Centro</button><button class="ghost" type="button" id="ptReset">Refazer</button></span></div>
+      <canvas id="ptCanvas"></canvas>
+      <div class="ptinfo" id="ptInfo"></div>
     </div>
   </div>
   <div class="overlay" id="daily" hidden>
@@ -5398,6 +5417,146 @@ if (_netTopicF) netTopicFor = function (zone) { if (ZONES[zone] && ZONES[zone].f
 
 const _darkF = darkness;
 darkness = function () { return W.zone && W.zone.fenda ? .42 : _darkF(); };
+
+/* ================= Árvore de talentos passivos (estilo Path of Exile) ================= */
+OVERLAYS.push('tree');
+// seis ramos, um por atributo; anéis ligam ramos vizinhos para criar caminhos híbridos
+const TB = [
+  { k: 'for', c: '#ff7a5a', p: ['dmgp', .03, 'dano'], n: [['Força Bruta', { for: 6, dmgp: .08 }], ['Golpe Esmagador', { dmgp: .12, crit: .03 }]], ks: ['Fúria do Gigante', { dmgp: .5, aspd: -.15 }, '+50% de dano, mas -15% de velocidade de ataque.'] },
+  { k: 'int', c: '#7ab8ff', p: ['dmgp', .025, 'dano'], n: [['Erudito', { int: 6, hpp: .06 }], ['Canalizador', { dmgp: .1, aspd: .05 }]], ks: ['Mente Arcana', { hpp: -.1 }, 'A cada 8 s, ganha um escudo de 20% da vida máxima; -10% de vida.'] },
+  { k: 'des', c: '#9fe08a', p: ['crit', .012, 'crítico'], n: [['Mira Firme', { des: 6, crit: .04 }], ['Ponto Fraco', { crit: .06, dmgp: .08 }]], ks: ['Olho de Águia', { crit: .25, hpp: -.2 }, '+25% de chance de crítico, mas -20% de vida.'] },
+  { k: 'vit', c: '#ffb35a', p: ['hpp', .03, 'vida'], n: [['Robusto', { vit: 6, hpp: .08 }], ['Couraça', { def: .05, hp: 40 }]], ks: ['Coração de Pedra', { hpp: .4, def: .1, dmgp: -.2 }, '+40% de vida e +10% de defesa, mas -20% de dano.'] },
+  { k: 'agi', c: '#8fe0e6', p: ['dodge', .012, 'esquiva'], n: [['Reflexos', { agi: 6, dodge: .04 }], ['Vendaval', { aspd: .08, move: .05 }]], ks: ['Dança das Lâminas', { aspd: .25, move: .15, hpp: -.15 }, '+25% de velocidade de ataque e +15% de movimento, mas -15% de vida.'] },
+  { k: 'sor', c: '#e4a8ff', p: ['drop', .05, 'drop'], n: [['Trevo de Quatro Folhas', { sor: 6, drop: .1 }], ['Sede de Sangue', { steal: .03, sor: 4 }]], ks: ['Pacto do Acaso', { drop: .6, steal: .04, dmgp: -.1 }, '+60% de drop e 4% de roubo de vida, mas -10% de dano.'] }
+];
+const PNAME = { for: 'Força', int: 'Inteligência', des: 'Destreza', vit: 'Vitalidade', agi: 'Agilidade', sor: 'Sorte' };
+const PPCT = { dmgp: 'dano', crit: 'crítico', hpp: 'vida', dodge: 'esquiva', drop: 'drop', aspd: 'vel. ataque', move: 'movimento', def: 'defesa', steal: 'roubo de vida' };
+function ptFxText(fx) { return Object.entries(fx).map(([k, v]) => PNAME[k] ? `${v > 0 ? '+' : ''}${v} ${PNAME[k]}` : k === 'hp' ? `+${v} vida` : `${v > 0 ? '+' : ''}${Math.round(v * 100)}% ${PPCT[k] || k}`).join(', '); }
+const PT_NODES = {}, PT_EDGES = [];
+(function buildTree() {
+  const add = (id, x, y, type, name, fx, c, desc) => { PT_NODES[id] = { id, x, y, type, name, fx, c, desc, adj: [] }; };
+  const link = (a, b) => { PT_NODES[a].adj.push(b); PT_NODES[b].adj.push(a); PT_EDGES.push([a, b]); };
+  add('start', 0, 0, 'start', 'Despertar', {}, '#fff6dc', 'O começo do seu caminho.');
+  const step = 62;
+  TB.forEach((B, i) => {
+    const a = -Math.PI / 2 + i * Math.PI / 3, P = (r, off) => [Math.cos(a + (off || 0)) * r * step, Math.sin(a + (off || 0)) * r * step];
+    let prev = 'start';
+    for (let r = 1; r <= 8; r++) {
+      const id = `${B.k}${r}`, [x, y] = P(r + .6);
+      if (r === 3 || r === 6) { const [nm, fx] = B.n[r === 3 ? 0 : 1]; add(id, x, y, 'notable', nm, fx, B.c); }
+      else if (r === 8) add(id, x, y, 'key', B.ks[0], B.ks[1], B.c, B.ks[2]);
+      else { const fx = r % 2 ? { [B.k]: 2 } : { [B.p[0]]: B.p[1] }; add(id, x, y, 'small', r % 2 ? PNAME[B.k] : `Talento de ${B.p[2]}`, fx, B.c); }
+      link(prev, id); prev = id;
+    }
+    // ramos laterais curtos (dois nós extras em r2 e r5)
+    [2, 5].forEach(r => [-1, 1].forEach(s => {
+      const id1 = `${B.k}${r}s${s}a`, id2 = `${B.k}${r}s${s}b`, [x1, y1] = P(r + .9, s * .2), [x2, y2] = P(r + 1.5, s * .26);
+      add(id1, x1, y1, 'small', PNAME[B.k], { [B.k]: 2 }, B.c); add(id2, x2, y2, 'small', `Talento de ${B.p[2]}`, { [B.p[0]]: B.p[1] * 1.5 }, B.c);
+      link(`${B.k}${r}`, id1); link(id1, id2);
+    }));
+  });
+  // anéis: notáveis de ramos vizinhos se ligam por dois nós híbridos
+  [3, 6].forEach(r => TB.forEach((B, i) => {
+    const C = TB[(i + 1) % 6], a1 = -Math.PI / 2 + i * Math.PI / 3, a2 = a1 + Math.PI / 3, R = (r + .6) * step;
+    const m = [1 / 3, 2 / 3].map(t => { const ang = a1 + (a2 - a1) * t; return [Math.cos(ang) * R * 1.02, Math.sin(ang) * R * 1.02]; });
+    const h1 = `h${r}${B.k}${C.k}a`, h2 = `h${r}${B.k}${C.k}b`;
+    add(h1, m[0][0], m[0][1], 'small', `${PNAME[B.k]} e ${PNAME[C.k]}`, { [B.k]: 1, [C.k]: 1 }, '#d8c8a8');
+    add(h2, m[1][0], m[1][1], 'small', `${PNAME[B.k]} e ${PNAME[C.k]}`, { [B.k]: 1, [C.k]: 1, hp: 10 }, '#d8c8a8');
+    link(`${B.k}${r}`, h1); link(h1, h2); link(h2, `${C.k}${r}`);
+  }));
+})();
+const ptSet = () => new Set(S.ptree || []);
+const ptPoints = () => Math.max(0, S.blvl - 1) - (S.ptree || []).length;
+const hasK = name => S && (S.ptree || []).some(id => PT_NODES[id] && PT_NODES[id].type === 'key' && PT_NODES[id].name === name);
+function ptCanTake(id) { const n = PT_NODES[id], set = ptSet(); if (!n || set.has(id) || ptPoints() <= 0) return false; return n.adj.some(a => a === 'start' || set.has(a)); }
+// os bônus entram junto com os dos equipamentos
+const _gearAllT = gearAll;
+gearAll = function () {
+  if (_gearCache) return _gearCache;
+  const g = _gearAllT(); if (!S || !S.ptree) return g;
+  S.ptree.forEach(id => { const n = PT_NODES[id]; if (!n) return; for (const k in n.fx) { const v = n.fx[k]; if (k === 'hp' || k === 'dmg') g[k] += v; else if (PNAME[k]) g.bonus[k] = (g.bonus[k] || 0) + v; else g.pct[k] = (g.pct[k] || 0) + v; } });
+  return g;
+};
+// Mente Arcana: escudo periódico
+let _arcT = 0;
+const _updDT = updateDungeon;
+updateDungeon = function (dt) { _updDT(dt); if (S && P && !P.dead && hasK('Mente Arcana')) { _arcT -= dt; if (_arcT <= 0) { _arcT = 8; P.shieldHp = Math.max(P.shieldHp || 0, maxHp() * .2); FX.ring(P.x, P.y, 60, '#7ab8ff', .6, 4); } } };
+// aviso ao subir de nível
+const _gainXpT = gainXp;
+gainXp = function (b, j) { const l0 = S.blvl; _gainXpT(b, j); if (S.blvl > l0) { later(1.8, () => toast(`+${S.blvl - l0} ponto${S.blvl - l0 > 1 ? 's' : ''} de talento (tecla P ou Ficha)`, 'small')); ptBadge(); } };
+
+/* ---------- tela da árvore: arrastar, zoom e tocar para escolher ---------- */
+const TV = { x: 0, y: 0, z: .8, sel: null, ptrs: new Map(), moved: 0 };
+function openTree() {
+  S.ptree = S.ptree || []; open('tree'); TV.sel = TV.sel || null;
+  requestAnimationFrame(() => { treeSize(); treeDraw(); treeInfo(); });
+}
+function treeSize() { const c = $('ptCanvas'), r = c.getBoundingClientRect(), d = Math.min(2, devicePixelRatio || 1); c.width = r.width * d; c.height = r.height * d; TV.d = d; if (!TV.fit) { TV.fit = 1; TV.z = clamp(Math.min(r.width, r.height) / 820, .5, 1); } }
+function treeDraw() {
+  const c = $('ptCanvas'); if (!c || $('tree').hidden) return;
+  const g = c.getContext('2d'), d = TV.d || 1, set = ptSet(), W2 = c.width / 2, H2 = c.height / 2, z = TV.z * d;
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  const bg = g.createRadialGradient(W2, H2, 0, W2, H2, Math.max(W2, H2)); bg.addColorStop(0, '#2a2038'); bg.addColorStop(1, '#0e0a16'); g.fillStyle = bg; g.fillRect(0, 0, c.width, c.height);
+  g.setTransform(z, 0, 0, z, W2 + TV.x * d, H2 + TV.y * d);
+  g.strokeStyle = 'rgba(180,160,220,.08)'; g.lineWidth = 2 / TV.z; [3.6, 6.6].forEach(r => { g.beginPath(); g.arc(0, 0, r * 62, 0, 7); g.stroke(); });
+  for (const [a, b] of PT_EDGES) {
+    const A = PT_NODES[a], B = PT_NODES[b], on = (set.has(a) || a === 'start') && (set.has(b) || b === 'start'), av = !on && ((set.has(a) || a === 'start') || (set.has(b) || b === 'start'));
+    g.strokeStyle = on ? '#e5b850' : av ? 'rgba(229,184,80,.45)' : 'rgba(140,130,160,.35)'; g.lineWidth = on ? 5 : 3; g.beginPath(); g.moveTo(A.x, A.y); g.lineTo(B.x, B.y); g.stroke();
+  }
+  const can = ptPoints() > 0;
+  for (const id in PT_NODES) {
+    const n = PT_NODES[id], on = set.has(id) || id === 'start', av = !on && can && ptCanTake(id), R = n.type === 'key' ? 22 : n.type === 'notable' ? 15 : n.type === 'start' ? 16 : 9;
+    if (av) { g.globalAlpha = .35 + Math.sin(performance.now() / 250) * .2; g.fillStyle = '#ffe27a'; g.beginPath(); g.arc(n.x, n.y, R + 7, 0, 7); g.fill(); g.globalAlpha = 1; }
+    g.fillStyle = on ? n.c : '#2b2436'; g.strokeStyle = on ? '#fff6dc' : av ? '#ffe27a' : n.c; g.lineWidth = n.type === 'small' ? 2.5 : 4;
+    g.beginPath(); if (n.type === 'key') { for (let k = 0; k < 8; k++) { const ang = k / 8 * 6.283 + .39, rr = k % 2 ? R * .8 : R; g.lineTo(n.x + Math.cos(ang) * rr, n.y + Math.sin(ang) * rr); } g.closePath(); } else g.arc(n.x, n.y, R, 0, 7);
+    g.fill(); g.stroke();
+    if (TV.sel === id) { g.strokeStyle = '#ffffff'; g.lineWidth = 2; g.setLineDash([4, 4]); g.beginPath(); g.arc(n.x, n.y, R + 6, 0, 7); g.stroke(); g.setLineDash([]); }
+    if (n.type !== 'small' && TV.z > .45) { g.font = `600 ${13 / Math.max(.6, TV.z)}px system-ui,sans-serif`; g.textAlign = 'center'; g.lineWidth = 3; g.strokeStyle = '#0e0a16'; g.strokeText(n.name, n.x, n.y + R + 15); g.fillStyle = on ? '#fff6dc' : '#bdb0d0'; g.fillText(n.name, n.x, n.y + R + 15); }
+  }
+  if ($('ptPts')) $('ptPts').textContent = `${ptPoints()} ponto${ptPoints() === 1 ? '' : 's'} para gastar · ${(S.ptree || []).length} aprendidos`;
+  if (can) requestAnimationFrame(treeDraw);
+}
+function treeInfo() {
+  const box = $('ptInfo'), n = PT_NODES[TV.sel];
+  if (!n) { box.innerHTML = `<span>Toque num talento para ver o que ele dá. Você só pode aprender talentos ligados aos que já tem (comece pelo centro).</span>`; return; }
+  const set = ptSet(), on = set.has(n.id) || n.id === 'start', ok = ptCanTake(n.id);
+  const kind = n.type === 'key' ? 'Pedra-chave' : n.type === 'notable' ? 'Notável' : n.type === 'start' ? 'Início' : 'Talento';
+  box.innerHTML = `<span><small>${kind}</small><b style="color:${n.c}">${n.name}</b>${n.desc && n.type === 'key' ? n.desc : ptFxText(n.fx) || n.desc || ''}</span>` +
+    (on ? `<em>Aprendido</em>` : `<button class="btn" type="button" id="ptTake" ${ok ? '' : 'disabled'}>${ptPoints() <= 0 ? 'Sem pontos' : ok ? 'Aprender' : 'Longe demais'}</button>`);
+  const b = $('ptTake'); if (b) b.onclick = () => { if (!ptCanTake(n.id)) return; S.ptree.push(n.id); gearDirty(); P.hp = Math.min(P.hp, maxHp()); sfx(n.type === 'small' ? 'clique' : 'refino', .45); save(); treeInfo(); treeDraw(); ptBadge(); };
+}
+function treePick(px, py) {
+  const c = $('ptCanvas'), r = c.getBoundingClientRect(), x = (px - r.left - r.width / 2 - TV.x) / TV.z, y = (py - r.top - r.height / 2 - TV.y) / TV.z;
+  let best = null, bd = 1e9; for (const id in PT_NODES) { const n = PT_NODES[id], dd = Math.hypot(n.x - x, n.y - y); if (dd < bd) { bd = dd; best = id; } }
+  if (bd < 30 / Math.min(1, TV.z) * .9) { TV.sel = best; sfx('clique', .2); treeInfo(); treeDraw(); }
+}
+(function bindTree() {
+  const c = $('ptCanvas');
+  c.addEventListener('pointerdown', e => { c.setPointerCapture(e.pointerId); TV.ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY }); TV.moved = 0; });
+  c.addEventListener('pointermove', e => {
+    const p = TV.ptrs.get(e.pointerId); if (!p) return;
+    if (TV.ptrs.size === 1) { TV.x += e.clientX - p.x; TV.y += e.clientY - p.y; TV.moved += Math.abs(e.clientX - p.x) + Math.abs(e.clientY - p.y); }
+    else { const o = [...TV.ptrs.entries()].find(([k]) => k !== e.pointerId)[1], d0 = Math.hypot(p.x - o.x, p.y - o.y), d1 = Math.hypot(e.clientX - o.x, e.clientY - o.y); if (d0 > 10) TV.z = clamp(TV.z * d1 / d0, .3, 2); TV.moved += 20; }
+    p.x = e.clientX; p.y = e.clientY; treeDraw();
+  });
+  const up = e => { if (TV.ptrs.size === 1 && TV.moved < 8) treePick(e.clientX, e.clientY); TV.ptrs.delete(e.pointerId); };
+  c.addEventListener('pointerup', up); c.addEventListener('pointercancel', e => TV.ptrs.delete(e.pointerId));
+  c.addEventListener('wheel', e => { e.preventDefault(); TV.z = clamp(TV.z * (e.deltaY < 0 ? 1.12 : .89), .3, 2); treeDraw(); }, { passive: false });
+  $('ptZin').onclick = () => { TV.z = clamp(TV.z * 1.25, .3, 2); treeDraw(); };
+  $('ptZout').onclick = () => { TV.z = clamp(TV.z * .8, .3, 2); treeDraw(); };
+  $('ptCenter').onclick = () => { TV.x = TV.y = 0; treeDraw(); };
+  $('ptReset').onclick = () => {
+    const cost = 40 * S.blvl; if (!(S.ptree || []).length) return;
+    const D = dlgBase({ sprite: 'lira', name: 'Árvore de Talentos', title: 'Refazer' }, 'Refazer a árvore?', `Todos os ${S.ptree.length} talentos voltam como pontos livres. Custa ${cost} de ouro (você tem ${S.gold}).`);
+    D.btn('Cancelar', openTree, 'alt'); D.btn(`Refazer (${cost} ouro)`, () => { if (S.gold < cost) { toast('Ouro insuficiente', 'small warn'); openTree(); return; } S.gold -= cost; S.ptree = []; gearDirty(); P.hp = Math.min(P.hp, maxHp()); save(); toast('Árvore refeita'); openTree(); });
+    open('dialog');
+  };
+  window.addEventListener('resize', () => { if (!$('tree').hidden) { treeSize(); treeDraw(); } });
+  window.addEventListener('keydown', e => { if (!S || e.target.tagName === 'INPUT') return; if (e.key.toLowerCase() === 'p') { if (!$('tree').hidden) closeAll(); else if (!anyOpen()) openTree(); } });
+})();
+function ptBadge() { const b = $('treeBtn'); if (b && S) { const n = ptPoints(); b.classList.toggle('alert', n > 0); b.dataset.n = n; } }
+setInterval(() => { if (S) ptBadge(); }, 5000);
+$('treeBtn').onclick = () => { sfx('clique', .3); openTree(); };
 
 start();
 window.__game = { W, get P() { return P; }, get PET() { return PET; }, S: () => S, SAVE: () => SAVE, castSkill, setTarget, loadZone, changeClass, evolveTo, gainXp, dropLoot, openSheet, playChar, openNpc, openShop, openBag, startGather, npcById, mkItem, giveItem, grant, CL, netConnect: () => netConnect(), netChat: t => netChat(t), NET: () => NET };
