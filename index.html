@@ -362,6 +362,32 @@ body.touch #quest{position:fixed;left:8px;top:104px;width:min(240px,30vw)}
 @media (max-height:520px){body.touch #quest{top:112px;width:min(210px,26vw)}}
 body.touch #side{grid-template-rows:auto auto auto}
 @media (max-height:520px){body.touch #atkBtn{width:66px;height:66px;right:12px;bottom:12px}body.touch #atkBtn img{width:38px;height:38px}body.touch #bar{right:12px;bottom:12px;width:66px;height:66px}body.touch #bar .sk{left:10px;top:10px;width:46px;height:46px}body.touch #tgtBtn{right:20px;bottom:20px;width:46px;height:46px;font-size:21px}body.touch #actBtn{bottom:10px}}
+#dayBtn{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Ccircle cx='18' cy='18' r='16' fill='%233a1606'/%3E%3Ccircle cx='18' cy='18' r='13.5' fill='%23e5b850'/%3E%3Crect x='10' y='11' width='16' height='15' rx='2' fill='%23fff6dc' stroke='%233a1606' stroke-width='2'/%3E%3Crect x='10' y='11' width='16' height='5' fill='%23c2462e' stroke='%233a1606' stroke-width='2'/%3E%3Cpath d='M14 21l3 3 5-6' fill='none' stroke='%233a1606' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E") center/100% 100% no-repeat;position:relative}
+#dayBtn.alert::after{content:attr(data-n);position:absolute;top:-5px;right:-5px;min-width:16px;height:16px;border-radius:8px;background:var(--pink,#e0457b);color:#fff;font-size:10px;font-weight:700;line-height:16px;border:2px solid #1b1430}
+#dayBtn.alert{animation:dayPulse 1.6s ease-in-out infinite}
+@keyframes dayPulse{50%{transform:scale(1.12);filter:drop-shadow(0 0 6px #ffd27a)}}
+.dycal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:8px 0}
+.dyday{display:grid;justify-items:center;gap:2px;padding:6px 3px;background:rgba(29,18,14,.55);border:2px solid #4a3324;border-radius:4px;text-align:center;position:relative}
+.dyday small{font-family:var(--display);color:var(--gold2,#e5b850);font-size:12px}.dyday span{font-size:11px;line-height:1.15;color:var(--muted,#cbb)}
+.dyday .iic{width:34px;height:34px}.dyday.big{border-color:#c78cff;background:rgba(70,30,90,.5)}
+.dyday.now{border-color:#ffd27a;box-shadow:0 0 12px rgba(255,210,122,.6);animation:dayPulse 1.6s ease-in-out infinite}
+.dyday.got{opacity:.55}.dyday.got::after{content:"✔";position:absolute;inset:0;display:grid;place-items:center;font-size:30px;color:#9fe08a;text-shadow:0 2px 0 #1b1430}
+.dyh{margin-top:10px}.dymis{display:grid;gap:5px;margin:6px 0}
+.dym{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:6px 10px;background:rgba(29,18,14,.55);border:1px solid #4a3324;border-radius:3px}
+.dym span{display:grid;gap:2px;position:relative}.dym small{color:var(--muted,#cbb);font-size:12px}
+.dym i{display:block;height:5px;background:#e5b850;border-radius:3px;max-width:100%}.dym.ok{border-color:#9fe08a}.dym.got{opacity:.6}.dym.got i{background:#9fe08a}
+.dym .btn{min-height:30px;font-size:13px}
+#tutBox{position:absolute;top:96px;left:50%;transform:translateX(-50%);width:min(380px,46vw);display:grid;grid-template-columns:1fr auto;column-gap:8px;background:rgba(20,30,40,.9);border:2px solid #8fe0e6;border-radius:6px;padding:6px 10px;color:#eaf8fa;z-index:5;box-shadow:0 0 14px rgba(143,224,230,.35)}
+#tutBox small{grid-column:1;color:#8fe0e6;font-size:11px;font-family:var(--display)}#tutBox b{grid-column:1;font-family:var(--display);font-size:16px;color:#ffd27a}
+#tutBox span{grid-column:1;font-size:13px;line-height:1.25}#tutBox button{grid-column:2;grid-row:1/4;align-self:center;background:none;border:1px solid #5a7a80;color:#a9c8cc;border-radius:4px;font-size:12px;padding:3px 8px}
+#riftBar{position:absolute;bottom:92px;left:50%;transform:translateX(-50%);width:min(360px,44vw);background:rgba(24,12,40,.9);border:2px solid #b48cff;border-radius:5px;padding:4px 8px;z-index:5;pointer-events:none;box-shadow:0 0 14px rgba(180,140,255,.4)}
+#riftBar .rt{display:flex;justify-content:space-between;font-size:13px;color:#efe6ff}#riftBar b{font-family:var(--display);color:#d7c2ff}
+#riftBar .rb{height:9px;background:#120a20;border:1px solid #4a3a7a;border-radius:4px;overflow:hidden;margin-top:3px}#riftBar .rb i{display:block;height:100%;width:0;background:linear-gradient(90deg,#7a5fb0,#b48cff,#e8dcff);transition:width .3s}
+#riftBar.boss .rb i{background:linear-gradient(90deg,#b0402a,#ff8a3a)}#riftBar.late #rfTime{color:#ff8a7a}
+.fdtiers{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px;max-height:46vh;overflow:auto;margin:8px 0}
+.fdtiers button{display:grid;gap:2px;padding:6px;background:rgba(36,14,54,.75);border:2px solid #5a4a8a;border-radius:4px;color:#efe6ff;font-family:var(--display);font-size:16px}
+.fdtiers button small{font-family:system-ui,sans-serif;font-size:11px;color:#b8a8d8}.fdtiers button.rec{border-color:#ffd27a}.fdtiers button:disabled{opacity:.4}
+@media (max-height:520px){#tutBox{top:auto;bottom:8px;width:min(330px,42vw);padding:4px 8px}#tutBox b{font-size:14px}#tutBox span{font-size:11.5px}#riftBar{bottom:8px}.dyday .iic{width:26px;height:26px}.dyday span{font-size:10px}.dycal{gap:3px}}
 #wbBanner{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(36,14,54,.88);border:2px solid #b48cff;color:#efe6ff;padding:3px 12px;border-radius:4px;font-size:13px;pointer-events:none;white-space:nowrap;z-index:5;box-shadow:0 0 12px rgba(180,140,255,.35)}
 #wbBanner b{font-family:var(--display);color:#d7c2ff;margin-right:6px}
 #wbBanner.here{border-color:#ffd27a;box-shadow:0 0 16px rgba(255,210,122,.5)}
@@ -523,6 +549,7 @@ body.touch #quest .eyebrow::after{content:' ▾'}
         <span class="coin" id="gold" title="Ouro">0</span>
         <button class="ghost" id="bagBtn" type="button">Mochila</button>
         <button class="ghost" id="sheetBtn" type="button" title="Atributos e habilidades (tecla C)">Ficha</button>
+        <button class="ico" id="dayBtn" type="button" title="Diário: prêmio do dia e missões"><span>Diário</span></button>
         <button class="ico" id="exitBtn" type="button" title="Trocar de personagem"><span>Trocar de personagem</span></button>
         <button class="ico" id="helpBtn" type="button" title="Menu e ajuda"><span>Menu e ajuda</span></button>
       </div>
@@ -536,6 +563,8 @@ body.touch #quest .eyebrow::after{content:' ▾'}
     </section>
     <section id="log" aria-live="polite"></section>
     <div id="wbBanner" hidden></div>
+    <div id="tutBox" hidden><small id="tutN">Tutorial</small><b id="tutT"></b><span id="tutD"></span><button type="button" id="tutSkip">Pular</button></div>
+    <div id="riftBar" hidden><div class="rt"><b id="rfName">Fenda do Véu</b><span id="rfTime">5:00</span></div><div class="rb"><i id="rfFill"></i></div></div>
   <span id="onlineBadge" hidden>Online</span>
     <button class="ico" id="chatBtn" type="button" title="Conversar (Enter)"><span>Conversar</span></button>
     <form id="chatForm" hidden><label class="sr" for="chatIn">Mensagem</label><input id="chatIn" maxlength="80" autocomplete="off" placeholder="Escreva e aperte Enter"></form>
@@ -637,6 +666,28 @@ body.touch #quest .eyebrow::after{content:' ▾'}
       <p class="sub">O obelisco leva a qualquer região que você já visitou.</p>
       <div class="trips" id="trList"></div>
       <div class="actions"><button class="btn alt" type="button" data-close>Ficar aqui</button></div>
+    </div>
+  </div>
+  <div class="overlay" id="daily" hidden>
+    <div class="card wide" role="dialog" aria-labelledby="dyTitle">
+      <button class="x" type="button" data-close aria-label="Fechar"></button>
+      <h3>Entre todo dia: o 7º dia tem item épico</h3>
+      <h2 id="dyTitle" class="ribbon">Diário</h2>
+      <div class="dycal" id="dyCal"></div>
+      <div class="actions"><button class="btn" type="button" id="dyClaim">Receber</button></div>
+      <h3 class="dyh">Missões de hoje</h3>
+      <div class="dymis" id="dyMis"></div>
+      <p class="sub" id="dySub"></p>
+    </div>
+  </div>
+  <div class="overlay" id="fenda" hidden>
+    <div class="card wide" role="dialog" aria-labelledby="fdTitle">
+      <button class="x" type="button" data-close aria-label="Fechar"></button>
+      <h3>Desafio sem fim: quanto mais alto o nível, melhor o saque</h3>
+      <h2 id="fdTitle" class="ribbon">Fenda do Véu</h2>
+      <p class="sub" id="fdSub"></p>
+      <div class="fdtiers" id="fdTiers"></div>
+      <div class="actions"><button class="btn alt" type="button" data-close>Agora não</button></div>
     </div>
   </div>
   <div class="overlay" id="rank" hidden>
@@ -3121,7 +3172,7 @@ function marketRefresh() {
   const now = Date.now(); marketTick();
   if (now - S.market.at < 5 * 60000 && S.market.offers.length) return;
   S.market.at = now; S.market.offers = [];
-  const lv = S.blvl, pool = Object.keys(ITEMS).filter(id => ITEMS[id].lvl <= lv + 4 && ITEMS[id].lvl >= lv - 8);
+  const lv = S.blvl, pool = Object.keys(ITEMS).filter(id => !ITEMS[id].uniq && ITEMS[id].lvl <= lv + 4 && ITEMS[id].lvl >= lv - 8);
   for (let k = 0; k < 7; k++) {
     const by = MARKET_NAMES[rint(0, MARKET_NAMES.length - 1)];
     if (k < 4 && pool.length) { const id = pool[rint(0, pool.length - 1)], it = mkItem(id, 'comum'); if (typeof rollRarity === 'function') rollRarity(it, { lvl: ITEMS[id].lvl }, .08); if (typeof rollSockets === 'function') rollSockets(it); S.market.offers.push({ it, by, price: Math.round(itemValue(it) * rnd(2, 3.2)) }); }
@@ -3452,6 +3503,7 @@ function paintDungeon(z, r) {
     const sh = g.createLinearGradient(0, y0, 0, y0 + 60); sh.addColorStop(0, 'rgba(0,0,0,.6)'); sh.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = sh; g.fillRect(x0, y0, x1 - x0, 60);
   });
   // tapete até o trono
+  if (z.fenda) return c;
   const [ex0, ey0, ex1, ey1] = DROOMS[4]; g.fillStyle = pal.rug; g.fillRect(ex0 + 40, 660, ex1 - ex0 - 120, 80); g.fillStyle = '#c9a34a'; g.fillRect(ex0 + 40, 660, ex1 - ex0 - 120, 5); g.fillRect(ex0 + 40, 735, ex1 - ex0 - 120, 5);
   return c;
 }
@@ -3461,7 +3513,7 @@ function onZoneLoaded2(i, from) {
   if (typeof onZoneLoaded4 === 'function') onZoneLoaded4(i, from);
   if (i === 3 && PROPMETA.caverna) { const cave = W.props.find(p => p.key === 'caverna'); if (cave) { Object.assign(cave, { act: enterDungeonAsk, actLabel: 'Entrar na Gruta', actR: 190, actW: 110, actH: 200, actDy: 40 }); if (from === DUNGEON) { P.x = cave.x - 40; P.y = cave.y + 70; W.cam.x = P.x; W.cam.y = P.y; W.snap = true; } } }
   if (i === 0) { const q = W.props.find(p => p.key === 'quadro'); if (q) Object.assign(q, { act: openBoard, actLabel: 'Quadro de Grupos', actR: 120 }); }
-  if (!z.dungeon) return;
+  if (!z.dungeon || z.fenda) return;
   W.rooms = DROOMS.map((rc, k) => ({ k, rc, gate: null, cleared: k === 0 }));
   const add = (key, x, y, s, solid) => { if (!PROPMETA[key]) return null; const p = makeProp(key, x, y, s || 1, solid); W.props.push(p); return p; };
   DROOMS.forEach(([x0, y0, x1, y1], k) => {
@@ -3502,7 +3554,7 @@ function openChest() {
 // salas, portas, armadilhas e o chefe final
 function updateDungeon(dt) {
   if (typeof updateWorld4 === 'function') updateWorld4(dt);
-  if (!W.zone || !W.zone.dungeon) return;
+  if (!W.zone || !W.zone.dungeon || W.zone.fenda) return;
   W.rooms.forEach(rm => {
     if (rm.cleared) return;
     const prev = W.rooms[rm.k - 1];
@@ -4580,7 +4632,7 @@ POI_T.mine.props.push(['kk_barris', 120, 80, 1, 1]);
 const CHEST_CD = { pf_bau: 20 * 60e3, kk_bau_ouro: 60 * 60e3 };
 function onZoneLoaded4(i, from) {
   const z = ZONES[i];
-  if (z.dungeon) { decorateDungeon(z); if (from != null && !(ZONES[from] || {}).dungeon) sfx('rangido', .5); return; }
+  if (z.dungeon) { if (!z.fenda) decorateDungeon(z); if (from != null && !(ZONES[from] || {}).dungeon) sfx('rangido', .5); return; }
   if (z.village) { [['pf_arvore_fruta', 110, 1180, 1], ['pf_arvore_fruta', 1210, 420, .9], ['kk_barrica', 300, 640, 1], ['kk_bandeira', 600, 330, .8]].forEach(([k, x, y, s]) => PROPMETA[k] && W.props.push(makeProp(k, x, y, s, true))); buildGrid(); return; }
   const r = seeded(777 + i * 13), L = typeof zoneLayout === 'function' ? zoneLayout(z) : null;
   const ok = (x, y) => x > 120 && y > 140 && x < z.w - 120 && y < z.h - 80 && !blocked(x, y, 26) && !inLake(z, x, y, 40) && W.props.every(p => Math.hypot(p.x - x, p.y - y) > 50) && (!z.exits.some(e => { const q = exitPoint(z, e); return Math.hypot(q.x - x, q.y - y) < 220; }));
@@ -4615,7 +4667,7 @@ function openWorldChest(p) {
   if (p.gold && Math.random() < .5) give(Math.random() < .5 ? 'estrela' : 'pergaminho', 1);
   if (Math.random() < (p.gold ? .9 : .25)) dropLoot(x, y, 'mat', { mat: ['gema_azul', 'gema_rosa', 'gema_verde'][rint(0, 2)], n: p.gold ? rint(1, 2) : 1 });
   if (!p.gold && Math.random() < .12) give('chave', 1);
-  const pool = Object.keys(ITEMS).filter(id => { const b = ITEMS[id]; return b.lvl >= lv - 3 && b.lvl <= lv + 3; });
+  const pool = Object.keys(ITEMS).filter(id => { const b = ITEMS[id]; return !b.uniq && b.lvl >= lv - 3 && b.lvl <= lv + 3; });
   if (pool.length && Math.random() < (p.gold ? 1 : .22)) { const it = mkItem(pool[rint(0, pool.length - 1)]); if (p.gold && RAR_ORDER.indexOf(it.r) < 2) it.r = 'rara'; rollRarity(it, { lvl: lv, boss: p.gold }, p.gold ? .08 : 0); dropLoot(x, y, 'item', { it }); }
   if (p.gold && Math.random() < .2) dropLoot(x, y, 'card', { card: Object.keys(CARDS)[rint(0, Object.keys(CARDS).length - 1)] });
   if (typeof achieve === 'function') achieve('bau');
@@ -4914,6 +4966,438 @@ function visTick(dt) {
 }
 const _ozl4 = typeof onZoneLoaded4 === 'function' ? onZoneLoaded4 : null;
 onZoneLoaded4 = function (i, from) { if (_ozl4) _ozl4(i, from); try { bakePropShadows(); } catch (e) { console.warn('sombras', e); } };
+
+/* ================= Diário: prêmio por dia de entrada, missões diárias e tutorial ================= */
+OVERLAYS.push('daily');
+const dKey = (d) => { const t = d || new Date(); return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`; };
+const dNum = k => Math.round(new Date(k + 'T12:00:00').getTime() / 864e5);
+// sete dias de prêmios; o sétimo é sempre o melhor
+const DAY_R = [
+  { t: 'Bolsa de ouro', icon: 'i_coin', g: L => ({ gold: 120 + L * 30, potions: 3 }) },
+  { t: 'Poções grandes', icon: 'c_potg', g: L => ({ cons: { potg: 3, tonico: 1 } }) },
+  { t: 'Fragmentos do Véu', icon: () => MATS.veu.icon, g: L => ({ mats: { veu: 2 }, gold: 80 + L * 15 }) },
+  { t: 'Chave dourada', icon: () => CONS.chave ? CONS.chave.icon : 'i_key', g: L => ({ cons: CONS.chave ? { chave: 1 } : { potg: 2 }, gold: 60 + L * 10 }) },
+  { t: 'Trio de gemas', icon: 'i_gema_rosa', g: L => ({ mats: MATS.gema_azul ? { gema_azul: 1, gema_rosa: 1, gema_verde: 1 } : { veu: 2 } }) },
+  { t: 'Elixires', icon: () => CONS.elixir_for ? CONS.elixir_for.icon : 'c_tonico', g: L => ({ cons: CONS.elixir_for ? { elixir_for: 1, elixir_def: 1, elixir_agi: 1 } : { tonico: 3 } }) },
+  { t: 'Item épico', icon: 'i_estrela', g: L => ({ epic: true, gold: 300 + L * 40 }) }
+];
+const ICON = k => typeof k === 'function' ? k() : k;
+// missões do dia: três sorteadas por dia e por personagem
+const DM_POOL = [
+  { k: 'kills', n: 40, t: 'Derrote 40 monstros' },
+  { k: 'elite', n: 3, t: 'Derrote 3 monstros de elite (★) ou chefes' },
+  { k: 'coleta', n: 8, t: 'Colete 8 vezes (minério, ervas ou madeira)' },
+  { k: 'craft', n: 2, t: 'Crie 2 coisas com a Nina ou o Bram' },
+  { k: 'bau', n: 1, t: 'Abra 1 baú escondido no mundo' },
+  { k: 'fenda', n: 1, t: 'Vença uma Fenda do Véu (nível 8+)', min: 8 },
+  { k: 'boss', n: 1, t: 'Derrote um chefe', min: 5 }
+];
+function hashS(s) { let h = 7; for (const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; }
+function dmEnsure() {
+  if (!S) return;
+  const today = dKey();
+  if (S.dm && S.dm.day === today) return;
+  const r = seeded(dNum(today) * 131 + hashS(S.name) % 9973 + 1), pool = DM_POOL.filter(m => !m.min || S.blvl >= m.min), pick = [];
+  while (pick.length < 3 && pool.length) pick.push(pool.splice(Math.floor(r() * pool.length), 1)[0]);
+  S.dm = { day: today, list: pick.map(m => ({ k: m.k, n: m.n, p: 0, got: false })), bonus: false };
+}
+const dmDef = k => DM_POOL.find(m => m.k === k);
+function dmReward(L) { return { gold: 100 + L * 25, xp: Math.round(needBase(L) * 1.2), jxp: Math.round(needBase(L) * .8), mats: L >= 6 ? { veu: 1 } : {} }; }
+function dmEvent(ev) {
+  if (!S || !S.dm) return; dmEnsure();
+  S.dm.list.forEach(m => { if (m.k !== ev || m.p >= m.n) return; m.p++; if (m.p >= m.n) { toast(`Missão diária concluída: ${dmDef(m.k).t}`, 'small'); sfx('coleta', .5); dayBadge(); } });
+}
+const _achieveD = achieve;
+achieve = function (ev, data) { _achieveD(ev, data); try { dmEvent(ev); } catch (e) { } };
+const _onKillD = onKill;
+onKill = function (e) { _onKillD(e); if (!e.tagged) return; if (e.d.elite || e.d.boss) dmEvent('elite'); if (e.d.boss) dmEvent('boss'); };
+// prêmio do dia
+const dayReady = () => S && (!S.daily || S.daily.last !== dKey());
+function dayClaim() {
+  if (!dayReady()) return;
+  S.daily = S.daily || { last: null, step: 0, total: 0 };
+  const L = S.blvl, R = DAY_R[S.daily.step % 7], r = R.g(L);
+  grant(r);
+  if (r.epic) { const it = epicFor(L); giveItem(it, true); toast(`Épico do 7º dia: ${itemName(it)}!`); }
+  S.daily.step = (S.daily.step + 1) % 7; S.daily.last = dKey(); S.daily.total = (S.daily.total || 0) + 1;
+  sfx('moedas', .6); sfx('missao_ok', .5); burst(P.x, P.y - 40, '#ffe27a', 30, 160, { up: 160 });
+  toast(`Prêmio do dia: ${R.t}`); save(); openDaily();
+}
+function epicFor(L) {
+  const ids = Object.keys(ITEMS).filter(id => { const b = ITEMS[id]; return !b.uniq && (b.lvl || 1) <= L + 3 && (b.lvl || 1) >= Math.max(1, L - 8) && SLOT_NAMES[b.slot]; });
+  const it = mkItem(ids.length ? ids[rint(0, ids.length - 1)] : 'espada-longa'); it.r = 'epica'; rollRarity(it, { lvl: L, boss: true }); return it;
+}
+function dmClaim(i) {
+  const m = S.dm.list[i]; if (!m || m.got || m.p < m.n) return;
+  m.got = true; grant(dmReward(S.blvl)); sfx('moedas', .5);
+  if (S.dm.list.every(x => x.got) && !S.dm.bonus) {
+    S.dm.bonus = true; const it = epicFor(S.blvl); it.r = 'rara'; it.x = {}; rollRarity(it, { lvl: S.blvl, boss: true }, .12); giveItem(it, true);
+    grant({ cons: CONS.chave ? { chave: 1 } : { potg: 2 }, mats: { veu: 2 } }); toast(`Baú das três missões: ${itemName(it)}!`); sfx('missao_ok', .6);
+  }
+  save(); openDaily(); dayBadge();
+}
+function openDaily() {
+  if (!S) return; dmEnsure(); initAudio();
+  const d = S.daily || { step: 0, last: null }, ready = dayReady(), cal = $('dyCal');
+  const cur = ready ? d.step % 7 : (d.step + 6) % 7;
+  cal.innerHTML = DAY_R.map((R, i) => {
+    const st = i < cur || (!ready && i === cur) ? 'got' : i === cur && ready ? 'now' : '';
+    return `<div class="dyday ${st}${i === 6 ? ' big' : ''}"><small>Dia ${i + 1}</small>${iconImg(ICON(R.icon))}<span>${R.t}</span></div>`;
+  }).join('');
+  const b = $('dyClaim'); b.disabled = !ready; b.textContent = ready ? `Receber prêmio do dia ${cur + 1}` : 'Prêmio de hoje recebido · volte amanhã';
+  const L = S.blvl, rw = dmReward(L);
+  $('dyMis').innerHTML = S.dm.list.map((m, i) => {
+    const def = dmDef(m.k), k = Math.min(1, m.p / m.n);
+    return `<div class="dym${m.got ? ' got' : m.p >= m.n ? ' ok' : ''}"><span><b>${def.t}</b><small>${m.got ? 'Recebido' : `${Math.min(m.p, m.n)} / ${m.n} · ${rw.gold} ouro, XP${rw.mats.veu ? ', 1 Fragmento' : ''}`}</small><i style="width:${k * 100}%"></i></span>${m.p >= m.n && !m.got ? `<button class="btn" type="button" data-dm="${i}">Receber</button>` : ''}</div>`;
+  }).join('');
+  $('dyMis').querySelectorAll('[data-dm]').forEach(x => x.onclick = () => dmClaim(+x.dataset.dm));
+  $('dySub').textContent = S.dm.bonus ? 'Você recebeu o baú das três missões. Novas missões amanhã.' : 'Complete as três para ganhar um baú extra com item raro, chave e Fragmentos do Véu. As missões mudam todo dia.';
+  open('daily'); dayBadge();
+}
+function dayBadge() {
+  const b = $('dayBtn'); if (!b || !S) return; dmEnsure();
+  const n = (dayReady() ? 1 : 0) + S.dm.list.filter(m => m.p >= m.n && !m.got).length;
+  b.classList.toggle('alert', n > 0); b.dataset.n = n;
+}
+$('dayBtn').onclick = () => { sfx('clique', .3); openDaily(); };
+$('dyClaim').onclick = dayClaim;
+const _onPlayD = onPlayChar;
+onPlayChar = function () {
+  _onPlayD(); dmEnsure(); tutStart();
+  setTimeout(() => { dayBadge(); if (dayReady() && (S.tut == null || S.tut >= TUT.length) && !anyOpen()) openDaily(); }, 1400);
+};
+setInterval(() => { if (S) dayBadge(); }, 20000);
+
+/* ---------- tutorial dos primeiros minutos ---------- */
+const TUT = [
+  { t: 'Ande pelo mapa', d: () => TOUCH ? 'Arraste o direcional na parte de baixo da tela.' : 'Use W A S D, as setas, ou clique no chão.', done: () => Math.hypot(P.x - TS.x0, P.y - TS.y0) > 140 },
+  { t: 'Fale com a Capitã Lira', d: () => TOUCH ? 'Chegue perto dela e toque em "Falar".' : 'Chegue perto e aperte E, ou clique nela. Aceite a missão.', target: () => npcById('lira'), done: () => S.quest.i > 0 || S.quest.status !== 'available' },
+  { t: 'Derrote um Slime', d: () => TOUCH ? 'Toque no monstro ou use o botão da espada. Os botões 1 e 2 são habilidades.' : 'Clique no monstro para atacar. As teclas 1 e 2 usam habilidades; Q bebe poção.', target: () => nearestEnemy('slime'), done: () => ((S.stats || {}).kills || 0) > TS.k0 },
+  { t: 'Pegue o que caiu', d: () => 'Passe por cima do ouro e dos itens para pegar. O seu pet também ajuda.', target: () => W.loot.filter(l => !l.claimed).sort((a, b) => dist(P, a) - dist(P, b))[0], done: () => S.gold > TS.g0 || !W.loot.length },
+  { t: 'Abra a Mochila', d: () => TOUCH ? 'Toque em "Mochila" no alto da tela.' : 'Clique em "Mochila" ou aperte I. Itens melhores aparecem coloridos.', done: () => TS.bag },
+  { t: 'Termine a primeira missão', d: () => S.quest.status === 'complete' || S.quest.prog >= 6 ? 'Volte à Capitã Lira para receber a recompensa.' : 'Derrote 6 Slimes do Orvalho, a leste da vila.', target: () => S.quest.status === 'complete' || S.quest.prog >= 6 ? npcById('lira') : nearestEnemy('slime'), done: () => S.quest.i >= 1 }
+];
+const TS = { x0: 0, y0: 0, k0: 0, g0: 0, bag: false };
+function nearestEnemy(type) { return W.enemies.filter(e => e.alive && (!type || e.type === type)).sort((a, b) => dist(P, a) - dist(P, b))[0]; }
+function tutStart() {
+  if (S.tut == null) S.tut = S.blvl <= 2 && S.quest.i === 0 && !(S.stats && S.stats.kills) ? 0 : TUT.length;
+  tutStep(S.tut);
+}
+function tutStep(i) {
+  S.tut = i; Object.assign(TS, { x0: P.x, y0: P.y, k0: (S.stats || {}).kills || 0, g0: S.gold, bag: TS.bag && i > 4 });
+  const box = $('tutBox');
+  if (i >= TUT.length) { box.hidden = true; return; }
+  box.hidden = false; $('tutN').textContent = `Tutorial ${i + 1} de ${TUT.length}`; $('tutT').textContent = TUT[i].t; $('tutD').textContent = TUT[i].d();
+}
+function tutTick() {
+  if (!S || S.tut == null || S.tut >= TUT.length || P.dead) return;
+  const s = TUT[S.tut];
+  if (!$('bag').hidden) TS.bag = true;
+  $('tutD').textContent = s.d();
+  if (s.done()) {
+    sfx('coleta', .5); burst(P.x, P.y - 40, '#8fe0e6', 18, 120, { up: 120 });
+    const nx = S.tut + 1; tutStep(nx);
+    if (nx >= TUT.length) { toast('Tutorial concluído! Abra o Diário (ícone dourado) para pegar seu prêmio do dia.'); later(1.5, () => { if (!anyOpen()) openDaily(); }); }
+    save();
+  }
+}
+setInterval(tutTick, 300);
+$('tutSkip').onclick = () => { tutStep(TUT.length); save(); };
+// seta dourada sobre o alvo do passo atual (ou na borda da tela, apontando para ele)
+function tutDraw(g) {
+  if (!S || S.tut == null || S.tut >= TUT.length) return;
+  const s = TUT[S.tut], t = s.target && s.target(); if (!t) return;
+  const c = W.cam, vw = cv.width / c.z, vh = cv.height / c.z, h = (t.body && t.body.h) || 30, bob = Math.sin(W.T * 5) * 6;
+  const inView = t.x > c.x - vw / 2 + 30 && t.x < c.x + vw / 2 - 30 && t.y - h > c.y - vh / 2 + 40 && t.y < c.y + vh / 2 - 30;
+  g.save();
+  if (inView) {
+    const x = t.x, y = t.y - h - 46 + bob;
+    g.fillStyle = '#ffd27a'; g.strokeStyle = '#3a1606'; g.lineWidth = 4;
+    g.beginPath(); g.moveTo(x, y + 22); g.lineTo(x - 16, y); g.lineTo(x - 6, y); g.lineTo(x - 6, y - 16); g.lineTo(x + 6, y - 16); g.lineTo(x + 6, y); g.lineTo(x + 16, y); g.closePath(); g.stroke(); g.fill();
+    g.globalAlpha = .5 + Math.sin(W.T * 5) * .2; g.strokeStyle = '#ffd27a'; g.lineWidth = 3; g.beginPath(); g.ellipse(t.x, t.y, 34, 13, 0, 0, 7); g.stroke();
+  } else {
+    const a = Math.atan2(t.y - c.y, t.x - c.x), R = Math.min(vw, vh) / 2 - 50, x = c.x + Math.cos(a) * Math.min(vw / 2 - 50, R * 1.4), y = c.y + Math.sin(a) * R;
+    g.translate(x, y); g.rotate(a); g.fillStyle = '#ffd27a'; g.strokeStyle = '#3a1606'; g.lineWidth = 4;
+    g.beginPath(); g.moveTo(26 + bob * .5, 0); g.lineTo(-8, -18); g.lineTo(-2, 0); g.lineTo(-8, 18); g.closePath(); g.stroke(); g.fill();
+  }
+  g.restore();
+}
+const _dfaT = drawFxAir;
+drawFxAir = function (g) { _dfaT(g); try { tutDraw(g); } catch (e) { } };
+
+/* ================= Estilo Diablo/PoE: itens únicos, campeões com afixos e a Fenda do Véu ================= */
+RARITY.unica = { name: 'Única', color: '#ff8c2e', mult: 1.5, rolls: 0, sockets: [1, 3] };
+RAR_ORDER.push('unica'); RAR.unica = RARITY.unica.color;
+// ---------- itens únicos: atributos fixos + um poder que muda o jeito de jogar ----------
+const UNIQ = {
+  'u-eco':       { name: 'Lâmina do Eco Partido',   slot: 'arma', icon: 'i_claymore', dmg: 24, bonus: { for: 3, int: 3, des: 3 }, uniq: 'chain', desc: '25% de chance no acerto: um raio salta para até 3 inimigos (70% do dano).' },
+  'u-carrasco':  { name: 'Machado do Carrasco',     slot: 'arma', icon: 'i_machado_b', dmg: 28, bonus: { for: 5 }, uniq: 'exec', desc: '+80% de dano contra inimigos com menos de 35% de vida.' },
+  'u-faiscas':   { name: 'Tomo das Mil Faíscas',    slot: 'arma', icon: 'i_grimorio2', dmg: 22, bonus: { int: 6, sor: 2 }, fx: { crit: .06 }, uniq: 'critboom', desc: 'Seus críticos explodem em área (60% do dano).' },
+  'u-egide':     { name: 'Égide do Guardião',       slot: 'escudo', icon: 'i_esc_e', hp: 160, bonus: { vit: 5 }, uniq: 'aegis', desc: 'A cada 10 s, ganha um escudo de 25% da vida máxima.' },
+  'u-muralha':   { name: 'Muralha Viva',            slot: 'escudo', icon: 'i_esc_c', hp: 200, bonus: { vit: 4, for: 2 }, uniq: 'thorns', desc: 'Devolve 40% do dano recebido a quem bateu e regenera 1% da vida por segundo.' },
+  'u-coracao':   { name: 'Coração da Fenda',        slot: 'acessorio', icon: 'i_coracao', hp: 60, bonus: { vit: 3, sor: 3 }, uniq: 'corpse', desc: 'Monstros que você derrota explodem: 35% da vida máxima deles em área.' },
+  'u-ganancia':  { name: 'Anel da Ganância',        slot: 'acessorio', icon: 'i_coin', bonus: { sor: 8 }, fx: { drop: .8, hpp: -.2 }, uniq: 'greed', desc: '+80% de ouro e itens, mas -20% de vida.' },
+  'u-presa':     { name: 'Presa da Noite Eterna',   slot: 'acessorio', icon: 'i_gema_rosa', hp: 40, bonus: { agi: 4, des: 2 }, fx: { steal: .06 }, uniq: 'fang', desc: 'Rouba 6% do dano como vida; cada monstro derrotado devolve 4% da vida.' }
+};
+Object.entries(UNIQ).forEach(([id, u]) => { ITEMS[id] = Object.assign({ rar: 'unica', lvl: 15 }, u); });
+function mkUnique(id) { const ids = Object.keys(UNIQ); id = id || ids[rint(0, ids.length - 1)]; const it = mkItem(id, 'unica'); it.x = Object.assign({}, UNIQ[id].fx || {}); rollSockets(it); return it; }
+function dropUnique(x, y) { const it = mkUnique(); dropLoot(x, y, 'item', { it }); return it; }
+const U = { busy: false, bolts: [], aegisT: 0, regT: 0 };
+function hasU(k) { if (!S) return false; for (const s in S.equip) { const it = S.equip[s]; if (it && ITEMS[it.id] && ITEMS[it.id].uniq === k) return true; } return false; }
+const _itemLineU = itemLine;
+itemLine = function (it) { const t = _itemLineU(it), b = ITEMS[it.id]; return b && b.desc ? `${t}<br><span style="color:#ff8c2e">✦ ${b.desc}</span>` : t; };
+// poderes no acerto
+function onHitDealt(e, amt, crit) {
+  if (U.busy || !S) return;
+  U.busy = true;
+  try {
+    if (hasU('exec') && e.alive && e.hp / e.max < .35) hitEnemy(e, amt * .8, P);
+    if (hasU('critboom') && crit) { FX.boom(e.x, e.y, 110, '#ff9a40'); sfx('explosao', .25, 1.3); enemiesNear(e.x, e.y, 110).forEach(o => o !== e && hitEnemy(o, amt * .6, P)); }
+    if (hasU('chain') && Math.random() < .25) {
+      let from = e; const hit = new Set([e]);
+      for (let k = 0; k < 3; k++) {
+        const nx = W.enemies.filter(o => o.alive && !hit.has(o) && Math.hypot(o.x - from.x, o.y - from.y) < 240).sort((a, b) => dist(a, from) - dist(b, from))[0];
+        if (!nx) break; hit.add(nx);
+        U.bolts.push({ x1: from.x, y1: from.y - 30, x2: nx.x, y2: nx.y - 30, t: 0, seed: Math.random() * 999 });
+        hitEnemy(nx, amt * .7, P); from = nx;
+      }
+      if (hit.size > 1) sfx('magia', .25, 1.6);
+    }
+  } finally { U.busy = false; }
+}
+const _onKillU = onKill;
+onKill = function (e) {
+  _onKillU(e);
+  if (!S || !e.tagged) return;
+  if (hasU('fang')) P.hp = Math.min(maxHp(), P.hp + maxHp() * .04);
+  if (hasU('corpse') && !U.busy) { const x = e.x, y = e.y, dmg = e.max * .35; later(.15, () => { FX.boom(x, y, 120, '#b48cff'); sfx('explosao', .25, 1.1); U.busy = true; try { enemiesNear(x, y, 120).forEach(o => hitEnemy(o, dmg, P)); } finally { U.busy = false; } }); }
+  // saque extra de campeões e chefes; chance de único
+  const L = e.d.lvl || S.blvl;
+  if (e.champ) { if (Math.random() < .35 * luck()) dropLoot(e.x, e.y, 'item', { it: lootFor(L, .05) }); if (Math.random() < .012 * luck()) dropUnique(e.x, e.y); if (e.champ.k === 'explosivo') champBoom(e); }
+  if (e.d.boss && !e.rift) { if (Math.random() < (e.wbWin ? .15 : .04) * luck()) dropUnique(e.x, e.y); }
+  if (W.zone && W.zone.fenda) fendaKill(e);
+};
+function lootFor(L, bonus) {
+  const ids = Object.keys(ITEMS).filter(id => { const b = ITEMS[id]; return !b.uniq && SLOT_NAMES[b.slot] && (b.lvl || 1) <= L + 3 && (b.lvl || 1) >= Math.max(1, L - 10); });
+  const it = mkItem(ids.length ? ids[rint(0, ids.length - 1)] : 'espada-longa'); rollRarity(it, { lvl: L, elite: true }, bonus || 0); return it;
+}
+// poderes ao apanhar
+const _damageActorU = damageActor;
+damageActor = function (a, amt, src) {
+  if (a !== P || !S) return _damageActorU(a, amt, src);
+  const h0 = P.hp; _damageActorU(a, amt, src);
+  const lost = h0 - P.hp;
+  if (lost > 0 && hasU('thorns') && src && src.kind === 'enemy' && src.alive && !U.busy) { U.busy = true; try { hitEnemy(src, lost * .4, P); } finally { U.busy = false; } }
+};
+function uniqTick(dt) {
+  if (!S || P.dead) return;
+  if (hasU('aegis')) { U.aegisT -= dt; if (U.aegisT <= 0) { U.aegisT = 10; P.shieldHp = Math.max(P.shieldHp || 0, maxHp() * .25); FX.ring(P.x, P.y, 60, '#ffe680', .6, 4); } }
+  if (hasU('thorns')) { U.regT -= dt; if (U.regT <= 0) { U.regT = 1; P.hp = Math.min(maxHp(), P.hp + maxHp() * .01); } }
+  U.bolts.forEach(b => b.t += dt); U.bolts = U.bolts.filter(b => b.t < .25);
+}
+
+/* ---------- campeões: monstros com afixos e aura colorida ---------- */
+const CHAMP = [
+  { k: 'veloz', n: 'Veloz', c: '#8fe0e6', f: d => { d.speed *= 1.6; d.atkCd *= .7; } },
+  { k: 'vampirico', n: 'Vampírico', c: '#ff5a7a', f: d => { d.drain = true; } },
+  { k: 'blindado', n: 'Blindado', c: '#c8d4e0', f: d => { d.hp *= 1.6; } },
+  { k: 'furioso', n: 'Furioso', c: '#ff8a3a', f: d => { d.dmg = d.dmg.map(v => Math.round(v * 1.35)); } },
+  { k: 'explosivo', n: 'Explosivo', c: '#ffd27a', f: d => { } }
+];
+function makeChampion(e, pick) {
+  if (e.d.boss || e.d.final || e.champ) return e;
+  const A = CHAMP[pick != null ? pick : rint(0, CHAMP.length - 1)], d = Object.assign({}, e.d);
+  d.dmg = d.dmg.slice(); d.hp = Math.round(d.hp * 3); d.xp = Math.round(d.xp * 3); d.gold = d.gold.map(v => Math.round(v * 2.5)); d.elite = true; d.name = `${d.name} ${A.n}`;
+  A.f(d); d.hp = Math.round(d.hp);
+  e.d = d; e.hp = e.max = d.hp; e.champ = A; e.r = (e.r || 16) * 1.15;
+  e.body = body(variant(ENEMIES[e.type].sprite, ENEMIES[e.type].tint, (ENEMIES[e.type].sc || 1) * 1.22)); e.body.dir = 's';
+  return e;
+}
+function champBoom(e) {
+  const x = e.x, y = e.y, dmg = Math.round(e.max * .08 + e.d.dmg[1]);
+  FX.telegraph(x, y, 110, .9, '#ffd27a'); W.fx[W.fx.length - 1].done = () => { FX.boom(x, y, 110, '#ffb35a'); sfx('explosao', .35); alliesNear(x, y, 110).forEach(a => damageActor(a, dmg, null)); };
+}
+// no mundo aberto, alguns monstros nascem campeões (mesma escolha para todos os jogadores do mapa)
+const _spawnEnemyU = spawnEnemy;
+spawnEnemy = function (type, x, y, fixed) {
+  const e = _spawnEnemyU(type, x, y, fixed);
+  if (!fixed && W.zone && !W.zone.dungeon && !e.d.boss) { const r = seeded(W.zi * 7919 + e.id * 104729 + 17); r(); if (r() < .045) makeChampion(e, Math.floor(r() * CHAMP.length)); }
+  return e;
+};
+function drawChampAuras(g) {
+  for (const e of W.enemies) {
+    if (!e.champ || !e.alive) continue;
+    const p = .6 + Math.sin(W.T * 4 + e.id) * .25;
+    g.globalAlpha = p; g.strokeStyle = e.champ.c; g.lineWidth = 3; g.beginPath(); g.ellipse(e.x, e.y, 34, 13, 0, 0, 7); g.stroke();
+    g.globalAlpha = p * .25; g.fillStyle = e.champ.c; g.beginPath(); g.ellipse(e.x, e.y, 40, 16, 0, 0, 7); g.fill(); g.globalAlpha = 1;
+    if (Math.random() < .12) burst(e.x + rnd(-14, 14), e.y, e.champ.c, 1, 10, { up: 70, grav: -20, life: 1 });
+  }
+}
+function drawBolts(g) {
+  if (!U.bolts.length) return;
+  g.save(); g.globalCompositeOperation = 'lighter';
+  U.bolts.forEach(b => { const a = 1 - b.t / .25; g.globalAlpha = a; g.strokeStyle = '#bfe8ff'; g.lineWidth = 5; jag(g, b.x1, b.y1, b.x2, b.y2, b.seed, 16); g.strokeStyle = '#ffffff'; g.lineWidth = 2; jag(g, b.x1, b.y1, b.x2, b.y2, b.seed, 16); });
+  g.restore();
+}
+const _dfgU = drawFxGround;
+drawFxGround = function (g) { _dfgU(g); drawChampAuras(g); };
+const _dfaU = drawFxAir;
+drawFxAir = function (g) { _dfaU(g); drawBolts(g); };
+
+/* ---------- Fenda do Véu: arena sem fim com níveis (como as fendas maiores) ---------- */
+OVERLAYS.push('fenda');
+const FENDA = ZONES.length;
+const FWALK = [[80, 760, 640, 1100], [600, 860, 780, 1000], [740, 300, 1720, 1560], [1680, 820, 1880, 980], [1840, 420, 2740, 1380]];
+ZONES.push({ name: 'Fenda do Véu', rec: 8, w: 2820, h: 1820, dungeon: true, fenda: true, hidden: true, back: 0, spawns: [], area: [760, 320, 2700, 1360], spawn: [220, 930],
+  exits: [], bots: [], ground: { base: '#05030c', light: '#2a2240', dark: '#030208', path: '#3a3060' }, trees: [], rocks: [], bushes: [], small: [], tint: null, walk: FWALK,
+  pal: { void: '#05030c', floor: '#241c38', a: '#2c2244', b: '#221a34', crack: '#6a4ab0', rug: '#3a1c5a' } });
+const RF = { on: false };
+const fTime = 300;
+const lvHp = L => 11 * Math.pow(Math.max(1, L), 1.53), lvXp = L => 4.5 * Math.pow(Math.max(1, L), 1.43);
+function fendaInfo() { S.fenda = S.fenda || { max: 1, best: 0, runs: 0 }; return S.fenda; }
+function openFenda() {
+  const f = fendaInfo(), list = $('fdTiers'); list.innerHTML = '';
+  $('fdSub').textContent = S.blvl < 8 ? 'A fenda abre para quem chega ao nível 8.' : `Encha a barra derrotando monstros, depois vença o Guardião antes de ${fTime / 60} minutos para liberar o próximo nível. Seu melhor: nível ${f.best || '—'}.`;
+  const top = Math.min(f.max, 150);
+  for (let t = 1; t <= top; t++) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = t === top ? 'rec' : '';
+    b.innerHTML = `Nível ${t}<small>Monstros nv ${S.blvl + t - 1} · vida ×${(Math.pow(1.17, t - 1)).toFixed(1)}</small><small>Saque +${Math.round((t - 1) * 12)}% · único ${Math.round(uniqCh(t) * 100)}%</small>`;
+    b.disabled = S.blvl < 8; b.onclick = () => { closeAll(); enterFenda(t); };
+    list.prepend(b);
+  }
+  open('fenda');
+}
+const uniqCh = t => Math.min(.6, .08 + t * .03);
+function enterFenda(tier) {
+  const f = fendaInfo(); f.runs++;
+  ZONES[FENDA].back = W.zone && !W.zone.fenda ? W.zi : 0;
+  Object.assign(RF, { on: true, tier, t: fTime, prog: 0, phase: 'run', guard: null, spawnT: 1.5, kills: 0, done: false });
+  loadZone(FENDA, 'start'); sfx('viagem', .5);
+}
+// ao carregar a fenda: portal de saída, pilares com luz e o primeiro grupo
+const _ozlF = onZoneLoaded4;
+onZoneLoaded4 = function (i, from) {
+  _ozlF(i, from);
+  const z = ZONES[i];
+  if (!z.fenda) { if (RF.on) { RF.on = false; $('riftBar').hidden = true; } return; }
+  if (!RF.on) Object.assign(RF, { on: true, tier: fendaInfo().max, t: fTime, prog: 0, phase: 'run', guard: null, spawnT: 1.5, kills: 0, done: false });
+  W.obelisk = { kind: 'obelisk', x: 300, y: 860, r: 20 }; W.props.push({ kind: 'prop', key: '_ob', x: 300, y: 860, r: 20, scale: 1 });
+  const add = (k, x, y, s, solid) => { if (!PROPMETA[k]) return; W.props.push(makeProp(k, x, y, s || 1, solid)); };
+  [[800, 360], [1660, 360], [800, 1500], [1660, 1500], [1900, 480], [2680, 480], [1900, 1320], [2680, 1320]].forEach(([x, y]) => add('pilar', x, y, .9, true));
+  [['kk_entulho', 1000, 600], ['kk_entulho2', 1400, 1300], ['kk_entulho', 2200, 1200], ['d_caveira', 1250, 900], ['kk_armas2', 2400, 600], ['kk_velas', 560, 800], ['kk_entulho2', 2500, 900]].forEach(([k, x, y]) => add(k, x, y, 1, k !== 'd_caveira' && k !== 'kk_velas'));
+  W.fendaLights = [[800, 340], [1660, 340], [800, 1480], [1660, 1480], [1900, 460], [2680, 460], [1900, 1300], [2680, 1300]].map(([x, y]) => ({ x, y: y - 60, r: 230, c: '#b48cff' }));
+  buildGrid();
+  for (let k = 0; k < 3; k++) fendaPack(true);
+  $('riftBar').hidden = false; $('wbBanner').hidden = true; fendaHud();
+  toast(`Fenda do Véu · Nível ${RF.tier}: encha a barra e derrote o Guardião!`); sfx('chefe', .4, 1.1);
+};
+const _lightSourcesF = lightSources;
+lightSources = function () { const o = _lightSourcesF(); if (W.zone && W.zone.fenda && W.fendaLights) o.push(...W.fendaLights); return o; };
+const _paintGroundF = paintGround;
+paintGround = function (z, r) {
+  const c = _paintGroundF(z, r); if (!z.fenda) return c;
+  const g = c.getContext('2d'), rr = seeded(4242);
+  for (let k = 0; k < 500; k++) { const x = rr() * z.w, y = rr() * z.h; if (!blockedIn(z, x, y)) continue; g.fillStyle = rr() < .7 ? 'rgba(180,140,255,.5)' : 'rgba(143,224,230,.6)'; g.fillRect(x, y, 2, 2); }
+  g.lineJoin = 'round';
+  for (let k = 0; k < 70; k++) { let x = 740 + rr() * 2000, y = 320 + rr() * 1200; if (blockedIn(z, x, y)) continue; g.beginPath(); g.moveTo(x, y); for (let j = 0; j < 5; j++) { x += (rr() - .5) * 70; y += (rr() - .5) * 30; g.lineTo(x, y); } g.strokeStyle = 'rgba(10,5,20,.6)'; g.lineWidth = 5; g.stroke(); g.strokeStyle = 'rgba(180,140,255,.55)'; g.lineWidth = 1.6; g.stroke(); }
+  [[1230, 930, 200], [2290, 900, 170]].forEach(([x, y, R]) => { g.strokeStyle = 'rgba(180,140,255,.35)'; g.lineWidth = 4; g.beginPath(); g.ellipse(x, y, R, R * .45, 0, 0, 7); g.stroke(); g.beginPath(); g.ellipse(x, y, R * .7, R * .3, 0, 0, 7); g.stroke(); for (let a = 0; a < 12; a++) { const t = a / 12 * 6.283; g.fillStyle = 'rgba(200,170,255,.5)'; g.fillRect(x + Math.cos(t) * R * .85 - 3, y + Math.sin(t) * R * .38 - 3, 6, 6); } });
+  return c;
+};
+const blockedIn = (z, x, y) => z.walk.some(q => x > q[0] && x < q[2] && y > q[1] && y < q[3]);
+const enemyPool = () => { const L = S.blvl; let ids = Object.keys(ENEMIES).filter(k => { const d = ENEMIES[k]; return !d.boss && !d.final && d.dmg && d.speed > 0 && Math.abs(d.lvl - L) <= 9; }); if (ids.length < 4) ids = Object.keys(ENEMIES).filter(k => !ENEMIES[k].boss && ENEMIES[k].dmg); return ids; };
+function fendaScale(e, mult) {
+  const t = RF.tier, L = S.blvl, b = ENEMIES[e.type], ratio = clamp(b.hp / lvHp(b.lvl), .6, 1.8), dr = clamp((b.dmg[0] + b.dmg[1]) / 2 / (1.9 * b.lvl), .6, 1.6);
+  const d = Object.assign({}, e.d);
+  d.lvl = L + t - 1; d.hp = Math.round(lvHp(L) * ratio * Math.pow(1.17, t - 1) * (mult || 1) * .85);
+  const dm = 1.9 * L * dr * Math.pow(1.09, t - 1); d.dmg = [Math.round(dm * .85), Math.round(dm * 1.15)];
+  d.xp = Math.round(needBase(L) / 45 * (1 + (t - 1) * .1) * (mult > 1 ? 12 : 1)); d.gold = [Math.round(L * 1.2 * (1 + t * .1)), Math.round(L * 2 * (1 + t * .1))];
+  d.aggroR = 460; d.drops = []; d.respawn = 1e9;
+  e.d = d; e.hp = e.max = d.hp; e.noRespawn = true; e.rift = true; e.fadeIn = 0;
+  return e;
+}
+function fendaSpot(minD, maxD) {
+  for (let k = 0; k < 40; k++) { const q = FWALK[k % 2 ? 2 : 4], x = rnd(q[0] + 40, q[2] - 40), y = rnd(q[1] + 40, q[3] - 30), d = Math.hypot(x - P.x, y - P.y); if (d > minD && d < maxD && !blocked(x, y, 20)) return { x, y }; }
+  const q = FWALK[2]; return { x: rnd(q[0] + 60, q[2] - 60), y: rnd(q[1] + 60, q[3] - 60) };
+}
+function fendaPack(first) {
+  const ids = enemyPool(), type = ids[rint(0, ids.length - 1)], s = fendaSpot(first ? 500 : 380, first ? 1400 : 900), n = rint(3, 5), champ = Math.random() < .14;
+  for (let k = 0; k < n; k++) {
+    const e = _spawnEnemyU(type, s.x + rnd(-60, 60), s.y + rnd(-40, 40), true); fendaScale(e);
+    if (champ && k === 0) { makeChampion(e); }
+    burst(e.x, e.y, '#b48cff', 8, 60, { up: 80 });
+  }
+}
+function fendaKill(e) {
+  if (!RF.on || RF.done) return;
+  if (e === RF.guard) return fendaWin();
+  if (!e.rift || RF.phase !== 'run') return;
+  RF.kills++; RF.prog = Math.min(100, RF.prog + (e.champ ? 6 : 1.45));
+  if (RF.prog >= 100) fendaGuardian();
+  fendaHud();
+}
+const GUARDS = ['dragao', 'anciao', 'colosso', 'dragao_cinza', 'cavaleiro', 'guardiao_ossos', 'serpe', 'capitao'];
+function fendaGuardian() {
+  RF.phase = 'boss';
+  const ids = GUARDS.filter(k => ENEMIES[k]), type = ids[rint(0, ids.length - 1)], s = fendaSpot(260, 520);
+  const e = _spawnEnemyU(type, s.x, s.y, true); fendaScale(e, 26); e.d.boss = true; e.d.final = false; e.d.name = 'Guardião: ' + ENEMIES[type].name; e.d.dmg = e.d.dmg.map(v => Math.round(v * 1.35)); e.aggro = P; e.d.aggroR = 900;
+  RF.guard = e; FX.ring(e.x, e.y, 200, '#ff8a3a', 1, 8); burst(e.x, e.y, '#ff8a3a', 50, 220, { up: 200 }); W.shake = .5;
+  sfx('chefe', .6); toast(`${e.d.name} surgiu da fenda!`); fendaHud();
+}
+function fendaWin() {
+  RF.done = true; RF.phase = 'done';
+  const f = fendaInfo(), t = RF.tier, inTime = RF.t > 0;
+  let up = 0; if (inTime) up = RF.t > fTime * .6 ? 3 : RF.t > fTime * .3 ? 2 : 1;
+  if (inTime) { f.best = Math.max(f.best || 0, t); f.max = Math.max(f.max, t + up); }
+  const g = RF.guard, L = S.blvl + t - 1;
+  for (let k = 0; k < 6 + Math.min(10, t); k++) dropLoot(g.x, g.y, 'gold', { amount: Math.round((20 + L * 6) * (1 + t * .15)) });
+  for (let k = 0; k < 2 + Math.min(4, Math.floor(t / 4)); k++) dropLoot(g.x, g.y, 'item', { it: lootFor(S.blvl, .05 + t * .02) });
+  dropLoot(g.x, g.y, 'mat', { mat: 'veu', n: 2 + Math.floor(t / 2) });
+  if (Math.random() < uniqCh(t) * luck()) later(.5, () => { const it = dropUnique(g.x, g.y); toast(`ÚNICO: ${ITEMS[it.id].name}!`); sfx('misterio', .6); });
+  gainXp(Math.round(needBase(S.blvl) * .3 * (1 + t * .15)), Math.round(needBase(S.blvl) * .3 * (1 + t * .1)));
+  achieve('fenda');
+  const mm = Math.floor((fTime - RF.t) / 60), ss = String(Math.floor((fTime - RF.t) % 60)).padStart(2, '0');
+  toast(inTime ? `Fenda nível ${t} vencida em ${mm}:${ss}! Liberado até o nível ${f.max}.` : `Guardião vencido, mas o tempo acabou: o nível não subiu.`);
+  sfx('missao_ok', .7); fendaHud(); save();
+  later(4, () => {
+    if (!W.zone || !W.zone.fenda) return;
+    const D = dlgBase({ sprite: 'lira', name: 'Fenda do Véu', title: 'Desafio' }, inTime ? `Nível ${t} vencido!` : 'Tempo esgotado', `${inTime ? `Tempo: ${mm}:${ss}. Você liberou até o nível ${f.max}.` : 'Vença antes do tempo acabar para subir de nível.'} Pegue o saque e escolha: seguir para outro nível ou voltar para a vila.`);
+    D.btn('Ficar e pegar o saque', closeAll, 'alt'); D.btn('Voltar à vila', () => { closeAll(); RF.on = false; loadZone(ZONES[FENDA].back || 0, 'obelisk'); }, 'alt'); D.btn('Outro nível', () => { closeAll(); openFenda(); }); open('dialog');
+  });
+}
+function fendaTick(dt) {
+  if (!RF.on || !W.zone || !W.zone.fenda || !S) return;
+  if (!RF.done) { RF.t = Math.max(0, RF.t - dt); if (RF.t <= 0 && !RF.late) { RF.late = true; toast('O tempo acabou! Ainda dá para vencer, mas o nível não sobe.', 'small warn'); } }
+  if (RF.phase === 'run') { RF.spawnT -= dt; const alive = W.enemies.filter(e => e.alive && e.rift).length; if (RF.spawnT <= 0 && alive < 10 + Math.min(8, RF.tier)) { RF.spawnT = 1.1; fendaPack(); } }
+  // limpa corpos antigos para a lista não crescer
+  if (W.enemies.length > 80) W.enemies = W.enemies.filter(e => e.alive || e.deadT < 3 || e === RF.guard);
+  RF.hudT = (RF.hudT || 0) - dt; if (RF.hudT <= 0) { RF.hudT = .25; fendaHud(); }
+}
+function fendaHud() {
+  const bar = $('riftBar'); if (!RF.on) { bar.hidden = true; return; }
+  const m = Math.floor(RF.t / 60), s = String(Math.floor(RF.t % 60)).padStart(2, '0');
+  $('rfName').textContent = RF.phase === 'boss' ? `Nível ${RF.tier} · Guardião` : RF.phase === 'done' ? `Nível ${RF.tier} · vencido!` : `Fenda do Véu · Nível ${RF.tier}`;
+  $('rfTime').textContent = `${m}:${s}`;
+  const k = RF.phase === 'boss' && RF.guard ? RF.guard.hp / RF.guard.max * 100 : RF.prog;
+  $('rfFill').style.width = (RF.phase === 'done' ? 100 : k) + '%';
+  bar.classList.toggle('boss', RF.phase === 'boss'); bar.classList.toggle('late', RF.t < 30 && !RF.done);
+}
+const _updDungeonF = updateDungeon;
+updateDungeon = function (dt) { _updDungeonF(dt); uniqTick(dt); fendaTick(dt); };
+// entra pelo menu de viagem (obelisco)
+const _openTravelF = openTravel;
+openTravel = function () {
+  _openTravelF();
+  const l = $('trList'), b = document.createElement('button'); b.type = 'button'; b.className = 'btn fdbtn';
+  const f = fendaInfo(); b.disabled = S.blvl < 8;
+  b.textContent = S.blvl < 8 ? 'Fenda do Véu · abre no nível 8' : `✦ Fenda do Véu · desafio (seu melhor: nível ${f.best || '—'})`;
+  b.onclick = () => { closeAll(); openFenda(); }; l.prepend(b);
+};
+// a fenda é sempre individual na rede (os bots do seu grupo vão junto)
+const _netTopicF = typeof netTopicFor === 'function' ? netTopicFor : null;
+if (_netTopicF) netTopicFor = function (zone) { if (ZONES[zone] && ZONES[zone].fenda) return 'valdora-f-' + (typeof NET !== 'undefined' ? NET.id : 'x'); return _netTopicF(zone); };
+
+const _darkF = darkness;
+darkness = function () { return W.zone && W.zone.fenda ? .42 : _darkF(); };
 
 start();
 window.__game = { W, get P() { return P; }, get PET() { return PET; }, S: () => S, SAVE: () => SAVE, castSkill, setTarget, loadZone, changeClass, evolveTo, gainXp, dropLoot, openSheet, playChar, openNpc, openShop, openBag, startGather, npcById, mkItem, giveItem, grant, CL, netConnect: () => netConnect(), netChat: t => netChat(t), NET: () => NET };
