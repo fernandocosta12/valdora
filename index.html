@@ -377,6 +377,13 @@ body.online #chatBtn{display:block}
 #chatForm{position:absolute;left:58px;bottom:16px;pointer-events:auto}
 #chatForm input{font:inherit;font-size:15px;width:min(340px,50vw);background:#1d120e;color:#fff;border:2px solid var(--gold);border-radius:3px;padding:6px 8px;user-select:text}
 #log .net{color:#7ad0ff}#log .me{color:#9fe08a}
+.acct{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 8px;padding:6px 10px;background:rgba(29,18,14,.55);border:1px solid #6b4a2b;border-radius:4px;font-size:13.5px;color:var(--muted)}
+.acct b{color:var(--gold2);font-family:var(--display);font-size:15px}
+.acct .sp{flex:1}
+.acct .btn{padding:2px 6px;font-size:13px}
+.acct.ok i{color:#8fd18a;font-style:normal}.acct.err i{color:var(--warn);font-style:normal}
+.ctform{display:grid;gap:8px}
+#ctMsg.err{color:var(--warn)}
 .fld{display:grid;gap:3px;font-family:var(--display);font-size:13px;color:var(--gold2)}
 .fld input{font:inherit;font-family:var(--body);font-size:14px;background:#1d120e;color:#fff;border:2px solid var(--navy);border-radius:3px;padding:6px 8px;user-select:text}
 body.touch #chatBtn{left:auto;right:150px;bottom:auto;top:8px}
@@ -540,7 +547,7 @@ button,.btn,.ghost,.cls,.plus,.x,.ico{cursor:url(data:image/png;base64,iVBORw0KG
         <span><kbd>Celular</kbd></span><span>Arraste o dedo no lado esquerdo para andar; o botão dourado ataca o inimigo mais perto</span>
         <span><kbd>Itens</kbd></span><span>Monstros derrubam ouro, poções e equipamentos no chão: passe por cima ou toque neles. Raramente (1%) cai um pet que busca os itens para você.</span>
       </div>
-      <p class="sub">Siga as setas brilhantes nas bordas do mapa ou use o Obelisco do Véu para viajar. Na vila, o Bram (ferreiro), a Nina (alquimista) e o Tomas (mercador) vendem, compram e criam itens. Toque num [bot] ou no Quadro de Grupos da vila para formar um grupo de até 3 e enfrentar a Gruta das Sombras, no Bosque Sussurrante. Você tem 3 vagas de personagem, salvas neste navegador.</p>
+      <p class="sub">Siga as setas brilhantes nas bordas do mapa ou use o Obelisco do Véu para viajar. Na vila, o Bram (ferreiro), a Nina (alquimista) e o Tomas (mercador) vendem, compram e criam itens. Toque num [bot] ou no Quadro de Grupos da vila para formar um grupo de até 3 e enfrentar a Gruta das Sombras, no Bosque Sussurrante. Você tem 3 vagas de personagem. Crie uma conta para guardar seus personagens na nuvem e jogar de qualquer aparelho.</p>
       <div class="actions">
         <button class="btn alt" type="button" id="mute" aria-pressed="false">Som</button>
         <button class="btn alt" type="button" id="musicBtn">Música</button>
@@ -592,10 +599,24 @@ button,.btn,.ghost,.cls,.plus,.x,.ico{cursor:url(data:image/png;base64,iVBORw0KG
       <div class="actions"><button class="btn alt" type="button" data-close>Ficar aqui</button></div>
     </div>
   </div>
+  <div class="overlay" id="conta" hidden>
+    <div class="card" role="dialog" aria-labelledby="ctTitle">
+      <button class="x" type="button" id="ctClose" aria-label="Fechar"></button>
+      <h3>Seus personagens em qualquer aparelho</h3>
+      <h2 id="ctTitle" class="ribbon">Conta</h2>
+      <form id="ctForm" class="ctform">
+        <label class="fld">Nome da conta<input id="ctNome" maxlength="16" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="3 a 16 letras ou números"></label>
+        <label class="fld">Senha<input id="ctSenha" type="password" maxlength="72" autocomplete="current-password" placeholder="pelo menos 6 caracteres"></label>
+        <p class="sub" id="ctMsg">Sem e-mail: guarde bem o nome e a senha. Não use a mesma senha de outros sites.</p>
+        <div class="actions"><button class="btn alt" type="button" id="ctNova">Criar conta</button><button class="btn" type="submit" id="ctEntrar">Entrar</button></div>
+      </form>
+    </div>
+  </div>
   <div class="overlay" id="chars" hidden>
     <div class="card wide" role="dialog" aria-labelledby="charsTitle">
       <div class="title-logo">Valdora<span>Ecos do Véu</span></div>
       <h2 id="charsTitle" class="ribbon">Escolha um personagem</h2>
+      <div class="acct" id="acctBar"></div>
       <div class="charlist" id="charList"></div>
       <div class="actions"><button class="btn alt" type="button" onclick="document.getElementById('help').hidden=false;document.getElementById('chars').hidden=true">Como jogar</button></div>
     </div>
@@ -1015,7 +1036,7 @@ function loadSave() {
   s.slots = s.slots.map(migrateChar);
   return s;
 }
-function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(SAVE)); } catch (e) {} }
+function save() { if (S) S.t = Date.now(); try { localStorage.setItem(SAVE_KEY, JSON.stringify(SAVE)); } catch (e) {} try { ctOnSave(); } catch (e) {} }
 // classe atual com a evolução aplicada por cima
 function classOf(cls, evo) {
   const b = CLASSES[cls]; if (!evo || !EVOS[evo]) return b;
@@ -1679,7 +1700,7 @@ function updateAct() {
   const a = $('actBtn'); if (!S || P.dead) { a.hidden = true; return; }
   const n = P.gather ? null : nearAction(); a.hidden = !n; if (n && a.textContent !== n.label) a.textContent = n.label;
 }
-const OVERLAYS = ['dialog', 'bag', 'help', 'classes', 'travel', 'chars', 'sheet', 'shop', 'online'];
+const OVERLAYS = ['dialog', 'bag', 'help', 'classes', 'travel', 'chars', 'sheet', 'shop', 'online', 'conta'];
 function open(id) { OVERLAYS.forEach(o => $(o) && ($(o).hidden = o !== id)); }
 function closeAll() { if (!S) return; OVERLAYS.forEach(o => $(o) && ($(o).hidden = true)); }
 function anyOpen() { return OVERLAYS.some(o => $(o) && !$(o).hidden); }
@@ -1699,14 +1720,14 @@ function openChars() {
       const play = document.createElement('button'); play.type = 'button'; play.className = 'btn'; play.textContent = 'Jogar';
       play.onclick = () => { initAudio(); sfx('clique', .3); playChar(i); };
       const del = document.createElement('button'); del.type = 'button'; del.className = 'btn danger'; del.textContent = 'Apagar';
-      del.onclick = () => { if (del.dataset.armed !== '1') { del.dataset.armed = '1'; del.textContent = 'Confirmar'; setTimeout(() => { del.dataset.armed = ''; del.textContent = 'Apagar'; }, 3000); return; } SAVE.slots[i] = null; if (SAVE.cur === i) { SAVE.cur = -1; S = null; } save(); openChars(); };
+      del.onclick = () => { if (del.dataset.armed !== '1') { del.dataset.armed = '1'; del.textContent = 'Confirmar'; setTimeout(() => { del.dataset.armed = ''; del.textContent = 'Apagar'; }, 3000); return; } SAVE.del = (SAVE.del || []).concat(c.created).slice(-50); SAVE.slots[i] = null; if (SAVE.cur === i) { SAVE.cur = -1; S = null; } save(); ctPushSoon(500); openChars(); };
       acts.append(play, del); d.appendChild(acts);
     } else {
       d.classList.add('empty'); d.insertAdjacentHTML('beforeend', '<div class="pf"></div>');
       d.insertAdjacentHTML('beforeend', `<div class="info"><b>Vaga livre</b><span>Todo personagem começa como Aprendiz.</span></div>`);
       const f = document.createElement('form'); f.className = 'acts';
       f.innerHTML = `<label class="sr" for="nm${i}">Nome do personagem</label><input id="nm${i}" maxlength="14" placeholder="Nome do personagem" autocomplete="off"><button class="btn" type="submit">Criar</button>`;
-      f.onsubmit = ev => { ev.preventDefault(); const nm = f.querySelector('input').value.trim(); if (nm.length < 3) { toast('Use um nome com pelo menos 3 letras', 'small warn'); return; } initAudio(); sfx('magia', .4); SAVE.slots[i] = newChar(nm); save(); playChar(i); };
+      f.onsubmit = ev => { ev.preventDefault(); const nm = f.querySelector('input').value.trim(); if (nm.length < 3) { toast('Use um nome com pelo menos 3 letras', 'small warn'); return; } initAudio(); sfx('magia', .4); SAVE.slots[i] = newChar(nm); save(); ctPushSoon(1500); playChar(i); };
       d.appendChild(f);
     }
     l.appendChild(d);
@@ -3497,6 +3518,127 @@ function setupOnline() {
   window.addEventListener('beforeunload', () => { if (NET.topic) netSend(NET.topic, 'broadcast', { type: 'broadcast', event: 'bye', payload: { id: NET.id } }); });
 }
 setupOnline();
+
+/* ================= Conta e save na nuvem (funções RPC no Supabase) ================= */
+// Conta = nome + senha (sem e-mail). Os 3 personagens ficam no navegador e também na nuvem.
+// Ao entrar, junta os personagens daqui com os da nuvem (o mais recente de cada um vence).
+const CONTA_KEY = 'valdora-conta';
+const CT = { nome: null, token: null, state: 'off', msg: '', last: 0, dirty: false, busy: false, pending: false };
+function ctLoad() { try { const c = JSON.parse(localStorage.getItem(CONTA_KEY) || 'null'); if (c && c.token) { CT.nome = c.nome; CT.token = c.token; } } catch (e) {} }
+function ctStore() { try { if (CT.token) localStorage.setItem(CONTA_KEY, JSON.stringify({ nome: CT.nome, token: CT.token })); else localStorage.removeItem(CONTA_KEY); } catch (e) {} }
+function ctCfg() { const c = netCfg(); return c && c.url && c.key ? c : null; }
+async function rpc(fn, args, keepalive) {
+  const c = ctCfg(); if (!c) throw new Error('A nuvem não está disponível neste endereço.');
+  const key = c.key.trim();
+  let r;
+  try {
+    r = await fetch(c.url.trim().replace(/\/+$/, '') + '/rest/v1/rpc/' + fn, { method: 'POST', keepalive: !!keepalive, headers: { apikey: key, Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' }, body: JSON.stringify(args || {}) });
+  } catch (e) { const er = new Error('Sem conexão com a nuvem.'); er.net = true; throw er; }
+  const txt = await r.text(); let j = null; try { j = txt ? JSON.parse(txt) : null; } catch (e) {}
+  if (!r.ok) { const er = new Error((j && j.message) || ('Erro ' + r.status)); er.status = r.status; throw er; }
+  return j;
+}
+// o personagem com mais progresso vence (nível, depois XP); o horário só desempata — igual ao servidor
+function ctNewer(a, b) { const k = c => [+c.blvl || 0, +c.bxp || 0, +c.t || 0]; const x = k(a), y = k(b); for (let i = 0; i < 3; i++) if (x[i] !== y[i]) return x[i] > y[i]; return true; }
+function ctPayload() { return { v: 1, slots: SAVE.slots, del: (SAVE.del || []).slice(-50) }; }
+function ctSetState(s, msg) { CT.state = s; CT.msg = msg || ''; renderAcct(); }
+function ctExpired(e) { return e && /Sessão expirada/.test(e.message); }
+function ctLogoutLocal(msg) { CT.token = null; CT.nome = null; ctStore(); ctSetState('off', msg || ''); }
+
+// junta personagens: nuvem + este aparelho; personagens apagados não voltam
+function ctMerge(D) {
+  const del = new Set([...(SAVE.del || []), ...((D && D.del) || [])]);
+  const out = (D && Array.isArray(D.slots) ? D.slots : []).slice(0, 3).map(c => c && typeof c === 'object' && !del.has(c.created) ? migrateChar(c) : null);
+  while (out.length < 3) out.push(null);
+  const local = SAVE.slots.slice().sort((a, b) => (b === S) - (a === S)); // o personagem em jogo tem prioridade
+  const lost = [];
+  local.forEach(c => {
+    if (!c || del.has(c.created)) return;
+    const i = out.findIndex(o => o && o.created === c.created);
+    if (i >= 0) { if (ctNewer(c, out[i])) out[i] = c; }
+    else { const j = out.indexOf(null); if (j >= 0) out[j] = c; else lost.push(c); }
+  });
+  if (lost.length) { try { localStorage.setItem('valdora-backup-' + Date.now(), JSON.stringify(lost)); } catch (e) {} toast(`${lost.length} personagem(ns) deste aparelho não couberam nas 3 vagas da conta. Guardei uma cópia neste navegador.`, 'warn'); }
+  const cur = S;
+  SAVE.slots = out; SAVE.del = [...del].slice(-50);
+  const ni = cur ? out.findIndex(o => o && o.created === cur.created) : -1;
+  if (cur && ni >= 0 && out[ni] !== cur) { SAVE.cur = ni; save(); playChar(ni); toast('Progresso mais recente carregado da nuvem', 'small'); }
+  else { SAVE.cur = ni; save(); }
+  if (!$('chars').hidden) openChars();
+}
+
+async function ctPush(keepalive) {
+  if (!CT.token || CT.busy) { if (CT.token) CT.pending = true; return; }
+  CT.busy = true; CT.dirty = false; CT.last = Date.now();
+  if (!keepalive) ctSetState('saving');
+  try { const r = await rpc('valdora_sincronizar', { p_token: CT.token, p_dados: ctPayload() }, keepalive); if (!keepalive && r) { const d = CT.dirty; ctMerge(r); CT.dirty = d; } ctSetState('ok'); }
+  catch (e) { CT.dirty = true; if (ctExpired(e)) ctLogoutLocal('Sua sessão expirou. Entre de novo para continuar salvando na nuvem.'); else ctSetState('err', e.message); }
+  CT.busy = false;
+  if (CT.pending) { CT.pending = false; setTimeout(() => ctPush(), 1500); }
+}
+function ctPushSoon(ms) { if (!CT.token) return; CT.dirty = true; clearTimeout(CT.soon); CT.soon = setTimeout(() => ctPush(), ms || 1500); }
+// chamado por save(): marca que há algo novo para enviar
+function ctOnSave() { if (CT.token) CT.dirty = true; }
+setInterval(() => { if (CT.token && CT.dirty && !CT.busy && Date.now() - CT.last > 30000) ctPush(); }, 5000);
+document.addEventListener('visibilitychange', () => { if (document.hidden && CT.token && CT.dirty) ctPush(true); });
+window.addEventListener('pagehide', () => { if (CT.token && CT.dirty) ctPush(true); });
+
+async function ctSync() {
+  if (!CT.token || !ctCfg()) return;
+  ctSetState('saving', 'sincronizando…');
+  try { const r = await rpc('valdora_carregar', { p_token: CT.token }); CT.nome = r.nome || CT.nome; ctStore(); ctMerge(r.dados); await ctPush(); }
+  catch (e) { if (ctExpired(e)) ctLogoutLocal('Sua sessão expirou. Entre de novo.'); else { ctSetState('err', e.message); setTimeout(ctSync, 30000); } }
+}
+async function ctAuth(fn) {
+  const nome = $('ctNome').value.trim(), senha = $('ctSenha').value, msg = $('ctMsg');
+  if (nome.length < 3 || senha.length < 6) { msg.className = 'sub err'; msg.textContent = 'Preencha o nome (3+ letras) e a senha (6+ caracteres).'; return; }
+  msg.className = 'sub'; msg.textContent = fn === 'valdora_registrar' ? 'Criando a conta…' : 'Entrando…';
+  $('ctEntrar').disabled = $('ctNova').disabled = true;
+  try {
+    const r = await rpc(fn, { p_nome: nome, p_senha: senha });
+    CT.token = r.token; CT.nome = r.nome; ctStore(); $('ctSenha').value = '';
+    ctMerge(r.dados); await ctPush();
+    sfx('magia', .4); toast(fn === 'valdora_registrar' ? `Conta ${r.nome} criada! Seus personagens agora ficam na nuvem.` : `Bem-vindo de volta, ${r.nome}!`);
+    openChars();
+  } catch (e) { msg.className = 'sub err'; msg.textContent = e.message; }
+  $('ctEntrar').disabled = $('ctNova').disabled = false;
+}
+async function ctLogout() {
+  if (CT.dirty) await ctPush();
+  const t = CT.token; ctLogoutLocal('Você saiu. Os personagens continuam neste navegador e na nuvem.');
+  try { await rpc('valdora_sair', { p_token: t }); } catch (e) {}
+}
+function openConta() { $('ctMsg').className = 'sub'; $('ctMsg').textContent = 'Sem e-mail: guarde bem o nome e a senha. Não use a mesma senha de outros sites.'; open('conta'); setTimeout(() => $('ctNome').focus(), 50); }
+
+function renderAcct() {
+  const b = $('acctBar'); if (!b) return;
+  b.className = 'acct';
+  if (!ctCfg()) { b.innerHTML = '<span>Personagens salvos só neste navegador.</span>'; return; }
+  if (!CT.token) {
+    b.innerHTML = `<span>${CT.msg ? esc(CT.msg) : 'Seus personagens estão só neste navegador.'}</span><span class="sp"></span><button class="btn" type="button" id="acctIn">Entrar / Criar conta</button>`;
+    $('acctIn').onclick = () => { sfx('clique', .3); openConta(); };
+    return;
+  }
+  const st = CT.state === 'saving' ? '<i>salvando…</i>' : CT.state === 'err' ? `<i>${esc(CT.msg || 'erro ao salvar')}</i>` : '<i>salvo na nuvem</i>';
+  b.classList.add(CT.state === 'err' ? 'err' : 'ok');
+  b.innerHTML = `<span>Conta <b>${esc(CT.nome || '')}</b> · ${st}</span><span class="sp"></span><button class="btn alt" type="button" id="acctSave">Salvar agora</button><button class="btn alt" type="button" id="acctOut">Sair</button>`;
+  $('acctSave').onclick = () => { sfx('clique', .3); ctPush(); };
+  $('acctOut').onclick = () => { sfx('clique', .3); ctLogout(); };
+}
+function onCharsOpen() { renderAcct(); }
+
+function setupConta() {
+  ctLoad();
+  $('ctForm').onsubmit = ev => { ev.preventDefault(); ctAuth('valdora_entrar'); };
+  $('ctNova').onclick = () => ctAuth('valdora_registrar');
+  $('ctClose').onclick = () => openChars();
+  ['ctNome', 'ctSenha'].forEach(id => $(id).addEventListener('keydown', ev => ev.stopPropagation()));
+  // espera a configuração da nuvem (online.json pode chegar depois) e sincroniza
+  let tries = 0;
+  const wait = () => { if (ctCfg()) { renderAcct(); ctSync(); } else if (++tries < 40) setTimeout(wait, 250); };
+  wait();
+}
+setupConta();
 
 start();
 window.__game = { W, get P() { return P; }, get PET() { return PET; }, S: () => S, SAVE: () => SAVE, castSkill, setTarget, loadZone, changeClass, evolveTo, gainXp, dropLoot, openSheet, playChar, openNpc, openShop, openBag, startGather, npcById, mkItem, giveItem, grant, CL, netConnect: () => netConnect(), netChat: t => netChat(t), NET: () => NET };
