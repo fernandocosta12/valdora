@@ -1416,7 +1416,15 @@ function paintGround(z, r) {
   // estradas: de cada saída até o centro do mapa (ou até a fenda)
   const hub = z.rift ? { x: z.rift[0] - 200, y: z.rift[1] } : z.village ? { x: 600, y: 820 } : { x: z.w * .5, y: z.h * .55 };
   const LY = typeof zoneLayout === 'function' ? zoneLayout(z) : null;
-  if (LY) LY.roads.forEach(rd => road(rd, LY.roadW)); else z.exits.forEach(e => road(curve(exitPoint(z, e), hub, z.village ? 0 : 60), z.forest ? 60 : 76));
+  if (LY) {
+    // estradas e trilhas pintadas juntas, camada por camada: sem bordas escuras por cima de outras estradas
+    const all = [...LY.roads.map(rd => [rd, LY.roadW]), ...LY.trails.map(t => [t, 30])], off = document.createElement('canvas'); off.width = z.w; off.height = z.h; const o = off.getContext('2d');
+    [[20, G.dark, .35, 1], [0, G.path, .9, 1], [0, G.light, .16, .5]].forEach(([add, col, al, k]) => {
+      o.clearRect(0, 0, z.w, z.h); o.lineCap = 'round'; o.lineJoin = 'round'; o.strokeStyle = col;
+      all.forEach(([ps, w]) => { if (k < 1 && w < 40) return; o.lineWidth = (w + (w < 40 ? add * .4 : add)) * k; o.beginPath(); ps.forEach((p, i) => i ? o.lineTo(p.x, p.y) : o.moveTo(p.x, p.y)); o.stroke(); });
+      g.globalAlpha = al; g.drawImage(off, 0, 0); g.globalAlpha = 1;
+    });
+  } else z.exits.forEach(e => road(curve(exitPoint(z, e), hub, z.village ? 0 : 60), z.forest ? 60 : 76));
   [z.lake, ...(z.pools || [])].filter(Boolean).forEach(([lx, ly, rx, ry]) => {
     g.fillStyle = z.lakeShore || '#c7b48a'; g.beginPath(); g.ellipse(lx, ly, rx + 40, ry + 30, 0, 0, 7); g.fill();
     const LC = z.lakeCol || ['#5cc3d8', '#3a9ab8', '#2f7f9e'];
@@ -1435,7 +1443,7 @@ function paintGround(z, r) {
     for (let k = 0; k < 140; k++) { const ang = r() * 7, d = 80 + r() * 520, x = z.rift[0] + Math.cos(ang) * d * 1.2 - 200, y = z.rift[1] + Math.sin(ang) * d * .8; g.fillStyle = r() < .5 ? '#6f6888' : '#5d5775'; g.globalAlpha = .8; g.save(); g.translate(x, y); g.rotate(r()); g.fillRect(-22, -14, 44 + r() * 20, 28 + r() * 10); g.restore(); }
     g.globalAlpha = 1;
   }
-  z.exits.forEach(e => {
+  if (!z.exitsLive) z.exits.forEach(e => {
     const p = exitInside(z, e, 70), ang = { e: 0, w: Math.PI, n: -Math.PI / 2, s: Math.PI / 2 }[e.side];
     blot(p.x, p.y, 120, '#8fe0e6', .35); g.fillStyle = 'rgba(143,224,230,.85)';
     g.save(); g.translate(p.x, p.y); g.rotate(ang);
@@ -2744,7 +2752,7 @@ function updateGather(dt) {
 function resize() {
   const dpr = Math.min(window.devicePixelRatio || 1, 2), w = cv.clientWidth, h = cv.clientHeight;
   cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
-  W.cam.z = clamp(Math.max(Math.min(w / 1000, h / 640), Math.max(w, h) / 1150), .7, 1.35) * dpr;
+  W.cam.z = clamp(Math.max(Math.min(w / 1000, h / 640), Math.max(w, h) / 1150), .7, 1.35) * .86 * dpr;
 }
 function screenToWorld(px, py) { const dpr = cv.width / cv.clientWidth, c = W.cam; return { x: (px * dpr - cv.width / 2) / c.z + c.x, y: (py * dpr - cv.height / 2) / c.z + c.y }; }
 function label(g, x, y, str, color, size) { g.font = `700 ${size || 13}px ${FONT}`; g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.lineWidth = 3.5; g.strokeStyle = 'rgba(12,21,23,.9)'; g.strokeText(str, x, y); g.fillStyle = color; g.fillText(str, x, y); }
@@ -2842,7 +2850,7 @@ function render() {
   if (typeof drawLighting === 'function') drawLighting(g);
   if (!S) { if (typeof drawWorldExtra === 'function') drawWorldExtra(g, vis); return; }
   W.props.forEach(p => { if (p.label && vis(p)) label(g, p.x, p.y - 64, p.label, '#fff6dc', 13); });
-  if (W.obelisk && vis(W.obelisk)) label(g, W.obelisk.x, W.obelisk.y - 150, 'Obelisco do Véu', '#8fe0e6', 13);
+  if (W.obelisk && vis(W.obelisk)) label(g, W.obelisk.x, W.obelisk.y - 200, 'Obelisco do Véu', '#8fe0e6', 13);
   W.npcs.forEach(n => {
     if (!vis(n) || n.hidden) return;
     if (n.walker) { label(g, n.x, n.y - n.body.h - 6, n.name, '#e9d8bd', 11.5); return; }
@@ -2884,7 +2892,7 @@ function hitTest(wx, wy) {
   const npc = W.npcs.find(n => !n.hidden && Math.abs(wx - n.x) < (TOUCH ? 48 : 38) && wy > n.y - n.body.h - 60 && wy < n.y + (TOUCH ? 30 : 20)); if (npc) return npc;
   const nd = W.props.find(p => p.node && !p.gone && Math.abs(wx - p.x) < 36 && wy > p.y - 60 && wy < p.y + 16); if (nd) return { kind: 'node', n: nd };
   if (typeof hitTestExtra === 'function') { const h = hitTestExtra(wx, wy); if (h) return h; }
-  if (W.obelisk && Math.hypot(W.obelisk.x - wx, W.obelisk.y - 70 - wy) < 60) return W.obelisk;
+  if (W.obelisk && Math.hypot(W.obelisk.x - wx, W.obelisk.y - 95 - wy) < 80) return W.obelisk;
   return null;
 }
 cv.addEventListener('pointerdown', ev => {
@@ -4495,7 +4503,6 @@ function paintLayout(g, z, r) {
   const L = zoneLayout(z); if (!L) return;
   const G = z.ground;
   const dirt = (pts, w, col) => { g.lineCap = 'round'; g.lineJoin = 'round'; [[w + 8, G.dark, .35], [w, col || G.path, .85]].forEach(([lw, c, a]) => { g.globalAlpha = a; g.strokeStyle = c; g.lineWidth = lw; g.beginPath(); pts.forEach((p, i) => i ? g.lineTo(p.x, p.y) : g.moveTo(p.x, p.y)); g.stroke(); }); g.globalAlpha = 1; };
-  L.trails.forEach(t => dirt(t, 30));
   const soft = (x, y, rx, ry, col, a) => { g.save(); g.translate(x, y); g.scale(1, ry / rx); const gr = g.createRadialGradient(0, 0, rx * .55, 0, 0, rx); gr.addColorStop(0, col); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.globalAlpha = a; g.fillStyle = gr; g.beginPath(); g.arc(0, 0, rx, 0, 7); g.fill(); g.restore(); g.globalAlpha = 1; };
   const tiles = (x, y, rx, ry, cols, step, gap) => { for (let yy = y - ry; yy < y + ry; yy += step * .7) for (let xx = x - rx + ((yy / step) % 2 ? step / 2 : 0); xx < x + rx; xx += step) { if (((xx - x) / rx) ** 2 + ((yy - y) / ry) ** 2 > 1 || r() < gap) continue; g.fillStyle = cols[Math.floor(r() * cols.length)]; g.globalAlpha = .9; g.beginPath(); g.roundRect(xx - step / 2 + 2, yy - step * .3, step - 4, step * .6 - 1, 3); g.fill(); } g.globalAlpha = 1; };
   L.pois.forEach(p => {
@@ -6252,6 +6259,117 @@ drawLighting = function (g) {
   g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
   const gr = g.createRadialGradient(w / 2, h / 2, Math.min(w, h) * .3, w / 2, h / 2, Math.hypot(w, h) * .55); gr.addColorStop(0, 'rgba(160,0,0,0)'); gr.addColorStop(1, `rgba(170,10,10,${a})`);
   g.fillStyle = gr; g.fillRect(0, 0, w, h); g.restore();
+};
+
+/* ================= Mira das habilidades em área, saídas de mapa animadas e o obelisco maior ================= */
+const AOE_R = { meteoros: 130, chuva: 140, vortice: 180 };
+const aoeOf = sk => sk && (AOE_R[sk.id] || (sk.g && sk.g.type === 'area' && (sk.range || 0) >= 200 ? sk.g.r : 0));
+const AIM = { on: false, n: 0, sk: null, x: 0, y: 0, mx: null, my: null, bypass: false, touch: null };
+function aimClamp(x, y, range) { const dx = x - P.x, dy = y - P.y, d = Math.hypot(dx, dy); if (d > range) { x = P.x + dx / d * range; y = P.y + dy / d * range; } return { x, y }; }
+// solta a habilidade no ponto escolhido (alvo de mentira só com posição)
+function castAt(n, x, y) {
+  const sk = CL().skills[n - 1]; if (!sk) return;
+  const q = aimClamp(x, y, sk.range || 300), pt = { kind: 'point', x: q.x, y: q.y, alive: true, hp: 1, max: 1, body: { h: 30 }, d: {} };
+  const keep = P.target; P.target = pt; AIM.bypass = true;
+  try { castSkill(n); } finally { AIM.bypass = false; P.target = keep && keep.alive ? keep : null; if (P.pending === n) P.pending = 0; P.chase = false; }
+}
+function aimStop() { AIM.on = false; AIM.touch = null; document.body.classList.remove('aiming'); }
+function aimStart(n, sk) { AIM.on = true; AIM.n = n; AIM.sk = sk; document.body.classList.add('aiming'); const T = P.target && P.target.alive ? P.target : null; const q = T ? { x: T.x, y: T.y } : { x: P.x + 120, y: P.y }; AIM.x = q.x; AIM.y = q.y; }
+// no computador: tecla ou botão da habilidade liga a mira; clique no chão solta; Esc ou botão direito cancela
+const _castSkillA = castSkill;
+castSkill = function (n) {
+  const sk = CL().skills[n - 1];
+  if (AIM.bypass || TOUCH || !aoeOf(sk) || !skLv(sk.id) || P.dead || (P.cds && P.cds[n] > 0)) return _castSkillA(n);
+  if (AIM.on && AIM.n === n) { castAt(n, AIM.x, AIM.y); aimStop(); return; } // apertar de novo solta onde o mouse está
+  aimStart(n, sk); if (AIM.mx != null) { AIM.x = AIM.mx; AIM.y = AIM.my; }
+  toast('Clique no chão para soltar (Esc cancela)', 'small');
+};
+const _onCanvasDownA = onCanvasDown;
+onCanvasDown = function (ev) {
+  if (AIM.on && !AIM.touch) { if (ev.button === 2) { aimStop(); return true; } const p = screenToWorld(ev.offsetX, ev.offsetY); castAt(AIM.n, p.x, p.y); aimStop(); return true; }
+  return _onCanvasDownA(ev);
+};
+cv.addEventListener('pointermove', ev => { if (!S) return; const p = screenToWorld(ev.offsetX, ev.offsetY); AIM.mx = p.x; AIM.my = p.y; if (AIM.on && !AIM.touch) { const q = aimClamp(p.x, p.y, AIM.sk.range || 300); AIM.x = q.x; AIM.y = q.y; } });
+cv.addEventListener('contextmenu', ev => { if (AIM.on) { ev.preventDefault(); aimStop(); } });
+window.addEventListener('keydown', ev => { if (ev.key === 'Escape' && AIM.on) aimStop(); }, true);
+// no celular: segure o botão da habilidade e arraste para mirar; soltar lança (toque rápido lança no alvo)
+document.addEventListener('touchstart', ev => {
+  const b = ev.target.closest && ev.target.closest('#bar .sk'); if (!b || !S || !b.id.startsWith('sk') || b.id === 'skP') return;
+  const n = +b.id.slice(2), sk = CL().skills[n - 1]; if (!aoeOf(sk) || !skLv(sk.id) || P.dead || (P.cds && P.cds[n] > 0)) return;
+  ev.preventDefault(); ev.stopPropagation(); initAudio();
+  const t = ev.changedTouches[0], r = b.getBoundingClientRect();
+  aimStart(n, sk); AIM.touch = { id: t.identifier, cx: r.left + r.width / 2, cy: r.top + r.height / 2, moved: false };
+}, { capture: true, passive: false });
+document.addEventListener('touchmove', ev => {
+  if (!AIM.on || !AIM.touch) return; const t = [...ev.changedTouches].find(x => x.identifier === AIM.touch.id); if (!t) return;
+  ev.preventDefault();
+  const dx = t.clientX - AIM.touch.cx, dy = t.clientY - AIM.touch.cy, d = Math.hypot(dx, dy); if (d > 14) AIM.touch.moved = true;
+  const range = AIM.sk.range || 300, k = Math.min(1, d / 110) * range, a = Math.atan2(dy, dx);
+  AIM.x = P.x + (d ? Math.cos(a) * k : 0); AIM.y = P.y + (d ? Math.sin(a) * k : 0);
+}, { capture: true, passive: false });
+const aimEnd = ev => {
+  if (!AIM.on || !AIM.touch) return; const t = [...ev.changedTouches].find(x => x.identifier === AIM.touch.id); if (!t) return;
+  ev.preventDefault(); const n = AIM.n, moved = AIM.touch.moved, x = AIM.x, y = AIM.y; aimStop();
+  if (ev.type === 'touchcancel') return;
+  if (moved) castAt(n, x, y); else { AIM.bypass = true; try { castSkill(n); } finally { AIM.bypass = false; } }
+};
+document.addEventListener('touchend', aimEnd, { capture: true, passive: false });
+document.addEventListener('touchcancel', aimEnd, { capture: true, passive: false });
+// desenho da mira: alcance em volta do herói e o círculo onde vai cair
+function drawAim(g) {
+  if (!AIM.on || !S || P.dead) return; const sk = AIM.sk, R = aoeOf(sk), range = sk.range || 300, col = (typeof clsCol === 'function' ? clsCol() : '#ffd166');
+  g.save();
+  g.strokeStyle = hexA(col, .35); g.lineWidth = 2; g.setLineDash([10, 8]); g.beginPath(); g.ellipse(P.x, P.y, range, range * .5, 0, 0, 7); g.stroke(); g.setLineDash([]);
+  g.strokeStyle = hexA(col, .5); g.lineWidth = 2; g.beginPath(); g.moveTo(P.x, P.y); g.lineTo(AIM.x, AIM.y); g.stroke();
+  const pulse = .85 + Math.sin(W.T * 8) * .1;
+  g.globalCompositeOperation = 'lighter'; g.fillStyle = hexA(col, .16); g.beginPath(); g.ellipse(AIM.x, AIM.y, R, R * .45, 0, 0, 7); g.fill();
+  g.strokeStyle = hexA(col, .9); g.lineWidth = 3; g.beginPath(); g.ellipse(AIM.x, AIM.y, R * pulse, R * .45 * pulse, 0, 0, 7); g.stroke();
+  g.lineWidth = 2; g.beginPath(); g.moveTo(AIM.x - 14, AIM.y); g.lineTo(AIM.x + 14, AIM.y); g.moveTo(AIM.x, AIM.y - 7); g.lineTo(AIM.x, AIM.y + 7); g.stroke();
+  g.restore();
+}
+
+/* ---------- saídas de mapa: setas douradas animadas sobre uma trilha de luz ---------- */
+ZONES.forEach(z => { z.exitsLive = true; });
+function drawExits(g) {
+  const z = W.zone; if (!z || z.dungeon) return;
+  const c = W.cam, vw = cv.width / c.z, vh = cv.height / c.z;
+  z.exits.forEach(e => {
+    const p = exitInside(z, e, 90); if (Math.abs(p.x - c.x) > vw / 2 + 200 || Math.abs(p.y - c.y) > vh / 2 + 200) return;
+    const ang = { e: 0, w: Math.PI, n: -Math.PI / 2, s: Math.PI / 2 }[e.side];
+    g.save(); g.translate(p.x, p.y);
+    // poça de luz no chão
+    const gr = g.createRadialGradient(0, 0, 0, 0, 0, 120); gr.addColorStop(0, 'rgba(255,226,140,.38)'); gr.addColorStop(1, 'rgba(255,226,140,0)');
+    g.scale(1, .55); g.fillStyle = gr; g.beginPath(); g.arc(0, 0, 120, 0, 7); g.fill(); g.scale(1, 1 / .55);
+    g.rotate(ang); g.scale(1, ang === 0 || ang === Math.PI ? .62 : 1);
+    for (let k = 0; k < 3; k++) {
+      const x = -46 + k * 34, ph = (W.T * 1.6 - k * .33) % 1, glow = Math.max(0, Math.sin(ph * Math.PI)), s = 1 + glow * .12;
+      g.save(); g.translate(x, 0); g.scale(s, s);
+      const chev = () => { g.beginPath(); g.moveTo(16, 0); g.lineTo(-4, -20); g.lineTo(-14, -20); g.lineTo(5, 0); g.lineTo(-14, 20); g.lineTo(-4, 20); g.closePath(); };
+      g.lineJoin = 'round'; chev(); g.lineWidth = 7; g.strokeStyle = 'rgba(40,24,8,.75)'; g.stroke();
+      const fg = g.createLinearGradient(0, -20, 0, 20); fg.addColorStop(0, '#fff6c8'); fg.addColorStop(.5, '#ffd166'); fg.addColorStop(1, '#d08a2a');
+      chev(); g.fillStyle = fg; g.globalAlpha = .55 + glow * .45; g.fill();
+      if (glow > .3) { g.globalCompositeOperation = 'lighter'; g.globalAlpha = (glow - .3) * .6; chev(); g.fillStyle = '#fff3c0'; g.fill(); }
+      g.restore();
+    }
+    g.restore();
+  });
+}
+const _dfgA = drawFxGround;
+drawFxGround = function (g) { drawExits(g); _dfgA(g); drawAim(g); };
+
+/* ---------- obelisco: maior, com sombra suave e um círculo de runas que gira no chão ---------- */
+drawObelisk = function (g, o) {
+  const m = PROPMETA._obm, f = Math.floor(W.T * 8) % m.n, s = 1.15, sp = typeof shadowSprite === 'function' ? shadowSprite() : null;
+  if (sp) g.drawImage(sp, o.x - 46, o.y - 12, 92, 30);
+  g.save(); g.translate(o.x, o.y + 2); g.scale(1, .42);
+  const pulse = .7 + Math.sin(W.T * 2) * .15;
+  const gr = g.createRadialGradient(0, 0, 10, 0, 0, 92); gr.addColorStop(0, `rgba(143,224,230,${.35 * pulse})`); gr.addColorStop(.7, `rgba(143,224,230,${.12 * pulse})`); gr.addColorStop(1, 'rgba(143,224,230,0)');
+  g.fillStyle = gr; g.beginPath(); g.arc(0, 0, 92, 0, 7); g.fill();
+  g.globalCompositeOperation = 'lighter'; g.strokeStyle = `rgba(143,224,230,${.55 * pulse})`; g.lineWidth = 3; g.beginPath(); g.arc(0, 0, 70, 0, 7); g.stroke(); g.lineWidth = 1.6; g.beginPath(); g.arc(0, 0, 56, 0, 7); g.stroke();
+  g.rotate(W.T * .4); g.fillStyle = `rgba(200,250,255,${.7 * pulse})`;
+  for (let i = 0; i < 12; i++) { const a = i / 12 * 6.283; g.save(); g.rotate(a); g.translate(63, 0); g.fillRect(-3, -5, 6, 10); g.restore(); }
+  g.restore();
+  g.drawImage(IMG.obelisco, f * m.fw, 0, m.fw, m.fh, o.x - m.fw * s / 2, o.y - m.fh * s + 8, m.fw * s, m.fh * s);
 };
 
 start();
