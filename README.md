@@ -19,5 +19,5 @@ RPG 2D de navegador (PC e celular, na horizontal). Jogue em: https://fernandocos
 ## Créditos de arte (CC0)
 - KayKit (Kay Lousberg): Adventurers, Skeletons, Dungeon, Dungeon Remastered, Forest Nature, Medieval Hexagon, Resource Bits, Halloween Bits
 - Kenney: Particle Pack, Tower Defense Kit, Monster Builder
-- Quaternius: Ultimate Platformer Pack, Ultimate Monsters, Monster Pack, Low Poly Medieval Weapons
+- Quaternius: Ultimate Platformer Pack, Ultimate Monsters, Ultimate Stylized Nature, Monster Pack, Low Poly Medieval Weapons
 - Cenji: Low Poly Nature Forest Mega Pack
