@@ -1888,30 +1888,35 @@ function buildBar() {
   $('clsName').textContent = CL().name; drawPortrait($('crest'), CL().sprite); $('meName').textContent = S.name;
   if (typeof layoutTouch === 'function') layoutTouch();
 }
+const _uiC = new WeakMap();
+function setTxtE(el, v) { if (!el) return; v = String(v); if (_uiC.get(el) !== v) { _uiC.set(el, v); el.textContent = v; } }
+function setTxt(id, v) { setTxtE($(id), v); }
+function setSty(el, k, v) { if (!el) return; const key = '_s' + k; if (el[key] !== v) { el[key] = v; el.style[k] = v; } }
+const pctS = v => (Math.round(Math.max(0, Math.min(100, v)) * 4) / 4) + '%';
 function updateHud() {
   if (!S) return;
   const mh = maxHp();
-  $('hpFill').style.width = (P.hp / mh * 100) + '%';
-  $('hpTxt').textContent = `${Math.ceil(P.hp)} / ${mh}` + (P.shieldHp > 0 ? ` +${Math.ceil(P.shieldHp)}` : '');
-  $('lvl').textContent = S.blvl; $('jlvl').textContent = S.jlvl;
-  $('xpFill').style.width = (S.blvl >= MAX_BASE ? 100 : S.bxp / needBase(S.blvl) * 100) + '%';
-  $('jxpFill').style.width = (S.jlvl >= maxJob(S.cls) ? 100 : S.jxp / needJob(S.jlvl, S.cls) * 100) + '%';
-  $('gold').textContent = S.gold; $('potCnt').textContent = (S.cons.pot || 0) + (S.cons.potg || 0);
-  const pts = S.stPts + S.skPts; $('sheetBtn').dataset.pts = pts || ''; $('sheetBtn').classList.toggle('alert', pts > 0);
+  setSty($('hpFill'), 'width', pctS(P.hp / mh * 100));
+  setTxt('hpTxt', `${Math.ceil(P.hp)} / ${mh}` + (P.shieldHp > 0 ? ` +${Math.ceil(P.shieldHp)}` : ''));
+  setTxt('lvl', S.blvl); setTxt('jlvl', S.jlvl);
+  setSty($('xpFill'), 'width', pctS(S.blvl >= MAX_BASE ? 100 : S.bxp / needBase(S.blvl) * 100));
+  setSty($('jxpFill'), 'width', pctS(S.jlvl >= maxJob(S.cls) ? 100 : S.jxp / needJob(S.jlvl, S.cls) * 100));
+  setTxt('gold', S.gold); setTxt('potCnt', (S.cons.pot || 0) + (S.cons.potg || 0));
+  const pts = S.stPts + S.skPts, sb = $('sheetBtn'); if (sb.dataset.pts !== String(pts || '')) sb.dataset.pts = pts || ''; if (sb.classList.contains('alert') !== pts > 0) sb.classList.toggle('alert', pts > 0);
   const T = P.target && P.target.alive ? P.target : null;
-  $('tgt').hidden = !T;
-  if (T) { $('tName').textContent = T.d.name; $('tLvl').textContent = 'Nv ' + T.d.lvl; $('tFill').style.width = (T.hp / T.max * 100) + '%'; $('tTxt').textContent = `${Math.max(0, Math.ceil(T.hp))} / ${T.max}`; }
+  if ($('tgt').hidden !== !T) $('tgt').hidden = !T;
+  if (T) { setTxt('tName', T.d.name); setTxt('tLvl', 'Nv ' + T.d.lvl); setSty($('tFill'), 'width', pctS(T.hp / T.max * 100)); setTxt('tTxt', `${Math.max(0, Math.ceil(T.hp))} / ${T.max}`); }
   CL().skills.forEach((sk, i) => {
     const b = $('sk' + (i + 1)); if (!b) return; const L = skLv(sk.id);
-    b.classList.toggle('locked', !L); b.querySelector('.lv').textContent = L ? L : '';
-    b.querySelector('.lock').textContent = canLearn(sk) ? 'Aprender' : '';
-    b.title = L ? `${sk.name} nível ${L} (tecla ${i + 1}) · ${sk.d(L)} Recarga ${sk.cd} s.` : `${sk.name} · ainda não aprendida. ${skReqText(sk).length ? 'Precisa de ' + skReqText(sk).join(' e ') + '.' : 'Use um ponto de habilidade na Ficha.'}`;
-    b.querySelector('.cd').style.height = ((P.cds[i + 1] || 0) / sk.cd * 100) + '%'; b.classList.toggle('flash', P.pending === i + 1);
+    if (b.classList.contains('locked') !== !L) b.classList.toggle('locked', !L); setTxtE(b.querySelector('.lv'), L ? L : '');
+    setTxtE(b.querySelector('.lock'), canLearn(sk) ? 'Aprender' : '');
+    if (b._tl !== L) { b._tl = L; b.title = L ? `${sk.name} nível ${L} (tecla ${i + 1}) · ${sk.d(L)} Recarga ${sk.cd} s.` : `${sk.name} · ainda não aprendida. ${skReqText(sk).length ? 'Precisa de ' + skReqText(sk).join(' e ') + '.' : 'Use um ponto de habilidade na Ficha.'}`; }
+    setSty(b.querySelector('.cd'), 'height', pctS((P.cds[i + 1] || 0) / sk.cd * 100)); const fl = P.pending === i + 1; if (b.classList.contains('flash') !== fl) b.classList.toggle('flash', fl);
   });
-  $('skP').querySelector('.cd').style.height = (P.potCd / 6 * 100) + '%';
-  $('mute').textContent = SAVE.mute ? 'Som: desligado' : 'Som: ligado'; $('mute').setAttribute('aria-pressed', SAVE.mute ? 'true' : 'false');
-  const zn = W.zone.name + (W.zone.dungeon ? '' : isNight() ? ' ☾' : ' ☀'); if ($('zoneName').textContent !== zn) $('zoneName').textContent = zn;
-  $('musicBtn').textContent = SAVE.music === false ? 'Música: desligada' : 'Música: ligada';
+  setSty($('skP').querySelector('.cd'), 'height', pctS(P.potCd / 6 * 100));
+  setTxt('mute', SAVE.mute ? 'Som: desligado' : 'Som: ligado'); if ($('mute').getAttribute('aria-pressed') !== (SAVE.mute ? 'true' : 'false')) $('mute').setAttribute('aria-pressed', SAVE.mute ? 'true' : 'false');
+  setTxt('zoneName', W.zone.name + (W.zone.dungeon ? '' : isNight() ? ' ☾' : ' ☀'));
+  setTxt('musicBtn', SAVE.music === false ? 'Música: desligada' : 'Música: ligada');
   if (typeof updateHudExtra === 'function') updateHudExtra();
   drawMini(); updateAct();
 }
@@ -1942,7 +1947,7 @@ function nearAction() {
 }
 function updateAct() {
   const a = $('actBtn'); if (!S || P.dead) { a.hidden = true; return; }
-  const n = P.gather ? null : nearAction(); a.hidden = !n; if (n && a.textContent !== n.label) a.textContent = n.label;
+  const n = P.gather ? null : nearAction(); if (a.hidden !== !n) a.hidden = !n; if (n && a.textContent !== n.label) a.textContent = n.label;
 }
 const OVERLAYS = ['dialog', 'bag', 'help', 'classes', 'travel', 'chars', 'sheet', 'shop', 'online', 'conta', 'rank', 'fb'];
 function open(id) { OVERLAYS.forEach(o => $(o) && ($(o).hidden = o !== id)); }
@@ -3567,7 +3572,7 @@ function buildPartyHud() {
   list.forEach(b => { const d = document.createElement('div'); d.className = 'pm'; d.dataset.name = b.name; d.appendChild(portrait(CLASSES[b.cls].sprite, 40)); d.insertAdjacentHTML('beforeend', `<span><b>${esc(b.name)}</b><small>${CLASSES[b.cls].name}</small><i class="hb"><i></i></i></span>`); d.onclick = () => openBotMenu(b); el.appendChild(d); });
 }
 function updateHudExtra() {
-  partyBots().forEach(b => { const d = document.querySelector(`#party .pm[data-name="${b.name}"] .hb i`); if (d) d.style.width = (b.dead ? 0 : b.hp / b.max * 100) + '%'; });
+  partyBots().forEach(b => { const d = document.querySelector(`#party .pm[data-name="${b.name}"] .hb i`); if (d) setSty(d, 'width', pctS(b.dead ? 0 : b.hp / b.max * 100)); });
   if (typeof ptHudTick === 'function') ptHudTick();
 }
 // clique em bots e na caverna, no quadro e no baú
@@ -5212,7 +5217,7 @@ function tutTick() {
   if (!S || S.tut == null || S.tut >= TUT.length || P.dead) return;
   const s = TUT[S.tut];
   if (!$('bag').hidden) TS.bag = true;
-  $('tutD').textContent = s.d();
+  setTxt('tutD', s.d());
   if (s.done()) {
     sfx('coleta', .5); burst(P.x, P.y - 40, '#8fe0e6', 18, 120, { up: 120 });
     const nx = S.tut + 1; tutStep(nx);
@@ -6114,7 +6119,7 @@ function sqHud() {
   if (!S) return; let box = $('sqMini');
   if (!box) { box = document.createElement('div'); box.id = 'sqMini'; $('quest').appendChild(box); box.onclick = e => { e.stopPropagation(); openJournal(); }; }
   const st = sqState(), ids = Object.keys(st.act);
-  box.innerHTML = ids.length ? ids.slice(0, 4).map(id => { const q = SQ.find(x => x.id === id); if (!q) return ''; const done = sqReady(q); return `<div class="${done ? 'ok' : ''}">${done ? '✔' : '•'} ${q.t} <small>${q.kind === 'deliver' ? '' : `${st.act[id].p}/${q.n}`}</small></div>`; }).join('') + (ids.length > 4 ? `<div><small>+${ids.length - 4} (J)</small></div>` : '') : '';
+  const html = ids.length ? ids.slice(0, 4).map(id => { const q = SQ.find(x => x.id === id); if (!q) return ''; const done = sqReady(q); return `<div class="${done ? 'ok' : ''}">${done ? '✔' : '•'} ${q.t} <small>${q.kind === 'deliver' ? '' : `${st.act[id].p}/${q.n}`}</small></div>`; }).join('') + (ids.length > 4 ? `<div><small>+${ids.length - 4} (J)</small></div>` : '') : ''; if (box._h !== html) { box._h = html; box.innerHTML = html; }
 }
 setInterval(sqHud, 1500);
 // diário de missões (tecla J): ativas e onde encontrar novas
@@ -7823,6 +7828,174 @@ openNpc = function (npc) {
 window.addEventListener('keydown', ev => { if (!S || ev.key == null || (document.activeElement && /INPUT|TEXTAREA/.test(document.activeElement.tagName))) return; if (ev.key.toLowerCase() === 'g' && !anyOpen()) openGuild(); });
 let _gdBoot = false;
 setInterval(() => { if (S && online() && !_gdBoot) { _gdBoot = true; gdRefresh(); } if (!S) _gdBoot = false; }, 3000);
+
+/* ================= Desempenho: menos trabalho por quadro e opção de gráficos leves ================= */
+// o desfoque atrás dos painéis era refeito a cada quadro em cima do jogo; o pulso do Diário também redesenhava o tempo todo
+(() => {
+  const st = document.createElement('style');
+  st.textContent = `.plate,#hud *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+@keyframes dayPulse{50%{transform:scale(1.12)}}
+#hud,#bar,#side,#me,#quest,#tgt{contain:layout style}`;
+  document.head.appendChild(st);
+})();
+// gráficos: 'auto' (começa no alto e cai para o leve se o computador sofrer), 'alto' ou 'leve'
+const GFX = () => (SAVE.gfx || 'auto');
+function gfxApply() { if (GFX() === 'leve') VIS.low = true; else if (GFX() === 'alto') { VIS.low = false; VIS.slow = 0; } resize(); }
+// a tela não passa de ~2,1 milhões de pixels (1920×1080); no modo leve, ~1,2 milhão
+const _resizeP = resize;
+resize = function () {
+  _resizeP();
+  const cap = VIS.low ? 1.2e6 : 2.1e6, px = cv.width * cv.height;
+  if (px > cap) { const k = Math.sqrt(cap / px); cv.width = Math.round(cv.width * k); cv.height = Math.round(cv.height * k); W.cam.z *= k; }
+};
+// quando cair sozinho para o leve, a resolução também baixa (e avisa uma vez)
+let _wasLow = VIS.low;
+const _visTickP = visTick;
+visTick = function (dt) {
+  if (GFX() === 'alto') { VIS.slow = 0; VIS.low = false; }
+  _visTickP(dt);
+  if (GFX() === 'leve') VIS.low = true;
+  if (VIS.low !== _wasLow) { _wasLow = VIS.low; resize(); if (VIS.low && GFX() === 'auto' && S) toast('Ativei os gráficos leves para o jogo rodar melhor (Menu › Gráficos).', 'small'); }
+};
+// no modo leve: sem o filtro de cor por cima da tela, sem fumaça de passos e com menos partículas
+const _drawGradeP = drawGrade;
+drawGrade = function (g) { if (VIS.low) return; _drawGradeP(g); };
+const _stepDustP = typeof stepDust === 'function' ? stepDust : null;
+if (_stepDustP) stepDust = function (dt) { if (VIS.low) return; _stepDustP(dt); };
+const _pxP = px;
+px = function (p) { if (VIS.low && Math.random() < .45 && !p.ground) return; _pxP(p); };
+// botão no menu
+(() => {
+  const mb = $('musicBtn'); if (!mb) return;
+  const b = document.createElement('button'); b.type = 'button'; b.id = 'gfxBtn'; b.className = mb.className;
+  const lbl = () => { b.textContent = 'Gráficos: ' + { auto: 'automático', alto: 'alto', leve: 'leve' }[GFX()]; };
+  b.onclick = () => { initAudio(); SAVE.gfx = { auto: 'alto', alto: 'leve', leve: 'auto' }[GFX()]; if (SAVE.gfx === 'auto') { VIS.low = false; VIS.slow = 0; } gfxApply(); save(); lbl(); };
+  lbl(); mb.parentNode.insertBefore(b, mb.nextSibling);
+})();
+setTimeout(gfxApply, 0);
+
+/* ================= Habilidades com mais capricho: meteoro de verdade, bolas de fogo, gelo, raios do céu, flechas, vórtice e ondas ================= */
+const SKF = [];
+const lowFx = () => typeof VIS !== 'undefined' && VIS.low;
+// rocha do meteoro: polígono irregular com rachaduras de magma (desenhado uma vez)
+const METEOR_ROCK = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'), r = seeded(77);
+  g.translate(32, 32); g.beginPath(); for (let i = 0; i < 11; i++) { const a = i / 11 * 6.283, R = 20 + r() * 8; g.lineTo(Math.cos(a) * R, Math.sin(a) * R); } g.closePath();
+  const gr = g.createRadialGradient(-6, -8, 2, 0, 0, 30); gr.addColorStop(0, '#6a4a3a'); gr.addColorStop(1, '#2a1a16'); g.fillStyle = gr; g.fill(); g.lineWidth = 3; g.strokeStyle = '#1a0e0a'; g.stroke();
+  g.strokeStyle = '#ffb35a'; g.lineWidth = 2.2; g.shadowColor = '#ff7a2a'; g.shadowBlur = 6;
+  for (let i = 0; i < 5; i++) { g.beginPath(); let x = (r() - .5) * 20, y = (r() - .5) * 20; g.moveTo(x, y); for (let k = 0; k < 3; k++) { x += (r() - .5) * 14; y += (r() - .5) * 14; g.lineTo(x, y); } g.stroke(); }
+  return c;
+})();
+/* ---------- meteoro ---------- */
+FX.meteor = function (x, y, delay, onHit, big) {
+  const R = big ? 1.7 : 1;
+  W.fx.push({ kind: 'meteor2', x, y, t: -delay, dur: .62, fly: .55, onHit, R, sx: x + 170 * R, sy: y - 430 * R, rot: Math.random() * 6 });
+};
+const _updateFxS = updateFx;
+updateFx = function (dt) {
+  for (const f of W.fx) {
+    if (f.kind !== 'meteor2' || f.hit) continue;
+    const t = f.t + dt;
+    if (t >= 0 && !lowFx()) { // rastro de fogo e fumaça
+      const k0 = Math.min(1, t / f.fly), k = k0 * (.35 + .65 * k0), x = f.sx + (f.x - f.sx) * k, y = f.sy + (f.y - f.sy) * k;
+      px({ k: rndc(['fire_01', 'fire_02', 'flame_05']), x: x + rnd(-6, 6), y: y + rnd(-6, 6), vx: rnd(-20, 20), vy: -rnd(10, 40), s0: .7 * f.R, s1: .15, a0: .95, life: .32, col: Math.random() < .5 ? '#ffb35a' : '#ff6a2a', rot: Math.random() * 6 });
+      if (Math.random() < .5) px({ k: rndc(['smoke_02', 'smoke_05']), x, y, vx: rnd(-10, 10), vy: -20, s0: .5 * f.R, s1: 1.3 * f.R, a0: .35, life: .9, col: '#4a3a36', add: false, rot: Math.random() * 6, vr: 1 });
+    }
+    if (t >= f.fly) {
+      f.hit = true; f.onHit && f.onHit();
+      const R = f.R; W.hitstop = Math.max(W.hitstop || 0, .05 * R);
+      px({ k: 'light_02', x: f.x, y: f.y - 20, s0: 2 * R, s1: 5 * R, a0: 1, life: .25, col: '#fff3c0' });
+      px({ k: 'circle_04', x: f.x, y: f.y, ground: true, sy: .45, s0: .5 * R, s1: 5 * R, a0: 1, life: .5, col: '#ffd27a' });
+      for (let i = 0; i < 10 * R; i++) { const a = Math.random() * 6.283, v = rnd(120, 300) * R; px({ k: 'dirt_02', x: f.x, y: f.y, z: 10, vx: Math.cos(a) * v, vy: Math.sin(a) * v * .45, vz: rnd(150, 320), grav: 700, s0: rnd(.2, .45), s1: .15, a0: 1, a1: .6, life: .9, col: '#5a4030', add: false, rot: Math.random() * 6, vr: rnd(-6, 6) }); }
+      for (let i = 0; i < 12 * R; i++) { const a = Math.random() * 6.283, v = rnd(60, 220) * R; px({ k: 'star_04', x: f.x, y: f.y - 10, vx: Math.cos(a) * v, vy: Math.sin(a) * v * .5, vz: rnd(80, 240), grav: 300, s0: .25, s1: .05, life: rnd(.5, 1), col: '#ffb35a' }); }
+    }
+  }
+  _updateFxS(dt);
+};
+function drawMeteorGround(g) {
+  for (const f of W.fx) {
+    if (f.kind !== 'meteor2' || f.hit || f.t < -.6) continue;
+    const k = clamp((f.t + .6) / (f.fly + .6), 0, 1), R = 34 * f.R * (.4 + k * .9);
+    g.save(); g.globalAlpha = .25 + k * .45; g.fillStyle = '#120806'; g.beginPath(); g.ellipse(f.x, f.y, R, R * .42, 0, 0, 7); g.fill();
+    g.globalCompositeOperation = 'lighter'; g.globalAlpha = k * .6; g.strokeStyle = '#ff7a3a'; g.lineWidth = 2.5; const p = 1 + Math.sin(W.T * 18) * .06;
+    g.beginPath(); g.ellipse(f.x, f.y, R * 1.25 * p, R * .52 * p, 0, 0, 7); g.stroke(); g.restore();
+  }
+}
+function drawMeteorAir(g) {
+  for (const f of W.fx) {
+    if (f.kind !== 'meteor2' || f.hit || f.t < 0) continue;
+    const k = Math.min(1, f.t / f.fly), e = k * (.35 + .65 * k), x = f.sx + (f.x - f.sx) * e, y = f.sy + (f.y - f.sy) * e, R = f.R, ang = Math.atan2(f.y - f.sy, f.x - f.sx);
+    g.save(); g.globalCompositeOperation = 'lighter';
+    // cauda de fogo em degradê
+    const L = 150 * R, tx = x - Math.cos(ang) * L, ty = y - Math.sin(ang) * L, gr = g.createLinearGradient(tx, ty, x, y);
+    gr.addColorStop(0, 'rgba(255,90,30,0)'); gr.addColorStop(.5, 'rgba(255,110,40,.5)'); gr.addColorStop(.85, 'rgba(255,170,60,.85)'); gr.addColorStop(1, 'rgba(255,240,190,.95)');
+    g.strokeStyle = gr; g.lineCap = 'round'; g.lineWidth = 26 * R; g.beginPath(); g.moveTo(tx, ty); g.lineTo(x, y); g.stroke();
+    g.lineWidth = 10 * R; g.strokeStyle = 'rgba(255,250,220,.7)'; g.beginPath(); g.moveTo(x - Math.cos(ang) * L * .45, y - Math.sin(ang) * L * .45); g.lineTo(x, y); g.stroke();
+    // brilho em volta da rocha
+    const gl = g.createRadialGradient(x, y, 0, x, y, 46 * R); gl.addColorStop(0, 'rgba(255,245,200,.95)'); gl.addColorStop(.35, 'rgba(255,170,70,.7)'); gl.addColorStop(1, 'rgba(255,80,20,0)');
+    g.fillStyle = gl; g.beginPath(); g.arc(x, y, 46 * R, 0, 7); g.fill();
+    g.globalCompositeOperation = 'source-over'; g.translate(x, y); g.rotate(f.rot + f.t * 9); const s = 42 * R; g.drawImage(METEOR_ROCK, -s / 2, -s / 2, s, s);
+    g.restore();
+  }
+}
+
+/* ---------- projéteis mágicos com rastro de partículas ---------- */
+const PROJ_PX = {
+  fogo: p => { px({ k: rndc(['fire_01', 'fire_02']), x: p.x + rnd(-4, 4), y: p.y + rnd(-4, 4), s0: .55, s1: .1, a0: .9, life: .28, col: Math.random() < .5 ? '#ffb35a' : '#ff6a2a', rot: Math.random() * 6 }); },
+  dragao: p => { px({ k: rndc(['fire_01', 'fire_02', 'flame_05']), x: p.x + rnd(-6, 6), y: p.y + rnd(-6, 6), s0: .9, s1: .15, a0: .9, life: .35, col: '#ff7a3a', rot: Math.random() * 6 }); },
+  arcano: p => { px({ k: 'fire_02', x: p.x, y: p.y, s0: .4, s1: .1, a0: .8, life: .22, col: '#ffb35a' }); },
+  gelo: p => { px({ k: 'star_04', x: p.x + rnd(-6, 6), y: p.y + rnd(-6, 6), vy: 20, s0: .3, s1: .05, a0: 1, life: .4, col: '#dff8ff', rot: Math.random() }); },
+  eletrica: p => { if (Math.random() < .6) px({ k: rndc(['spark_06', 'spark_07']), x: p.x + rnd(-8, 8), y: p.y + rnd(-8, 8), s0: .35, s1: .2, a0: 1, life: .12, col: '#bff6ff', rot: Math.random() * 6 }); },
+  sombra: p => { px({ k: 'twirl_01', x: p.x, y: p.y, s0: .4, s1: .1, a0: .7, life: .35, col: '#b48cff', vr: 8 }); },
+  eco: p => { px({ k: 'twirl_02', x: p.x, y: p.y, s0: .35, s1: .1, a0: .7, life: .3, col: '#8fe0e6', vr: 8 }); },
+  luz: p => { px({ k: 'light_02', x: p.x, y: p.y, s0: .45, s1: .1, a0: .8, life: .25, col: '#fff3a8' }); }
+};
+const _drawProjsS = drawProjs;
+drawProjs = function (g) {
+  if (!lowFx()) for (const p of W.projs) { const k = Object.keys(SHOT).find(k => SHOT[k] === p.st); const f = PROJ_PX[k]; if (f && Math.random() < .8) f(p); }
+  _drawProjsS(g);
+  // núcleo brilhante das bolas de fogo e de gelo
+  g.save(); g.globalCompositeOperation = 'lighter';
+  for (const p of W.projs) {
+    if (p.st.arrow) continue; const r = (p.st.r || 6) * 2.6, gr = g.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
+    gr.addColorStop(0, 'rgba(255,255,240,.9)'); gr.addColorStop(.4, hexA(p.st.color, .55)); gr.addColorStop(1, hexA(p.st.color, 0)); g.fillStyle = gr; g.beginPath(); g.arc(p.x, p.y, r, 0, 7); g.fill();
+  }
+  g.restore();
+};
+
+/* ---------- golpes e impactos das habilidades ---------- */
+const _castSkillS = castSkill;
+castSkill = function (n) {
+  const sk = CL().skills[n - 1], before = P.cds ? P.cds[n] : 0, T = P.target;
+  _castSkillS(n);
+  if (!sk || !(P.cds && P.cds[n] > 0 && !(before > 0)) || lowFx()) return;
+  const col = (sk.g && sk.g.color) || clsCol();
+  switch (sk.id) {
+    case 'gelo': case 'prisao': if (T) later(.25, () => { if (!T.alive) return; for (let i = 0; i < 9; i++) { const a = i / 9 * 6.283; px({ k: 'trace_06', x: T.x, y: T.y - 30, vx: Math.cos(a) * 160, vy: Math.sin(a) * 80, rot: a + Math.PI / 2, s0: .7, s1: .3, a0: 1, life: .4, col: '#dff8ff' }); } px({ k: 'circle_04', x: T.x, y: T.y, ground: true, sy: .45, s0: .4, s1: 2.2, a0: .9, life: .5, col: '#8fe0ff' }); }); break;
+    case 'redemoinho': for (let i = 0; i < 6; i++) later(i * .07, () => px({ k: rndc(['slash_01', 'slash_02', 'slash_03']), x: P.x, y: P.y - 26, rot: i * 1.1, vr: 14, s0: 2, s1: 2.6, a0: .9, life: .3, col: '#ff8a6a', sy: .55 })); break;
+    case 'sismico': case 'devastar': if (T) later(.18, () => { for (let i = 0; i < 14; i++) { const a = Math.random() * 6.283, v = rnd(80, 260); px({ k: 'dirt_02', x: T.x, y: T.y, z: 6, vx: Math.cos(a) * v, vy: Math.sin(a) * v * .45, vz: rnd(120, 300), grav: 700, s0: rnd(.2, .4), s1: .12, a0: 1, a1: .5, life: .8, col: '#6a5040', add: false, rot: Math.random() * 6, vr: 5 }); } PXFX.smoke(T.x, T.y, '#8a7a6a', 4); }); break;
+    case 'brado': px({ k: 'circle_04', x: P.x, y: P.y, ground: true, sy: .45, s0: .5, s1: 6, a0: 1, life: .5, col: '#ffe680' }); px({ k: 'light_02', x: P.x, y: P.y - 50, s0: 1, s1: 3.5, a0: .8, life: .35, col: '#fff3c0' }); break;
+    case 'cura': case 'fonte': for (let i = 0; i < 16; i++) px({ k: rndc(['star_04', 'light_02']), x: P.x + rnd(-120, 120), y: P.y + rnd(-50, 50), vy: -rnd(40, 90), s0: .35, s1: .05, a0: 1, life: rnd(.7, 1.2), col: '#c8ffb0' }); break;
+    case 'aurora': px({ k: 'magic_03', x: P.x, y: P.y - 40, s0: .6, s1: 3, a0: 1, life: .6, col: '#ffe680', vr: 3 }); break;
+    case 'vortice': if (T) { const cx = T.x, cy = T.y; for (let w = 0; w < 8; w++) later(w * .25, () => { px({ k: rndc(['twirl_01', 'twirl_02', 'twirl_03']), x: cx, y: cy, ground: true, sy: .5, s0: 3.4, s1: 1.2, a0: .8, life: .6, col: '#b48cff', vr: -9 }); for (let i = 0; i < 4; i++) { const a = Math.random() * 6.283; px({ k: 'star_04', x: cx + Math.cos(a) * 170, y: cy + Math.sin(a) * 80, vx: -Math.cos(a) * 280, vy: -Math.sin(a) * 130, s0: .3, s1: .05, life: .6, col: '#e8dcff' }); } }); } break;
+    case 'chuva': if (T) { const cx = T.x, cy = T.y; for (let w = 0; w < 16; w++) later(.1 + w * .12, () => { const x = cx + rnd(-130, 130), y = cy + rnd(-55, 55); px({ k: 'trace_06', x, y: y - 240, vy: 1800, rot: 0, s0: .6, s1: .6, a0: .9, life: .13, col: '#fff6dc' }); later(.13, () => { px({ k: 'dirt_02', x, y, ground: true, sy: .5, s0: .25, s1: .7, a0: .7, life: .35, col: '#c8b08a', add: false }); px({ k: 'star_04', x, y: y - 6, s0: .35, s1: .1, life: .15, col: '#ffffff' }); }); }); } break;
+  }
+  // evoluções descritas em dados
+  const g0 = sk.g; if (!g0) return;
+  if (g0.type === 'nova') for (let i = 0; i < (g0.waves || 1); i++) later(.1 + i * .35, () => { px({ k: 'circle_04', x: P.x, y: P.y, ground: true, sy: .45, s0: .5, s1: g0.r / 26, a0: 1, life: .45, col }); px({ k: 'magic_02', x: P.x, y: P.y, ground: true, sy: .45, s0: g0.r / 40, s1: g0.r / 30, a0: .7, life: .45, col, vr: 6 }); });
+  if (g0.type === 'area' && g0.bolt && T) { const cx = T.x, cy = T.y; for (let i = 0; i < (g0.waves || 1); i++) later((g0.delay != null ? g0.delay : .3) + i * .5, () => { for (let j = 0; j < 3; j++) { const x = cx + rnd(-g0.r * .7, g0.r * .7), y = cy + rnd(-g0.r * .35, g0.r * .35); px({ k: 'spark_06', x, y: y - 130, s0: 4, s1: 4.2, a0: 1, life: .18, col: '#dffaff', sy: 1 }); px({ k: 'light_02', x, y, s0: 1, s1: 2.6, a0: .9, life: .25, col: '#bff6ff' }); px({ k: 'scorch_01', x, y, ground: true, sy: .5, add: false, s0: .9, s1: 1, a0: .5, life: 3, col: '#101018' }); } }); }
+  if (g0.type === 'buff' || g0.type === 'pshield') for (let i = 0; i < 12; i++) px({ k: 'star_04', x: P.x + rnd(-40, 40), y: P.y - rnd(0, 60), vy: -rnd(50, 110), s0: .35, s1: .05, life: rnd(.6, 1), col });
+  if (g0.type === 'strike' && T && g0.fx === 'smash') later(.14, () => { px({ k: 'circle_04', x: T.x, y: T.y, ground: true, sy: .45, s0: .4, s1: 3, a0: 1, life: .4, col }); });
+};
+// o Meteoro Supremo das evoluções usa a versão grande
+const _runGenericS = runGeneric;
+runGeneric = function (sk, L, T, ang) {
+  if (!(sk.g && sk.g.meteor)) return _runGenericS(sk, L, T, ang);
+  const m = FX.meteor; FX.meteor = (x, y, d, h) => m(x, y, d, h, true);
+  try { _runGenericS(sk, L, T, ang); } finally { FX.meteor = m; }
+};
+const _dfgS = drawFxGround; drawFxGround = function (g) { _dfgS(g); drawMeteorGround(g); };
+const _dfaS = drawFxAir; drawFxAir = function (g) { _dfaS(g); drawMeteorAir(g); };
 
 start();
 window.__game = { W, get P() { return P; }, get PET() { return PET; }, S: () => S, SAVE: () => SAVE, castSkill, setTarget, loadZone, changeClass, evolveTo, gainXp, dropLoot, openSheet, playChar, openNpc, openShop, openBag, startGather, npcById, mkItem, giveItem, grant, CL, netConnect: () => netConnect(), netChat: t => netChat(t), NET: () => NET };
