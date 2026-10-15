@@ -1440,8 +1440,8 @@ function paintGround(z, r) {
   if (z.village && typeof paintVillage === 'function') paintVillage(g, z, r);
   if (LY) paintLayout(g, z, r);
   if (z.rift) {
-    for (let k = 0; k < 140; k++) { const ang = r() * 7, d = 80 + r() * 520, x = z.rift[0] + Math.cos(ang) * d * 1.2 - 200, y = z.rift[1] + Math.sin(ang) * d * .8; g.fillStyle = r() < .5 ? '#6f6888' : '#5d5775'; g.globalAlpha = .8; g.save(); g.translate(x, y); g.rotate(r()); g.fillRect(-22, -14, 44 + r() * 20, 28 + r() * 10); g.restore(); }
-    g.globalAlpha = 1;
+    for (let k = 0; k < 840; k++) r(); // mantém a sequência do sorteio (o resto do mapa não muda de lugar)
+    paintRiftPlaza(g, z);
   }
   if (!z.exitsLive) z.exits.forEach(e => {
     const p = exitInside(z, e, 70), ang = { e: 0, w: Math.PI, n: -Math.PI / 2, s: Math.PI / 2 }[e.side];
@@ -1510,7 +1510,7 @@ function loadZone(i, from) {
   const inVillage = (x, y) => z.village && x < 1320 && y > 250 && y < 1450;
   const nearExit = (x, y) => z.exits.some(e => { const p = exitPoint(z, e); return Math.hypot(p.x - x, p.y - y) < 260; });
   const LZ = typeof zoneLayout === 'function' ? zoneLayout(z) : null;
-  const free = (x, y, rad) => !inVillage(x, y) && !(LZ && LZ.blocks(x, y, rad * .4)) && !inLake(z, x, y, 60) && W.props.every(p => Math.hypot(p.x - x, p.y - y) > rad + (p.r || 20)) && !nearExit(x, y) && Math.hypot(z.spawn[0] - x, z.spawn[1] - y) > 200 && (!z.rift || Math.hypot(z.rift[0] - x, z.rift[1] - y) > 160) && (!z.boss || Math.hypot(z.boss[1] - x, z.boss[2] - y) > 180);
+  const free = (x, y, rad) => !inVillage(x, y) && !(LZ && LZ.blocks(x, y, rad * .4)) && !inLake(z, x, y, 60) && W.props.every(p => Math.hypot(p.x - x, p.y - y) > rad + (p.r || 20)) && !nearExit(x, y) && Math.hypot(z.spawn[0] - x, z.spawn[1] - y) > 200 && (!z.rift || ((x - z.rift[0]) / 380) ** 2 + ((y - z.rift[1]) / 205) ** 2 > 1) && (!z.boss || Math.hypot(z.boss[1] - x, z.boss[2] - y) > 180);
   if (z.village) VILLAGE.forEach(([k, x, y, s, solid]) => PROPMETA[k] && W.props.push(makeProp(k, x, y, s, !!solid)));
   (z.deco || []).forEach(([k, x, y, s]) => PROPMETA[k] && W.props.push(makeProp(k, x, y, s || 1, k !== 'anel_pedra' && k !== 'placa_dir', z.tint)));
   if (LZ) placeLayout(z, r, free);
@@ -1579,6 +1579,32 @@ function moveToward(o, gx, gy, step, stop) {
   if (tryMove(ux, uy)) return true;
   for (const a of [.6, -.6, 1.1, -1.1, 1.5, -1.5]) { const c = Math.cos(a), sn = Math.sin(a); if (tryMove(ux * c - uy * sn, ux * sn + uy * c)) return true; }
   return false;
+}
+
+// praça de pedra em volta da fenda: anéis de blocos, runas e rachaduras com brilho
+function paintRiftPlaza(g, z) {
+  const [cx, cy] = z.rift, q = seeded(5150 + z.w), R = 330, ry = .5;
+  g.save(); g.translate(cx, cy);
+  // sombra suave da praça
+  const sh = g.createRadialGradient(0, 0, R * .6, 0, 0, R * 1.25); sh.addColorStop(0, 'rgba(20,15,35,.45)'); sh.addColorStop(1, 'rgba(20,15,35,0)');
+  g.save(); g.scale(1, ry); g.fillStyle = sh; g.beginPath(); g.arc(0, 0, R * 1.25, 0, 7); g.fill(); g.restore();
+  // anéis de blocos
+  const ring = (r0, r1, n, cols) => { for (let i = 0; i < n; i++) { const a0 = i / n * 6.283 + .01, a1 = (i + 1) / n * 6.283 - .012; g.beginPath(); g.ellipse(0, 0, r1, r1 * ry, 0, a0, a1); g.ellipse(0, 0, r0, r0 * ry, 0, a1, a0, true); g.closePath(); g.fillStyle = cols[Math.floor(q() * cols.length)]; g.fill(); g.strokeStyle = 'rgba(30,24,44,.7)'; g.lineWidth = 2; g.stroke(); } };
+  ring(R * .78, R, 36, ['#7a7392', '#6f6888', '#837c9c', '#6a6482']);
+  ring(R * .56, R * .78, 28, ['#8a83a4', '#7d7696', '#938cad']);
+  ring(R * .34, R * .56, 18, ['#6f6888', '#7a7392', '#655f7c']);
+  // centro escuro com runas
+  g.fillStyle = '#2c2640'; g.beginPath(); g.ellipse(0, 0, R * .34, R * .34 * ry, 0, 0, 7); g.fill();
+  g.strokeStyle = 'rgba(180,140,255,.7)'; g.lineWidth = 3; g.beginPath(); g.ellipse(0, 0, R * .3, R * .3 * ry, 0, 0, 7); g.stroke();
+  g.fillStyle = 'rgba(200,175,255,.85)'; for (let i = 0; i < 16; i++) { const a = i / 16 * 6.283; g.fillRect(Math.cos(a) * R * .67 - 4, Math.sin(a) * R * .67 * ry - 3, 8, 6); }
+  // rachaduras que saem da fenda
+  g.lineJoin = 'round';
+  for (let i = 0; i < 11; i++) { let a = q() * 6.283, x = Math.cos(a) * R * .3, y = Math.sin(a) * R * .3 * ry; const pts = [[x, y]]; for (let j = 0; j < 6; j++) { a += (q() - .5) * .5; x += Math.cos(a) * (40 + q() * 30); y += Math.sin(a) * (40 + q() * 30) * ry; pts.push([x, y]); }
+    const line = (c, w) => { g.strokeStyle = c; g.lineWidth = w; g.beginPath(); pts.forEach(([a, b], j) => j ? g.lineTo(a, b) : g.moveTo(a, b)); g.stroke(); };
+    line('rgba(15,10,25,.8)', 6); line('rgba(180,140,255,.65)', 2); }
+  // blocos soltos na borda, poucos e deitados
+  for (let i = 0; i < 18; i++) { const a = q() * 6.283, d = R * (1.02 + q() * .25), x = Math.cos(a) * d, y = Math.sin(a) * d * ry; g.save(); g.translate(x, y); g.rotate(a + (q() - .5) * .4); g.fillStyle = 'rgba(30,24,44,.6)'; g.fillRect(-15, -7, 34, 18); g.fillStyle = q() < .5 ? '#6f6888' : '#7a7392'; g.fillRect(-17, -10, 32, 16); g.restore(); }
+  g.restore();
 }
 
 /* ================= Caminhos (A* em grade) ================= */
@@ -4509,7 +4535,7 @@ function paintLayout(g, z, r) {
     const R = p.t.r, f = p.t.floor;
     if (f === 'dirt' || f === 'gravel') { soft(p.x, p.y + 10, R * 1.05, R * .75, G.path, .95); if (f === 'gravel') for (let k = 0; k < 60; k++) { const a = r() * 6.28, d = r() * R * .8; g.fillStyle = r() < .5 ? '#8a8a84' : '#a8a49a'; g.globalAlpha = .7; g.beginPath(); g.arc(p.x + Math.cos(a) * d, p.y + 10 + Math.sin(a) * d * .7, 2 + r() * 3, 0, 7); g.fill(); } g.globalAlpha = 1; }
     if (f === 'stone') { soft(p.x, p.y + 10, R, R * .72, '#9c8962', .9); tiles(p.x, p.y + 10, R * .8, R * .55, ['#cbbb93', '#bba980', '#d6c7a0', '#ad9a70'], 22, .04); }
-    if (f === 'ruin') { soft(p.x, p.y + 10, R, R * .72, G.dark, .7); tiles(p.x, p.y + 10, R * .85, R * .6, ['#8f8a9e', '#7c7790', '#a29db2', '#6c6880'], 30, .28); }
+    if (f === 'ruin') { soft(p.x, p.y + 10, R, R * .72, G.dark, .7); p.k === 'plaza' ? tiles(p.x, p.y + 10, R * .85, R * .6, ['#8a84a0', '#837d99', '#908aa6', '#7d7793'], 36, .02) : tiles(p.x, p.y + 10, R * .85, R * .6, ['#8f8a9e', '#7c7790', '#a29db2', '#6c6880'], 30, .16); }
     if (f === 'grave') { soft(p.x, p.y + 10, R, R * .72, '#3f3a34', .75); }
     if (f === 'field') { g.save(); g.globalAlpha = .9; g.fillStyle = '#7a5e3a'; g.beginPath(); g.roundRect(p.x - R * .75, p.y - R * .45, R * 1.5, R * .9, 10); g.fill(); g.strokeStyle = '#5e4628'; g.lineWidth = 4; for (let yy = p.y - R * .38; yy < p.y + R * .42; yy += 16) { g.beginPath(); g.moveTo(p.x - R * .7, yy); g.lineTo(p.x + R * .7, yy); g.stroke(); } g.fillStyle = '#9ccc5a'; for (let k = 0; k < 90; k++) { const xx = p.x - R * .7 + r() * R * 1.4, yy = p.y - R * .38 + Math.floor(r() * 5) * 16 + 2; g.fillRect(xx, yy - 6, 3, 6); } g.restore(); }
     if (p.t.flowers) { const cols = ['#ff7a8a', '#ffd166', '#c79bff', '#ffffff']; for (let k = 0; k < 50; k++) { const a = r() * 6.28, d = R * (.75 + r() * .2); g.fillStyle = cols[k % 4]; g.beginPath(); g.arc(p.x + Math.cos(a) * d, p.y + 10 + Math.sin(a) * d * .7, 3, 0, 7); g.fill(); } }
@@ -5386,9 +5412,9 @@ const _paintGroundF = paintGround;
 paintGround = function (z, r) {
   const c = _paintGroundF(z, r); if (!z.fenda) return c;
   const g = c.getContext('2d'), rr = seeded(4242);
-  for (let k = 0; k < 500; k++) { const x = rr() * z.w, y = rr() * z.h; if (!blockedIn(z, x, y)) continue; g.fillStyle = rr() < .7 ? 'rgba(180,140,255,.5)' : 'rgba(143,224,230,.6)'; g.fillRect(x, y, 2, 2); }
+  for (let k = 0; k < 500; k++) { const x = rr() * z.w, y = rr() * z.h; if (blockedIn(z, x, y)) continue; g.fillStyle = rr() < .7 ? 'rgba(180,140,255,.5)' : 'rgba(143,224,230,.6)'; g.fillRect(x, y, 2, 2); }
   g.lineJoin = 'round';
-  for (let k = 0; k < 70; k++) { let x = 740 + rr() * 2000, y = 320 + rr() * 1200; if (blockedIn(z, x, y)) continue; g.beginPath(); g.moveTo(x, y); for (let j = 0; j < 5; j++) { x += (rr() - .5) * 70; y += (rr() - .5) * 30; g.lineTo(x, y); } g.strokeStyle = 'rgba(10,5,20,.6)'; g.lineWidth = 5; g.stroke(); g.strokeStyle = 'rgba(180,140,255,.55)'; g.lineWidth = 1.6; g.stroke(); }
+  for (let k = 0; k < 70; k++) { let x = 740 + rr() * 2000, y = 320 + rr() * 1200; if (!blockedIn(z, x, y)) continue; g.beginPath(); g.moveTo(x, y); for (let j = 0; j < 5; j++) { x += (rr() - .5) * 70; y += (rr() - .5) * 30; g.lineTo(x, y); } g.strokeStyle = 'rgba(10,5,20,.6)'; g.lineWidth = 5; g.stroke(); g.strokeStyle = 'rgba(180,140,255,.55)'; g.lineWidth = 1.6; g.stroke(); }
   [[1230, 930, 200], [2290, 900, 170]].forEach(([x, y, R]) => { g.strokeStyle = 'rgba(180,140,255,.35)'; g.lineWidth = 4; g.beginPath(); g.ellipse(x, y, R, R * .45, 0, 0, 7); g.stroke(); g.beginPath(); g.ellipse(x, y, R * .7, R * .3, 0, 0, 7); g.stroke(); for (let a = 0; a < 12; a++) { const t = a / 12 * 6.283; g.fillStyle = 'rgba(200,170,255,.5)'; g.fillRect(x + Math.cos(t) * R * .85 - 3, y + Math.sin(t) * R * .38 - 3, 6, 6); } });
   return c;
 };
@@ -5804,8 +5830,8 @@ const EXTRA = {
 function scatterExtras(i) {
   const list = EXTRA[i], z = ZONES[i]; if (!list) return;
   const r = seeded(4400 + i * 71), L = typeof zoneLayout === 'function' ? zoneLayout(z) : null, added = [];
-  const ok = (x, y, rad) => x > 90 && y > 110 && x < z.w - 90 && y < z.h - 60 && !blocked(x, y, rad) && !inLake(z, x, y, 30) && !(L && L.blocks(x, y, rad * .5)) && W.props.every(p => Math.hypot(p.x - x, p.y - y) > rad + (p.r || 12) * .8)
-    && !z.exits.some(e => { const q = exitPoint(z, e); return Math.hypot(q.x - x, q.y - y) < 260; }) && Math.hypot(z.spawn[0] - x, z.spawn[1] - y) > 180 && (!W.obelisk || Math.hypot(W.obelisk.x - x, W.obelisk.y - y) > 140) && !(z.village && x < 1340);
+  const ok = (x, y, rad) => x > 90 && y > 110 && x < z.w - 90 && y < z.h - 60 && !blocked(x, y, rad) && !inLake(z, x, y, 30 + rad) && !(L && L.blocks(x, y, rad * .5)) && W.props.every(p => Math.hypot(p.x - x, p.y - y) > rad + (p.r || 12) * .8)
+    && !z.exits.some(e => { const q = exitPoint(z, e); return Math.hypot(q.x - x, q.y - y) < 260; }) && Math.hypot(z.spawn[0] - x, z.spawn[1] - y) > 180 && (!W.obelisk || Math.hypot(W.obelisk.x - x, W.obelisk.y - y) > 140) && !(z.village && x < 1340) && (!z.rift || ((x - z.rift[0]) / 380) ** 2 + ((y - z.rift[1]) / 205) ** 2 > 1);
   list.forEach(([k, n, solid]) => {
     if (!PROPMETA[k]) return; const m = PROPMETA[k], big = m.w > 180, rad = solid ? Math.max(24, m.w * .3) : 14;
     for (let c = 0, t = 0; c < n && t < 80; t++) {
@@ -5823,6 +5849,9 @@ function bakeList(list) {
   if (!W.ground || typeof shadowSprite !== 'function') return; const g = W.ground.getContext('2d'), sp = shadowSprite();
   list.forEach(p => { const m = PROPMETA[p.key]; if (!m || p.r === 0 && m.h < 30) return; const tree = TREEISH(p.key) || /carvalho|pinheiro|betula|copa|torta|morta/.test(p.key), w = m.w * p.scale * (tree ? .62 : .78), h = Math.max(12, w * .34); g.drawImage(sp, p.x - w / 2 + w * .12, p.y - h * .45, w, h); });
 }
+
+// estradas que sumiam no chão: um tom mais visível
+ZONES[2].ground.path = '#8a82a3'; ZONES[SWAMP + 1].ground.path = '#8a82a3'; ZONES[ASH + 1].ground.path = '#7d8d9e';
 
 /* ================= Equipamento completo (8 espaços) e mochila em grade, no estilo do Warspear ================= */
 Object.assign(SLOT_NAMES, { cabeca: 'Cabeça', corpo: 'Corpo', pernas: 'Pernas', pes: 'Pés', anel: 'Anel' });
