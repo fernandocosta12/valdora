@@ -6929,6 +6929,53 @@ QUESTS.push(
     reward: { xp: 900000, jxp: 260000, gold: 30000, item: 'olho-vazio' } }
 );
 
+/* ================= Celular na vertical ou na horizontal ================= */
+// o jogo agora roda nos dois jeitos: sem aviso para girar e sem travar a tela na horizontal
+checkRotate = function () { const r = $('rotate'); if (r) r.hidden = true; document.body.classList.toggle('retrato', TOUCH && innerHeight > innerWidth); };
+goLandscape = function () {
+  if (!TOUCH) return;
+  const el = document.documentElement, rq = el.requestFullscreen || el.webkitRequestFullscreen;
+  try { if (!document.fullscreenElement && rq) Promise.resolve(rq.call(el, { navigationUI: 'hide' })).catch(() => {}); } catch (e) {}
+};
+checkRotate();
+// câmera: na vertical mostra um pouco mais para os lados
+const _resizeR = resize;
+resize = function () {
+  _resizeR();
+  const w = cv.clientWidth, h = cv.clientHeight, dpr = cv.width / Math.max(1, w);
+  if (TOUCH && h > w) W.cam.z = clamp(Math.max(w / 600, h / 1250), .55, 1.2) * .86 * dpr;
+};
+// telas e interface arrumadas para a vertical
+(() => {
+  const st = document.createElement('style');
+  st.textContent = `
+body.retrato #me{width:min(212px,56vw)!important}
+body.retrato #side{width:min(146px,37vw)!important;gap:4px}
+body.retrato #zoneName{font-size:14px;line-height:1.1}
+body.retrato #side .row{flex-wrap:wrap;justify-content:flex-end;gap:3px}
+body.retrato #miniWrap canvas{width:100%;height:auto}
+body.retrato #quest{top:86px!important;left:6px!important;width:min(200px,50vw)!important;padding:4px 7px!important}
+body.retrato #quest .eyebrow{font-size:9.5px}
+body.retrato #qTitle{font-size:13px!important}
+body.retrato #qBody{display:none}
+body.retrato #actBtn{bottom:118px!important}
+body.retrato #tgt{top:auto!important;bottom:150px!important;left:8px!important;transform:none!important;width:52vw!important}
+body.retrato #party{top:auto!important;bottom:200px!important}
+body.retrato #tutBox{top:auto!important;bottom:200px!important;width:min(330px,88vw)!important}
+body.retrato .card{max-width:96vw}
+body.retrato .card.inv{width:96vw;max-height:94vh}
+body.retrato .invwrap{grid-template-columns:1fr;gap:8px}
+body.retrato .doll{justify-self:center}
+body.retrato .cells{grid-template-columns:repeat(auto-fill,46px);max-height:32vh}
+body.retrato .icell{width:46px;height:46px}
+body.retrato .invdet{grid-template-columns:auto 1fr}
+body.retrato .invdet .dbtn{grid-column:1 / -1;justify-content:flex-start}
+body.retrato .dycal{grid-template-columns:repeat(4,1fr)}
+`;
+  document.head.appendChild(st);
+})();
+setTimeout(() => { resize(); checkRotate(); if (typeof layoutTouch === 'function') layoutTouch(); }, 0);
+
 start();
 window.__game = { W, get P() { return P; }, get PET() { return PET; }, S: () => S, SAVE: () => SAVE, castSkill, setTarget, loadZone, changeClass, evolveTo, gainXp, dropLoot, openSheet, playChar, openNpc, openShop, openBag, startGather, npcById, mkItem, giveItem, grant, CL, netConnect: () => netConnect(), netChat: t => netChat(t), NET: () => NET };
 
