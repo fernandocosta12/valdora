@@ -15,3 +15,9 @@ RPG 2D de navegador (PC e celular, na horizontal). Jogue em: https://fernandocos
 
 - Ranking dos 50 personagens de maior nível (só os salvos em conta): botão "Ranking" na ajuda.
 - Relatos de bugs e ideias: botão "Relatar bug ou ideia" na ajuda. Ficam na tabela `valdora.feedback` do Supabase (Table Editor → esquema `valdora`).
+
+## Créditos de arte (CC0)
+- KayKit (Kay Lousberg): Adventurers, Skeletons, Dungeon, Forest Nature, Medieval Hexagon, Resource Bits, Halloween Bits
+- Kenney: Particle Pack, Tower Defense Kit, Monster Builder
+- Quaternius: Ultimate Platformer Pack, Monster Pack, Low Poly Medieval Weapons
+- Cenji: Low Poly Nature Forest Mega Pack
