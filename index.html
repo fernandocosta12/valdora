@@ -652,6 +652,10 @@ body.touch #quest .eyebrow::after{content:' ▾'}
         <span><kbd>C</kbd></span><span>Ficha: distribuir atributos e aprender habilidades</span>
         <span><kbd>Q</kbd></span><span>Poção de Vida</span>
         <span><kbd>Tab</kbd></span><span>Mirar o inimigo mais próximo</span>
+        <span><kbd>M</kbd></span><span>Montar ou desmontar</span>
+        <span><kbd>N</kbd></span><span>Mapa do mundo (ou toque no mini-mapa)</span>
+        <span><kbd>G</kbd></span><span>Guilda</span>
+        <span><kbd>Espaço</kbd></span><span>Puxar o peixe na pesca</span>
         <span><kbd>E</kbd> · <kbd>I</kbd></span><span>Conversar · Abrir a mochila</span>
         <span><kbd>Enter</kbd></span><span>Conversar com outros jogadores (quando estiver online)</span>
         <span><kbd>Celular</kbd></span><span>Arraste o dedo no lado esquerdo para andar; o botão dourado ataca o inimigo mais perto</span>
@@ -6975,6 +6979,850 @@ body.retrato .dycal{grid-template-columns:repeat(4,1fr)}
   document.head.appendChild(st);
 })();
 setTimeout(() => { resize(); checkRotate(); if (typeof layoutTouch === 'function') layoutTouch(); }, 0);
+
+/* ================= Festival de Halloween: de 1º de outubro a 7 de novembro ================= */
+const HW_ON = (() => { const d = new Date(), m = d.getMonth(), day = d.getDate(); return m === 9 || (m === 10 && day <= 7) || /halloween/.test(location.search); })();
+const HW_END = (() => { const d = new Date(); return new Date(d.getMonth() >= 10 ? d.getFullYear() : d.getFullYear(), 10, 7, 23, 59); })();
+MATS.doce = { name: 'Doce do Véu', icon: 'h_abobora', price: 0, d: 'Moeda do Festival de Halloween. Troque com a Bruxa Morgana em Aurel.' };
+// números de um monstro comum de cada nível (antes dos reforços), para os monstros do evento acompanharem o mapa
+const LV_T = { hp: [[1, 40], [5, 110], [10, 330], [16, 700], [20, 1000], [25, 1400], [28, 2000], [35, 3500], [45, 7000]], dmg: [[1, 4], [5, 10], [10, 18], [16, 30], [20, 38], [25, 45], [28, 52], [35, 68], [45, 95]],
+  xp: [[1, 10], [5, 44], [10, 130], [16, 215], [20, 300], [25, 410], [28, 520], [35, 760], [45, 1300]], gold: [[1, 3], [5, 10], [10, 18], [16, 24], [20, 28], [25, 34], [28, 40], [35, 50], [45, 70]] };
+function lvAt(t, L) { const a = LV_T[t]; if (L <= a[0][0]) return a[0][1]; for (let i = 1; i < a.length; i++) if (L <= a[i][0]) { const [l0, v0] = a[i - 1], [l1, v1] = a[i]; return v0 + (v1 - v0) * (L - l0) / (l1 - l0); } const [lA, vA] = a[a.length - 2], [lB, vB] = a[a.length - 1]; return vB + (vB - vA) * (L - lB) / (lB - lA); }
+function monAt(L, base, m) {
+  m = m || {}; const hp = lvAt('hp', L) * (m.hp || 1), dm = lvAt('dmg', L) * (m.dmg || 1), gd = lvAt('gold', L);
+  const d = Object.assign({ lvl: L, hp: Math.round(hp * 1.55), dmg: [Math.round(dm * .85 * 1.3), Math.round(dm * 1.15 * 1.3)], xp: Math.round(lvAt('xp', L) * (m.xp || 1) * 1.25), gold: [Math.round(gd * .7), Math.round(gd * 1.3)], speed: 70, range: 46, atkCd: 1.7, aggroR: 160, sfx: 'soco', _buffed: 1 }, base);
+  return d;
+}
+const HW_KINDS = {
+  abobora:  { name: 'Cabeça de Abóbora', sprite: 'mon_cogumelo', tint: 'hue-rotate(-170deg) saturate(1.8) brightness(1.1)', sfx: 'slime', m: { hp: .8, xp: 1.1 } },
+  fantasma: { name: 'Fantasminha Travesso', sprite: 'mon_fantasma', tint: 'saturate(0) brightness(3.4)', sfx: 'sombra', fly: true, m: { hp: .7, xp: 1.1 } },
+  esqueleto:{ name: 'Esqueleto Festeiro', sprite: 'esq_lacaio', tint: 'hue-rotate(-30deg) saturate(1.5)', sfx: 'osso', hat: 1, m: { hp: .85, xp: 1.1 } },
+  rei:      { name: 'Rei Abóbora', sprite: 'mon_reicogu', tint: 'hue-rotate(-170deg) saturate(1.6) brightness(1.05)', sc: 1.5, sfx: 'soco', hat: 1, elite: true, respawn: 240, m: { hp: 4, dmg: 1.3, xp: 4 } }
+};
+const HW_ZONES = [];
+ZONES.forEach((z, i) => {
+  if (z.dungeon || z.city || z.hidden || !z.spawns || !z.spawns.length) return;
+  HW_ZONES.push(i); const L = Math.max(1, (z.rec || 1) + 1);
+  Object.entries(HW_KINDS).forEach(([k, b]) => {
+    const d = monAt(k === 'rei' ? L + 2 : L, { name: b.name, sprite: b.sprite, tint: b.tint, sc: b.sc, sfx: b.sfx, fly: b.fly, hat: b.hat, elite: b.elite, respawn: b.respawn, mat: ['doce', k === 'rei' ? 1 : .45], hw: 1 }, b.m);
+    if (k === 'rei') d.drops = [['foice-ceifador', .05], ['lanterna-abobora', .06]];
+    ENEMIES[`hw_${k}_${i}`] = d;
+  });
+  if (HW_ON) z.spawns.push([`hw_abobora_${i}`, 3], [`hw_fantasma_${i}`, 2], [`hw_esqueleto_${i}`, 2], [`hw_rei_${i}`, 1]);
+});
+// o Rei Abóbora larga um punhado de doces; qualquer monstro pode largar um doce durante o festival
+const _rewardH = reward;
+reward = function (e) {
+  _rewardH(e);
+  if (!HW_ON || !e.d) return;
+  if (e.type.startsWith('hw_rei')) dropLoot(e.x, e.y, 'mat', { mat: 'doce', n: rint(5, 9) });
+  else if (!e.d.hw && Math.random() < .04 * luck()) dropLoot(e.x, e.y, 'mat', { mat: 'doce', n: 1 });
+};
+// chapéu de abóbora em quem está fantasiado (e no herói com o Chapéu de Abóbora)
+const _drawBodyH = drawBody;
+drawBody = function (g, o, alpha) {
+  _drawBodyH(g, o, alpha);
+  const hat = (o.d && o.d.hat) || (o === P && S && S.equip && S.equip.cabeca && S.equip.cabeca.id === 'chapeu-abobora');
+  if (!hat || !IMG.h_abobora || (o.alive === false && o !== P)) return;
+  const sc = SPR[o.body.key] ? SPR[o.body.key][2] : 1, h = (o.body.h || 50), s = Math.max(.55, Math.min(1.6, sc * 1.1)), im = IMG.h_abobora, w = im.width * .6 * s, hh = im.height * .6 * s;
+  g.save(); g.globalAlpha = alpha == null ? 1 : alpha; g.drawImage(im, o.x - w / 2 + (o.body.dir === 'e' || o.body.dir === 'se' || o.body.dir === 'ne' ? 3 : o.body.dir === 'w' || o.body.dir === 'sw' || o.body.dir === 'nw' ? -3 : 0), o.y - h - hh * .55, w, hh); g.restore();
+};
+
+/* ---------- itens do festival ---------- */
+Object.assign(ITEMS, {
+  'chapeu-abobora':   { name: 'Chapéu de Abóbora', slot: 'cabeca', icon: 'h_abobora', hp: 40, bonus: { sor: 5, vit: 2 }, pct: { drop: .05 }, rar: 'rara', lvl: 1, price: 0, ev: 1 },
+  'capa-morcego':     { name: 'Capa do Morcego', slot: 'corpo', icon: 'a_corpo_tecido_5', hp: 160, bonus: { agi: 5, sor: 3 }, pct: { dodge: .03 }, rar: 'rara', lvl: 10, price: 0, ev: 1 },
+  'lanterna-abobora': { name: 'Lanterna de Abóbora', slot: 'acessorio', icon: 'h_lanterna', hp: 90, dmg: 8, bonus: { sor: 6, int: 3 }, rar: 'epica', lvl: 15, price: 0, ev: 1 },
+  'foice-ceifador':   { name: 'Foice do Ceifador', slot: 'arma', icon: 'i_foice', dmg: 34, bonus: { for: 6, int: 6 }, rar: 'epica', lvl: 20, price: 0, ev: 1 }
+});
+ACH.push({ id: 'rei_abobora', name: 'Rei das Abóboras', d: 'Troque 80 Doces do Véu com a Bruxa Morgana.', stat: 'hw_titulo', n: 1, title: 'Rei das Abóboras', bonus: { sor: 4, vit: 2 } });
+TITLE_BONUS['Rei das Abóboras'] = { sor: 4, vit: 2 };
+ACH.push({ id: 'doces', name: 'Doces ou Travessuras', d: 'Junte 100 Doces do Véu no Festival de Halloween.', stat: 'doce', n: 100, title: 'Doces ou Travessuras', bonus: { sor: 3 } });
+TITLE_BONUS['Doces ou Travessuras'] = { sor: 3 };
+const _collectLootH = collectLoot;
+collectLoot = function (l, byPet) { _collectLootH(l, byPet); if (l.kind === 'mat' && l.mat === 'doce') for (let i = 0; i < (l.n || 1); i++) achieve('doce'); };
+const HW_SHOP = [
+  { t: 'Chapéu de Abóbora', s: 'Cabeça · +5 Sorte, +5% drop. Aparece no seu personagem!', c: 15, icon: 'h_abobora', f: () => grant({ item: 'chapeu-abobora' }) },
+  { t: 'Baú de Halloween', s: 'Um item raro ou melhor do seu nível', c: 12, icon: 'h_caixao', f: () => { const it = lootFor(S.blvl, .1); if (RAR_ORDER.indexOf(it.r) < 2) { it.r = 'rara'; it.x = {}; if (typeof rollAffixes === 'function') rollAffixes(it, 2); } giveItem(it, true); toast(`Baú de Halloween: ${itemName(it)}`); } },
+  { t: 'Capa do Morcego', s: 'Corpo, nível 10', c: 30, icon: 'a_corpo_tecido_5', f: () => grant({ item: 'capa-morcego' }) },
+  { t: 'Lanterna de Abóbora', s: 'Amuleto, nível 15', c: 40, icon: 'h_lanterna', f: () => grant({ item: 'lanterna-abobora' }) },
+  { t: 'Foice do Ceifador', s: 'Arma épica, nível 20', c: 60, icon: 'i_foice', f: () => grant({ item: 'foice-ceifador' }) },
+  { t: 'Mascote: Fantasminha', s: 'Um fantasminha que segue você e busca itens', c: 50, icon: 'h_vela_cav', pet: 'fantasma', f: () => { if (typeof petGive === 'function') petGive('fantasma'); } },
+  { t: 'Título: Rei das Abóboras', s: '+4 Sorte e +2 Vitalidade', c: 80, icon: 'i_estrela', own: () => S.ach && S.ach.rei_abobora, f: () => { achieve('hw_titulo'); S.title = 'Rei das Abóboras'; gearDirty(); } },
+  { t: '5 Poções grandes', s: '', c: 4, icon: 'c_potg', f: () => grant({ cons: { potg: 5 } }) },
+  { t: '3 Fragmentos do Véu', s: '', c: 8, icon: 'i_gem_pink', f: () => grant({ mats: { veu: 3 } }) }
+];
+function hwLeft() { const ms = HW_END - Date.now(); if (ms <= 0) return 'termina hoje'; const d = Math.floor(ms / 864e5); return d >= 1 ? `termina em ${d} dia${d > 1 ? 's' : ''}` : 'termina hoje'; }
+function openBruxa() {
+  initAudio(); open('aurel');
+  $('auHead').textContent = 'Bruxa Morgana · Festival de Halloween'; $('auTitle').textContent = 'Doces ou Travessuras';
+  $('auSub').innerHTML = HW_ON ? `Doces do Véu: <b>${S.mats.doce || 0}</b>. Monstros fantasiados e o Rei Abóbora aparecem em todos os mapas. Qualquer monstro pode largar doces. O festival ${hwLeft()}.` : `O festival acabou. Você ainda pode trocar os doces que guardou: <b>${S.mats.doce || 0}</b>.`;
+  $('auTabs').innerHTML = '';
+  const b = $('auBody'); b.innerHTML = '';
+  HW_SHOP.forEach(s => {
+    const own = (s.pet && S.pets && S.pets.includes(s.pet)) || (s.own && s.own()), d = document.createElement('div'); d.className = 'aurow';
+    d.innerHTML = `${iconImg(s.icon)}<span><b>${s.t}</b><small>${s.s ? s.s + ' · ' : ''}${s.c} doces</small></span><span class="acts"><button class="btn" type="button"${(S.mats.doce || 0) < s.c || own ? ' disabled' : ''}>${own ? 'Já tem' : 'Trocar'}</button></span>`;
+    d.querySelector('button').onclick = () => { if ((S.mats.doce || 0) < s.c) return; addTo(S.mats, 'doce', -s.c); s.f(); sfx('moedas', .5); save(); openBruxa(); };
+    b.appendChild(d);
+  });
+}
+// a Bruxa fica em Aurel o ano todo; no festival a cidade ganha abóboras, lanternas e velas
+AU_NPCS.push({ id: 'morgana', name: 'Bruxa Morgana', title: HW_ON ? 'Festival de Halloween' : 'Troca de doces', sprite: 'bot_mago', x: 1620, y: 1460, color: '#ff9a3a' });
+const _openNpcH = openNpc;
+openNpc = function (npc) { if (npc && npc.id === 'morgana') { face(P, npc); return openBruxa(); } return _openNpcH(npc); };
+if (HW_ON) {
+  AU_SOFT.push(['h_abobora', 1560, 1440], ['h_abobora2', 1690, 1450], ['h_abobora3', 1600, 1500], ['h_lanterna2', 1520, 1400], ['h_lanterna2', 1720, 1400], ['h_velas', 1650, 1500],
+    ['h_abobora2', 1280, 1700], ['h_abobora2', 1520, 1700], ['h_abobora', 1340, 980], ['h_abobora', 1460, 980], ['h_abobora3', 1220, 1300], ['h_abobora3', 1580, 1300], ['h_poste_cav', 1100, 1500], ['h_poste_cav', 1700, 1150]);
+  HW_ZONES.forEach(i => { EXTRA[i] = (EXTRA[i] || []).concat([['h_abobora', 5], ['h_abobora2', 4], ['h_abobora3', 4], ['h_velas', 3]]); });
+  Object.assign(FLAME, { h_abobora: FLAME.h_abobora || [-14, .25, 'glow'] });
+  const _onZoneH = onZoneLoaded4;
+  let hwSaid = false;
+  onZoneLoaded4 = function (i, from) { _onZoneH(i, from); if (!hwSaid && S) { hwSaid = true; later(2.5, () => toast('🎃 Festival de Halloween! Junte Doces do Véu e troque com a Bruxa Morgana em Aurel.')); } };
+}
+
+/* ================= Masmorras do Capítulo 4, chefes em fases e modo difícil em todas as masmorras ================= */
+// monstros das masmorras novas
+Object.assign(ENEMIES, {
+  dg_orc:      mkMon('Orc Caveira do Templo', 'mx_orcskull', 42, 'tank', { tint: 'hue-rotate(-20deg) saturate(1.2) brightness(.85)', mat: ['osso', .6] }),
+  dg_ninja:    mkMon('Ninja do Templo', 'mx_ninja', 42, 'fast', { tint: 'hue-rotate(-30deg) saturate(1.4)', drops: [['besta-ninja', .03]] }),
+  dg_magolho:  mkMon('Sacerdote de Magma', 'mx_wizard_b', 42, 'ranged', { shot: 'fogo', sfx: 'explosao', drops: [['cajado-magma', .03]] }),
+  dg_dragonete:mkMon('Dragonete do Templo', 'mx_dragon', 43, 'ranged', { fly: true, shot: 'fogo', sfx: 'explosao', mat: ['brasa', .5] }),
+  dg_sensei:   mkMon('Grão-Mestre Ninja', 'mx_ninja', 44, 'elite', { sc: 1.8, tint: 'hue-rotate(200deg) saturate(1.3)', mat: ['veu', 1], drops: [['besta-ninja', .3], ['espada-dragao', .2]] }),
+  dg_dragao:   mkMon('Dragão Rubro', 'mx_dragon_ev', 46, 'boss', { tint: 'hue-rotate(-25deg) saturate(1.5)', sc: 2.5, fly: true, ranged: true, shot: 'dragao', range: 280, final: true, respawn: 1e9, phases: [.66, .33], summon: 'dg_dragonete', pcol: '#ff7a3a',
+    drops: [['coracao-dragao', .4], ['espada-dragao', .4], ['escudo-dragao', .35]], mat: ['brasa', 1] }),
+  dv_larva:    mkMon('Larva Abissal', 'mx_alien_b', 46, 'normal', { tint: 'hue-rotate(60deg) saturate(1.2)', mat: ['veu', .15] }),
+  dv_viajante: mkMon('Errante do Vazio', 'mx_alien', 46, 'tank', { tint: 'hue-rotate(60deg)', mat: ['veu', .2] }),
+  dv_eco:      mkMon('Grito do Vazio', 'mon_fantasma', 46, 'fast', { tint: 'hue-rotate(200deg) saturate(1.6)', fly: true, drain: true, sfx: 'sombra' }),
+  dv_sentinela:mkMon('Olho do Vazio', 'mx_glub_ev', 47, 'ranged', { tint: 'hue-rotate(160deg)', fly: true, shot: 'sombra', sfx: 'sombra' }),
+  dv_ceifador: mkMon('Ceifador Ancião', 'mx_ghostskull', 48, 'elite', { sc: 1.8, fly: true, drain: true, sfx: 'sombra', drops: [['grimorio-vazio', .3], ['lamina-vazio', .2]], mat: ['veu', 1] }),
+  dv_devorador:mkMon('Devorador de Estrelas', 'mx_alien', 50, 'boss', { tint: 'hue-rotate(200deg) saturate(1.5) brightness(.9)', sc: 2.6, stomp: true, final: true, respawn: 1e9, phases: [.66, .33], summon: 'dv_larva', pcol: '#b48cff', sfx: 'sombra',
+    drops: [['olho-vazio', .4], ['lamina-vazio', .4], ['grimorio-vazio', .4]], mat: ['veu', 1] })
+});
+['dg_sensei', 'dv_ceifador'].forEach(k => { const d = ENEMIES[k]; d.hp = Math.round(d.hp * 2.2); d.xp = Math.round(d.xp * 2); });
+Object.assign(CARD_FX, { dg_sensei: ['arma', { crit: .07, agi: 5 }], dg_dragao: ['arma', { dmgp: .22, for: 7 }], dv_ceifador: ['acessorio', { steal: .05, int: 7 }], dv_devorador: ['acessorio', { dmgp: .2, hpp: .14 }] });
+Object.keys(CARD_FX).forEach(k => { if (!CARDS[k] && ENEMIES[k]) CARDS[k] = { name: ENEMIES[k].name, slot: CARD_FX[k][0], fx: CARD_FX[k][1] }; });
+const TEMPLO = ZONES.length, CORACAO = TEMPLO + 1;
+ZONES.push({ name: 'Templo do Dragão', rec: 42, w: 3420, h: 1400, dungeon: true, hidden: true, back: DRAGAO, where: 'A entrada é a caverna no sudoeste do Pico do Dragão.', spawns: [], area: [100, 400, 3300, 1000], spawn: [160, 700],
+  exits: [{ side: 'w', to: DRAGAO, pos: 700 }], bots: [], ground: { base: '#120806', light: '#24120c', dark: '#080403', path: '#4a2a1e' }, trees: [], rocks: [], bushes: [], small: [], tint: null,
+  pal: { void: '#0a0403', floor: '#4a2e26', a: '#55352b', b: '#432a22', crack: '#ff6a2a', rug: '#7a1c10' },
+  walk: DROOMS.concat(DCORR), chestLvl: 44, ach: 'templo', chestPool: ['espada-dragao', 'cajado-magma', 'besta-ninja', 'escudo-dragao', 'coracao-dragao'],
+  fixed: [
+    ['dg_orc', 880, 560, 1], ['dg_ninja', 1000, 820, 1], ['dg_magolho', 1120, 600, 1], ['dg_ninja', 820, 900, 1], ['dg_orc', 1180, 900, 1],
+    ['dg_dragonete', 1820, 520, 2], ['dg_ninja', 1600, 700, 2], ['dg_magolho', 1800, 880, 2], ['dg_orc', 1520, 560, 2], ['dg_dragonete', 1700, 900, 2],
+    ['dg_sensei', 2420, 700, 3], ['dg_ninja', 2250, 520, 3], ['dg_ninja', 2250, 880, 3],
+    ['dg_dragao', 3150, 700, 4], ['dg_magolho', 2980, 420, 4], ['dg_magolho', 2980, 980, 4]
+  ] });
+ZONES.push({ name: 'Coração do Vazio', rec: 46, w: 3420, h: 1400, dungeon: true, hidden: true, back: VAZIO, where: 'A entrada é a torre de cristal no sul do Vazio Estelar.', spawns: [], area: [100, 400, 3300, 1000], spawn: [160, 700],
+  exits: [{ side: 'w', to: VAZIO, pos: 700 }], bots: [], ground: { base: '#08061a', light: '#14102a', dark: '#040310', path: '#3a2e5a' }, trees: [], rocks: [], bushes: [], small: [], tint: null,
+  pal: { void: '#040310', floor: '#2e2648', a: '#372d55', b: '#29213f', crack: '#b48cff', rug: '#3a1c6a' },
+  walk: DROOMS.concat(DCORR), chestLvl: 48, ach: 'coracao', chestPool: ['lamina-vazio', 'grimorio-vazio', 'olho-vazio', 'escudo-dragao', 'coracao-dragao'],
+  fixed: [
+    ['dv_larva', 880, 560, 1], ['dv_larva', 1000, 820, 1], ['dv_viajante', 1120, 600, 1], ['dv_eco', 820, 900, 1], ['dv_sentinela', 1180, 900, 1],
+    ['dv_viajante', 1820, 520, 2], ['dv_eco', 1600, 700, 2], ['dv_sentinela', 1800, 880, 2], ['dv_larva', 1520, 560, 2], ['dv_eco', 1700, 900, 2],
+    ['dv_ceifador', 2420, 700, 3], ['dv_larva', 2250, 520, 3], ['dv_larva', 2250, 880, 3],
+    ['dv_devorador', 3150, 700, 4], ['dv_sentinela', 2980, 420, 4], ['dv_sentinela', 2980, 980, 4]
+  ] });
+ACH.push({ id: 'templo', name: 'Domador de Dragões', d: 'Conclua o Templo do Dragão.', stat: 'templo', n: 1, title: 'Domador de Dragões', bonus: { for: 3, vit: 3 } },
+  { id: 'coracao', name: 'Além das Estrelas', d: 'Conclua o Coração do Vazio.', stat: 'coracao', n: 1, title: 'Além das Estrelas', bonus: { int: 3, sor: 3 } },
+  { id: 'dificil', name: 'Sem Medo', d: 'Conclua qualquer masmorra no modo difícil.', stat: 'dificil', n: 1, title: 'Sem Medo', bonus: { for: 2, int: 2, des: 2, vit: 2 } });
+ACH.slice(-3).forEach(a => { TITLE_BONUS[a.title] = a.bonus; });
+
+/* ---------- entradas e modo difícil ---------- */
+let HARD = false;
+function dungeonAsk(name, text, go) {
+  const D = dlgBase({ sprite: 'lira', name, title: 'Masmorra' }, name, text + ' No modo difícil os monstros têm o dobro de vida e batem mais forte, mas o baú garante um item épico e pode trazer um Único.');
+  D.btn('Agora não', closeAll, 'alt'); D.btn('Difícil', () => { HARD = true; closeAll(); go(); }, 'alt'); D.btn('Normal', () => { HARD = false; closeAll(); go(); }); open('dialog');
+}
+const grpTxt = () => `Você tem ${partyBots().length} bot(s)${typeof PT !== 'undefined' && PT ? ' e ' + Object.keys(PT.members).length + ' jogador(es)' : ''} no grupo.`;
+enterDungeonAsk = function () { dungeonAsk('Gruta das Sombras', `Cinco salas, um capitão e o Sumo Sacerdote do Eco. Recomendado: nível 13+ e grupo. ${grpTxt()}`, () => loadZone(DUNGEON, 3)); };
+enterCryptAsk = function () { dungeonAsk('Cripta do Necromante', `Cinco salas, o Guardião de Ossos e o Necromante do Eco. Recomendado: nível 22+ e grupo. ${grpTxt()}`, () => loadZone(CRYPT, ASH + 1)); };
+const enterTemplo = () => dungeonAsk('Templo do Dragão', `Orcs, ninjas e dragonetes guardam o Dragão Rubro, que muda de forma duas vezes durante a luta. Recomendado: nível 42+ e grupo. ${grpTxt()}`, () => loadZone(TEMPLO, DRAGAO));
+const enterCoracao = () => dungeonAsk('Coração do Vazio', `O Devorador de Estrelas espera no fim. Ele chama larvas e abre fendas no chão. Recomendado: nível 46+ e grupo. ${grpTxt()}`, () => loadZone(CORACAO, VAZIO));
+const _onZoneM = onZoneLoaded4;
+onZoneLoaded4 = function (i, from) {
+  _onZoneM(i, from);
+  const z = ZONES[i];
+  if (!z.dungeon) HARD = false;
+  const hook = (key, fn, label, back) => { const p = W.props.find(p => p.key === key); if (!p) return; Object.assign(p, { act: fn, actLabel: label, actR: 190, actW: 110, actH: 200, actDy: 40 }); if (from === back) { P.x = p.x - 40; P.y = p.y + 80; W.cam.x = P.x; W.cam.y = P.y; W.snap = true; } };
+  if (i === DRAGAO) hook('caverna', enterTemplo, 'Entrar no Templo', TEMPLO);
+  if (i === VAZIO) hook('torre_cristal', enterCoracao, 'Entrar no Coração do Vazio', CORACAO);
+  if (z.dungeon && !z.fenda && HARD) later(.8, () => toast('Modo difícil: monstros mais fortes, recompensas melhores', 'small warn'));
+};
+const _spawnEnemyM = spawnEnemy;
+spawnEnemy = function (type, x, y, fixed) {
+  const e = _spawnEnemyM(type, x, y, fixed);
+  if (HARD && W.zone && W.zone.dungeon && !W.zone.fenda && e && !e.hard) {
+    e.hard = 1; e.d = Object.assign({}, e.d, { dmg: e.d.dmg.map(v => Math.round(v * 1.5)), xp: Math.round(e.d.xp * 1.8), gold: e.d.gold.map(v => Math.round(v * 1.8)) });
+    e.max = Math.round(e.max * 2.2); e.hp = e.max;
+  }
+  return e;
+};
+const _openChestM = openChest;
+openChest = function () {
+  const was = W.dungeonDone; _openChestM();
+  if (was || !W.dungeonDone || !HARD) return;
+  const lv = W.zone.chestLvl || 16, it = lootFor(lv, .2); it.r = 'epica'; it.x = {}; if (typeof rollAffixes === 'function') rollAffixes(it, 3); dropLoot(W.chest.x, W.chest.y, 'item', { it });
+  if (Math.random() < .25 && typeof mkUnique === 'function') dropLoot(W.chest.x, W.chest.y, 'item', { it: mkUnique() });
+  dropLoot(W.chest.x, W.chest.y, 'mat', { mat: 'veu', n: 6 }); achieve('dificil'); toast('Baú do modo difícil!', 'small');
+};
+
+/* ---------- chefes em fases ---------- */
+const _hitEnemyF = hitEnemy;
+hitEnemy = function (e, amt, src, big) { if (e.inv > 0) { if (Math.random() < .3) float(e.x, e.y - e.body.h - 10, 'Imune', '#bfe8ff', 13); return; } _hitEnemyF(e, amt, src, big); };
+function phaseChange(e, n) {
+  const d = e.d, col = d.pcol || '#ffb35a';
+  e.phase = n; e.inv = 1.6; e.cd = Math.max(e.cd, 1.6);
+  toast(`${d.name} entra na fase ${n + 1}!`, 'warn'); sfx('chefe', .6, .8); W.shake = Math.max(W.shake || 0, .45);
+  FX.ring(e.x, e.y, 260, col, 1, 10); FX.aura(e, col, 99, 'rage'); burst(e.x, e.y - 40, col, 50, 260, { up: 200 });
+  for (let k = 0; k < 2 + n; k++) later(.5 + k * .25, () => { if (!e.alive || !d.summon) return; const a = rnd(0, 6.28), m = spawnEnemy(d.summon, e.x + Math.cos(a) * 160, e.y + Math.sin(a) * 90, true); m.noRespawn = true; m.room = 99; m.aggro = P; burst(m.x, m.y, col, 16, 80, { up: 80 }); });
+  if (n === d.phases.length) { e.d = Object.assign({}, d, { dmg: d.dmg.map(v => Math.round(v * 1.3)), speed: d.speed * 1.2, atkCd: d.atkCd * .8 }); float(e.x, e.y - e.body.h - 20, 'FÚRIA!', '#ff6a4a', 18); }
+}
+function phaseAttack(e) {
+  const col = e.d.pcol || '#ffb35a', dmg = rnd(e.d.dmg[0], e.d.dmg[1]) * 1.4, tgts = [P, ...partyBots().filter(b => !b.dead)];
+  if (e.phase >= 1) for (let k = 0; k < 4 + e.phase * 2; k++) { const t = tgts[k % tgts.length], x = t.x + rnd(-90, 90), y = t.y + rnd(-45, 45); FX.telegraph(x, y, 80, 1.2, col); W.fx[W.fx.length - 1].done = () => { if (!e.alive) return; FX.boom(x, y, 80, col); alliesNear(x, y, 80).forEach(a => damageActor(a, dmg, e)); }; }
+  if (e.phase >= 2) { const x = e.x, y = e.y; later(.6, () => { if (!e.alive) return; toast('Onda de choque! Fique longe do chefe', 'small warn'); FX.telegraph(x, y, 280, 1.4, col); W.fx[W.fx.length - 1].done = () => { if (!e.alive) return; FX.ring(x, y, 280, col, .7, 10); FX.crack(x, y, 280); W.shake = Math.max(W.shake || 0, .3); alliesNear(x, y, 280).forEach(a => damageActor(a, dmg * 1.3, e)); }; }); }
+}
+const _updEnemiesF = updateEnemies;
+updateEnemies = function (dt) {
+  _updEnemiesF(dt);
+  for (const e of W.enemies) {
+    if (e.inv > 0) e.inv -= dt;
+    if (!e.alive || !e.d.phases) continue;
+    const p = e.d.phases.filter(t => e.hp / e.max <= t).length;
+    if (p > (e.phase || 0)) phaseChange(e, p);
+    if (e.phase && e.aggro) { e.pAtk = (e.pAtk == null ? 4 : e.pAtk) - dt; if (e.pAtk <= 0) { e.pAtk = 8 - e.phase; phaseAttack(e); } }
+  }
+};
+
+/* ================= Mascotes novos e montarias ================= */
+const PET_KINDS = {
+  shiba:    { name: 'Filhote de Shiba', d: 'O primeiro amigo de todo Desperto.' },
+  fantasma: { name: 'Fantasminha', key: 'mon_fantasma', sc: .42, d: 'Troca na Bruxa Morgana (Festival de Halloween).' },
+  galinha:  { name: 'Pintinho Bravo', key: 'mx_chicken', sc: .5, from: 'galinha', d: 'Cai raramente da Galinha Brava (Campos).' },
+  pombo:    { name: 'Pombinho', key: 'mx_pigeon_b', sc: .5, from: 'pombo', d: 'Cai raramente do Pombo Gordo (Campos).' },
+  cogumelo: { name: 'Cogumelinho', key: 'mon_cogumelo', sc: .38, from: 'cogumelo', d: 'Cai raramente do Cogumelinho Saltitante (Campos).' },
+  cao:      { name: 'Cãozinho', key: 'mx_dog', sc: .5, from: 'cao', d: 'Cai raramente do Cão Selvagem (Colinas).' },
+  gato:     { name: 'Gatinho', key: 'mx_cat', sc: .5, from: 'gato', d: 'Cai raramente do Gato do Mato (Bosque).' },
+  yetinho:  { name: 'Yetinho', key: 'mx_yeti_b', sc: .5, from: 'yetinho', d: 'Cai raramente do Filhote de Yeti (Picos de Geada).' },
+  abutre:   { name: 'Abutrinho', key: 'mx_birb_b', sc: .48, from: 'abutre', d: 'Cai raramente do Filhote de Abutre (Dunas).' },
+  peixinho: { name: 'Peixinho', key: 'mx_fish_b', sc: .48, from: 'peixinho', d: 'Cai raramente do Peixinho Mordedor (Recife).' },
+  larva:    { name: 'Larvinha Estelar', key: 'mx_alien_b', sc: .45, from: 'larva', d: 'Cai raramente da Larva do Vazio.' }
+};
+const PET_FROM = Object.fromEntries(Object.entries(PET_KINDS).filter(([, p]) => p.from).map(([k, p]) => [p.from, k]));
+function petList() { if (!S.pets) S.pets = S.pet ? ['shiba'] : []; return S.pets; }
+function petGive(kind) {
+  const L = petList(); if (!L.includes(kind)) L.push(kind);
+  S.pet = true; S.petKind = kind; S.petOn = true; PET = newPet(); PET.x = P.x - 40; PET.y = P.y + 10;
+  sfx('nivel', .5); toast(`Novo mascote: ${PET_KINDS[kind].name}!`); save();
+}
+// o Shiba original também entra na lista
+const _collectLootP = collectLoot;
+collectLoot = function (l, byPet) {
+  if (l.kind === 'pet' && l.petKind) { W.loot = W.loot.filter(x => x !== l); petGive(l.petKind); return; }
+  if (l.kind === 'pet') { _collectLootP(l, byPet); petList(); if (!S.pets.includes('shiba')) S.pets.push('shiba'); S.petKind = 'shiba'; return; }
+  _collectLootP(l, byPet);
+};
+const _rewardP = reward;
+reward = function (e) {
+  _rewardP(e);
+  const k = PET_FROM[e.type]; if (k && !petList().includes(k) && Math.random() < .006 * luck()) { dropLoot(e.x, e.y, 'pet', {}); const l = W.loot[W.loot.length - 1]; if (l) { l.petKind = k; l.icon = PET_KINDS[k].key; } toast('Um mascote apareceu no chão!', 'small'); }
+  if (e.type === 'dg_dragao' && !mountList().includes('dragonete') && Math.random() < .08) { mountGive('dragonete'); }
+  if (e.type === 'carneiro_rei' && !mountList().includes('carneiro') && Math.random() < .03) { mountGive('carneiro'); }
+};
+// mascotes novos são desenhados com a folha do monstro, pequenininhos
+const _drawPetP = drawPet;
+drawPet = function (g) {
+  const k = S && S.petKind, pk = PET_KINDS[k];
+  if (!pk || !pk.key || !IMG[pk.key] || !SPR[pk.key]) return _drawPetP(g);
+  const p = PET, [FR, FOOT] = SPR[pk.key], a = p.moving ? ANIMS.walk : ANIMS.idle, f = a[0] + Math.floor(p.t * (p.moving ? 12 : 6)) % a[1], s = pk.sc;
+  g.save(); g.translate(Math.round(p.x), Math.round(p.y)); if (p.face < 0) g.scale(-1, 1);
+  g.fillStyle = 'rgba(0,0,0,.22)'; g.beginPath(); g.ellipse(0, 0, 14, 5, 0, 0, 7); g.fill();
+  g.drawImage(IMG[pk.key], f * FR, ROWS.se * FR, FR, FR, -FR * s / 2, -FOOT * s, FR * s, FR * s); g.restore();
+  if (p.carry) drawLootIcon(g, p.carry, p.x + p.face * 10, p.y - 30 + Math.sin(W.T * 10) * 2, 20);
+};
+
+/* ---------- montarias ---------- */
+const MOUNTS = {
+  coelho:    { name: 'Coelhão de Montaria', key: 'mon_coelho', spd: .3, lvl: 10, price: 3000, sc: 1.25, d: 'Rápido e fofinho.' },
+  abobora:   { name: 'Rei Abóbora Domado', key: 'mon_reicogu', tint: 'hue-rotate(-170deg) saturate(1.6)', spd: .35, lvl: 1, d: 'Troca na Bruxa Morgana (Festival de Halloween).', sc: 1.1 },
+  ave:       { name: 'Ave do Terror', key: 'mx_birb', spd: .4, lvl: 25, price: 15000, sc: 1.25, d: 'Corre muito nas planícies.' },
+  lagarto:   { name: 'Lagarto das Dunas', key: 'mx_dino', spd: .45, lvl: 32, price: 30000, sc: 1.25, d: 'Resistente ao calor do deserto.' },
+  carneiro:  { name: 'Carneiro Alado', key: 'mx_alpaking', spd: .5, lvl: 40, price: 60000, sc: 1.6, fly: true, d: 'Voa baixo. Também pode cair do Carneiro Rei.' },
+  dragonete: { name: 'Dragonete Rubro', key: 'mx_dragon', spd: .55, lvl: 42, sc: 1.7, fly: true, tint: 'hue-rotate(-25deg) saturate(1.4)', d: 'Só cai do Dragão Rubro, no Templo do Dragão.' }
+};
+function mountList() { return S.mounts || (S.mounts = []); }
+function mountGive(k) { const L = mountList(); if (!L.includes(k)) L.push(k); S.mount = k; sfx('nivel', .6); toast(`Nova montaria: ${MOUNTS[k].name}! Aperte M ou o botão Montar.`); mountUi(); save(); }
+const mounted = () => !!(S && S.mountOn && MOUNTS[S.mount] && P && !P.dead);
+function mountToggle(force) {
+  if (!S || !S.mount) { toast('Você ainda não tem montaria. Visite o Cavalariço Bento em Aurel.', 'small'); return; }
+  const on = force != null ? force : !S.mountOn;
+  if (on && W.T - (P.lastHit || -99) < 3) { toast('Saia do combate para montar', 'small warn'); return; }
+  if (on && S.blvl < MOUNTS[S.mount].lvl) { toast(`Precisa do nível ${MOUNTS[S.mount].lvl}`, 'small warn'); return; }
+  S.mountOn = on; gearDirty(); mountUi();
+  if (on) { burst(P.x, P.y, '#e9d8bd', 14, 90, { z: 6, glow: false, size: 1.4, life: .5 }); sfx('equipar', .4, .8); }
+}
+const dismount = () => { if (S && S.mountOn) { S.mountOn = false; gearDirty(); mountUi(); } };
+const _gearAllM = gearAll;
+gearAll = function () {
+  if (_gearCache) return _gearCache;
+  const g = _gearAllM(); if (mounted()) g.pct.move = (g.pct.move || 0) + MOUNTS[S.mount].spd;
+  return g;
+};
+const _basicAttackM = basicAttack; basicAttack = function (T) { dismount(); return _basicAttackM(T); };
+const _castSkillM = castSkill; castSkill = function (n) { if (S && S.mountOn && CL().skills[n - 1]) dismount(); return _castSkillM(n); };
+const _damageActorM = damageActor; damageActor = function (a, amt, src) { if (a === P && src) dismount(); return _damageActorM(a, amt, src); };
+// a montaria vai embaixo e o herói em cima
+const _drawBodyM = drawBody;
+drawBody = function (g, o, alpha) {
+  if (o !== P || !mounted()) return _drawBodyM(g, o, alpha);
+  const m = MOUNTS[S.mount], key = m.tint ? variant(m.key, m.tint, 1) : m.key; if (!IMG[key] || !SPR[key]) return _drawBodyM(g, o, alpha);
+  const [FR, FOOT, sc0] = SPR[key], sc = sc0 * m.sc, a = P.moving ? ANIMS.walk : ANIMS.idle, f = a[0] + Math.floor(W.T * (P.moving ? 13 : 6)) % a[1];
+  let d = P.body.dir, flip = false; if (d === 'w') { d = 'e'; flip = true; } else if (d === 'sw') { d = 'se'; flip = true; } else if (d === 'nw') { d = 'ne'; flip = true; }
+  const lift = m.fly ? 18 + Math.sin(W.T * 3) * 4 : 0, w = FR * sc;
+  g.save(); g.globalAlpha = alpha == null ? 1 : alpha; g.translate(Math.round(o.x), Math.round(o.y)); if (flip) g.scale(-1, 1);
+  g.drawImage(IMG[key], f * FR, ROWS[d] * FR, FR, FR, -w / 2, -FOOT * sc - lift, w, w); g.restore();
+  const rideH = (HEIGHT[m.key] || 50) * m.sc * .55 + lift, back = d === 'n' || d === 'ne';
+  const y0 = o.y; o.y -= rideH; if (back) { _drawBodyM(g, o, alpha); o.y = y0; return; }
+  _drawBodyM(g, o, alpha); o.y = y0;
+};
+window.addEventListener('keydown', ev => { if (ev.key && ev.key.toLowerCase() === 'm' && S && !document.querySelector('.overlay:not([hidden])') && !(document.activeElement && /INPUT|TEXTAREA/.test(document.activeElement.tagName))) mountToggle(); });
+function mountUi() {
+  let b = $('mountBtn');
+  if (!b) { b = document.createElement('button'); b.id = 'mountBtn'; b.type = 'button'; b.className = 'ghost'; b.title = 'Montar ou desmontar (tecla M)'; b.onclick = ev => { ev.stopPropagation(); mountToggle(); }; const row = document.querySelector('#side .row'); if (row) row.insertBefore(b, $('sheetBtn')); }
+  b.hidden = !(S && S.mount); b.textContent = S && S.mountOn ? 'Desmontar' : 'Montar';
+}
+
+/* ---------- estábulo: mascotes e montarias ---------- */
+function openStable(tab, shop) {
+  initAudio(); open('aurel'); tab = tab || 'pets';
+  $('auHead').textContent = shop ? 'Cavalariço Bento · Estábulo Real' : 'Seus companheiros'; $('auTitle').textContent = tab === 'pets' ? 'Mascotes' : 'Montarias';
+  $('auSub').innerHTML = tab === 'pets' ? 'O mascote segue você e busca itens e ouro do chão. Alguns monstros pequenos largam filhotes, bem raramente.' : `A montaria aumenta a velocidade. Você desmonta ao atacar ou apanhar. Tecla M ou botão Montar. Ouro: <b>${S.gold}</b>.`;
+  const tabs = $('auTabs'); tabs.innerHTML = '';
+  [['Mascotes', 'pets'], ['Montarias', 'mounts']].forEach(([t, k]) => { const x = document.createElement('button'); x.type = 'button'; x.className = 'btn ' + (tab === k ? '' : 'alt'); x.textContent = t; x.onclick = () => openStable(k, shop); tabs.appendChild(x); });
+  const b = $('auBody'); b.innerHTML = '';
+  const row = (icon, title, sub, btns) => { const d = document.createElement('div'); d.className = 'aurow'; d.innerHTML = `${icon}<span><b>${title}</b><small>${sub}</small></span><span class="acts"></span>`; btns.forEach(([t, f, dis, alt]) => { const x = document.createElement('button'); x.type = 'button'; x.className = 'btn' + (alt ? ' alt' : ''); x.textContent = t; x.disabled = !!dis; x.onclick = f; d.querySelector('.acts').appendChild(x); }); b.appendChild(d); };
+  const pic = key => { if (!key || !IMG[key] || !SPR[key]) return iconImg('pet'); const c = document.createElement('canvas'); c.width = c.height = 40; c.getContext('2d').drawImage(IMG[key], 0, 0, 128, 128, -4, -6, 48, 48); return `<img class="iic" alt="" src="${(() => { try { return c.toDataURL(); } catch (e) { return ''; } })()}">`; };
+  if (tab === 'pets') {
+    const own = petList();
+    Object.entries(PET_KINDS).forEach(([k, p]) => {
+      const has = own.includes(k), cur = S.petKind === k || (k === 'shiba' && !S.petKind && S.pet);
+      row(pic(p.key), (has ? '' : '🔒 ') + p.name + (cur && S.petOn ? ' · com você' : ''), has ? (k === 'shiba' ? 'O seu primeiro amigo.' : 'Busca itens do chão para você.') : p.d,
+        has ? [[cur && S.petOn ? 'Guardar' : 'Chamar', () => { if (cur && S.petOn) { S.petOn = false; PET = null; } else { S.petKind = k; S.petOn = true; S.pet = true; PET = newPet(); } save(); openStable('pets', shop); }]] : []);
+    });
+  } else {
+    const own = mountList();
+    Object.entries(MOUNTS).forEach(([k, m]) => {
+      const has = own.includes(k), cur = S.mount === k;
+      const btns = has ? [[cur ? 'Escolhida' : 'Usar', () => { S.mount = k; if (S.mountOn) gearDirty(); mountUi(); save(); openStable('mounts', shop); }, cur]]
+        : shop && m.price ? [[`Comprar (${m.price.toLocaleString('pt-BR')} ouro)`, () => { if (S.gold < m.price) return toast('Ouro insuficiente', 'small warn'); S.gold -= m.price; mountGive(k); openStable('mounts', shop); }, S.gold < m.price || S.blvl < m.lvl]] : [];
+      row(pic(m.key), (has ? '' : '🔒 ') + m.name, `+${Math.round(m.spd * 100)}% velocidade · nível ${m.lvl}${has ? '' : ' · ' + (m.price ? (shop ? '' : 'à venda no Estábulo Real de Aurel. ') : '') + m.d}`, btns);
+    });
+  }
+}
+AU_NPCS.push({ id: 'bento', name: 'Cavalariço Bento', title: 'Estábulo Real', sprite: 'ald_1', x: 1180, y: 1480, color: '#c9a36a' });
+const _openNpcM = openNpc;
+openNpc = function (npc) { if (npc && npc.id === 'bento') { face(P, npc); return openStable('mounts', true); } return _openNpcM(npc); };
+// botão no rodapé da mochila
+const _openInvM = openInv;
+openInv = function () {
+  _openInvM();
+  const f = document.querySelector('#inv .invfoot'); if (!f || f.querySelector('.stbBtn')) return;
+  const x = document.createElement('button'); x.type = 'button'; x.className = 'ghost stbBtn'; x.textContent = 'Mascotes e montarias'; x.onclick = () => { closeAll(); openStable('pets'); }; f.appendChild(x);
+};
+openBag = openInv;
+// Halloween: montaria e mascote na loja da Bruxa
+if (typeof HW_SHOP !== 'undefined') HW_SHOP.splice(6, 0, { t: 'Montaria: Rei Abóbora Domado', s: '+35% velocidade', c: 100, icon: 'h_abobora2', own: () => mountList().includes('abobora'), f: () => mountGive('abobora') });
+const _onZoneMt = onZoneLoaded4; onZoneLoaded4 = function (i, from) { _onZoneMt(i, from); mountUi(); };
+
+/* ================= Pesca, música por região e mapa-múndi ================= */
+
+/* ---------- pesca ---------- */
+Object.assign(MATS, {
+  bota:     { name: 'Bota Velha', icon: 'i_tabua', price: 1, d: 'Alguém perdeu isso no lago.' },
+  lambari:  { name: 'Lambari', icon: 'i_pinha', hue: 160, price: 8, d: 'Peixe pequeno e comum. Vende na loja.' },
+  tilapia:  { name: 'Tilápia', icon: 'i_pinha', hue: 200, price: 18, d: 'Um bom peixe para vender.' },
+  carpa:    { name: 'Carpa Dourada', icon: 'i_pinha', hue: 20, price: 70, d: 'Rara e brilhante. Vale bastante.' },
+  bagre:    { name: 'Bagre do Brejo', icon: 'i_pinha', hue: 90, price: 30, d: 'Peixe de águas escuras.' },
+  espada:   { name: 'Peixe-Espada', icon: 'i_pinha', hue: 240, price: 60, d: 'Só no Recife Afogado.' },
+  magma:    { name: 'Salamandra de Magma', icon: 'i_pinha', hue: -20, price: 90, d: 'Vive na lava do Pico do Dragão.' },
+  lunar:    { name: 'Peixe Lunar', icon: 'i_pinha', hue: 270, price: 120, d: 'Nada nas águas do Vazio Estelar.' },
+  oasis:    { name: 'Peixe do Oásis', icon: 'i_pinha', hue: 50, price: 45, d: 'Só no oásis das Dunas Rubras.' }
+});
+// o que dá para pescar em cada tipo de água: [material, peso, dificuldade 0..1]
+const FISH = {
+  base:   [['bota', 8, .1], ['lambari', 50, .2], ['tilapia', 30, .4], ['carpa', 6, .8]],
+  swamp:  [['bota', 10, .1], ['bagre', 50, .35], ['tilapia', 25, .4], ['carpa', 5, .8]],
+  coast:  [['bota', 6, .1], ['tilapia', 30, .4], ['espada', 30, .6], ['carpa', 6, .8]],
+  desert: [['bota', 8, .1], ['oasis', 50, .5], ['carpa', 8, .8]],
+  ash:    [['bota', 4, .1], ['magma', 40, .75]],
+  veil:   [['lunar', 30, .8], ['tilapia', 30, .4], ['bota', 6, .1]]
+};
+ACH.push({ id: 'pesca', name: 'Pescador', d: 'Pesque 25 peixes.', stat: 'peixe', n: 25, title: 'Pescador', bonus: { sor: 2, agi: 1 } },
+  { id: 'pesca2', name: 'Mestre Pescador', d: 'Pesque 5 peixes raros (Carpa Dourada, Salamandra ou Peixe Lunar).', stat: 'peixe_raro', n: 5, title: 'Mestre Pescador', bonus: { sor: 4 } });
+ACH.slice(-2).forEach(a => { TITLE_BONUS[a.title] = a.bonus; });
+const _onZoneF = onZoneLoaded4;
+onZoneLoaded4 = function (i, from) {
+  _onZoneF(i, from);
+  W.fishSpots = [];
+  const z = ZONES[i]; if (z.dungeon || z.city) return;
+  [z.lake, ...(z.pools || [])].filter(Boolean).forEach(l => {
+    const x = l[0] + l[2] * .25, y = l[1] + l[3] + 18; if (blocked(x, y + 10, 10)) return;
+    const p = PROPMETA.balde ? makeProp('balde', x + 34, y + 6, .8, false) : null; if (p) W.props.push(p);
+    W.fishSpots.push({ x, y, lava: z.lake === l && (z.lakeCol || [])[0] === '#ffd27a' });
+  });
+};
+const _nearActF = nearActionExtra;
+nearActionExtra = function () {
+  const r = _nearActF(); if (r) return r;
+  const s = (W.fishSpots || []).find(s => Math.hypot(P.x - s.x, P.y - s.y) < 120);
+  return s ? { kind: 'fish', o: s, label: s.lava ? 'Pescar na lava' : 'Pescar', run: () => fishStart(s) } : null;
+};
+const FS = { on: false };
+function fishPool() { const k = zoneKind(W.zone, W.zi); return FISH[k] || FISH.base; }
+function fishRoll() { const L = fishPool(), tot = L.reduce((a, f) => a + f[1], 0); let r = Math.random() * tot; for (const f of L) { if ((r -= f[1]) <= 0) return f; } return L[0]; }
+function fishStart(s) {
+  if (FS.on) return; if (typeof dismount === 'function') dismount();
+  const f = fishRoll(); Object.assign(FS, { on: true, f, hits: 0, miss: 0, t: 0, need: 3, zone: .3 - f[2] * .18, pos: Math.random(), wait: 1 + Math.random() * 1.5, spot: s });
+  face(P, { x: s.x, y: s.y - 40 }); P.dest = null; P.target = null;
+  let el = $('fishUI');
+  if (!el) {
+    el = document.createElement('div'); el.id = 'fishUI';
+    el.innerHTML = `<b id="fishT">Esperando o peixe morder…</b><div class="fbar"><i class="fz"></i><i class="fm"></i></div><div class="fdots"></div><div class="facts"><button class="btn" id="fishPull" type="button">Puxar!</button><button class="btn alt" id="fishStop" type="button">Parar</button></div>`;
+    document.body.appendChild(el);
+    $('fishPull').onclick = ev => { ev.stopPropagation(); fishPull(); }; $('fishStop').onclick = ev => { ev.stopPropagation(); fishEnd(); };
+    const st = document.createElement('style'); st.textContent = `#fishUI{position:fixed;left:50%;bottom:120px;transform:translateX(-50%);z-index:8;width:min(340px,92vw);padding:10px 12px;display:grid;gap:8px;background:rgba(29,18,14,.92);border:2px solid #c9a34a;border-radius:8px;color:#f3e7cf;text-align:center;font-family:${FONT}}
+#fishUI .fbar{position:relative;height:22px;background:#2a1c14;border:2px solid #6a4a2a;border-radius:11px;overflow:hidden}#fishUI .fz{position:absolute;top:0;bottom:0;background:linear-gradient(#7de07a,#3aa040);opacity:.85}#fishUI .fm{position:absolute;top:-2px;width:6px;height:26px;margin-left:-3px;background:#fff3c0;box-shadow:0 0 6px #fff}
+#fishUI .fdots{display:flex;justify-content:center;gap:6px;min-height:14px}#fishUI .fdots span{width:12px;height:12px;border-radius:50%;background:#4a3a2a;border:1px solid #c9a34a}#fishUI .fdots span.ok{background:#7de07a}#fishUI .fdots span.no{background:#e05a4a}
+#fishUI .facts{display:flex;gap:8px;justify-content:center}`; document.head.appendChild(st);
+  }
+  el.hidden = false; $('fishT').textContent = 'Esperando o peixe morder…'; fishDraw(); sfx('pop', .3);
+}
+function fishDraw() {
+  const el = $('fishUI'); if (!el) return; const z = el.querySelector('.fz'), m = el.querySelector('.fm');
+  const c = .5 + Math.sin(FS.t * .7) * .25; FS.c = c; z.style.left = ((c - FS.zone / 2) * 100) + '%'; z.style.width = (FS.zone * 100) + '%'; m.style.left = (FS.pos * 100) + '%';
+  el.querySelector('.fdots').innerHTML = Array.from({ length: FS.need }, (_, i) => `<span class="${i < FS.hits ? 'ok' : ''}"></span>`).join('') + ' ' + Array.from({ length: 2 }, (_, i) => `<span class="${i < FS.miss ? 'no' : ''}"></span>`).join('');
+}
+function fishPull() {
+  if (!FS.on) return;
+  if (FS.wait > 0) { $('fishT').textContent = 'Calma! O peixe ainda não mordeu.'; FS.wait += .6; return; }
+  const ok = Math.abs(FS.pos - FS.c) <= FS.zone / 2;
+  if (ok) { FS.hits++; sfx('clique', .4, 1.4); splash(FS.spot.x, FS.spot.y - 20); } else { FS.miss++; sfx('esquiva', .3, .7); }
+  if (FS.hits >= FS.need) return fishCatch();
+  if (FS.miss >= 2) { toast('O peixe escapou!', 'small'); return fishEnd(); }
+  $('fishT').textContent = ok ? 'Isso! Continue puxando!' : 'Errou o tempo! Cuidado…'; fishDraw();
+}
+function fishCatch() {
+  const k = FS.f[0], m = MATS[k], rare = ['carpa', 'magma', 'lunar'].includes(k);
+  addTo(S.mats, k, 1); sfx(rare ? 'misterio' : 'coleta', .5); float(P.x, P.y - 60, `+1 ${m.name}`, rare ? '#ffd27a' : '#bfe8ff', rare ? 18 : 14);
+  toast(rare ? `Pescou um peixe raro: ${m.name}!` : `Você pescou: ${m.name}`, rare ? '' : 'small');
+  if (k !== 'bota') achieve('peixe'); if (rare) achieve('peixe_raro');
+  if (Math.random() < .05) { const it = lootFor(S.blvl, .05); giveItem(it, true); toast(`Tinha algo preso no anzol: ${itemName(it)}!`); }
+  if (typeof profXp === 'function' && PROFS.pesca) profXp('pesca', 5);
+  fishEnd(); save();
+}
+function fishEnd() { FS.on = false; const el = $('fishUI'); if (el) el.hidden = true; }
+const _updWorldF = typeof updateWorld4 === 'function' ? updateWorld4 : null;
+updateWorld4 = function (dt) {
+  if (_updWorldF) _updWorldF(dt);
+  if (!FS.on) return;
+  if (!P || P.dead || P.moving || Math.hypot(P.x - FS.spot.x, P.y - FS.spot.y) > 160) { fishEnd(); return; }
+  FS.t += dt;
+  if (FS.wait > 0) { FS.wait -= dt; if (FS.wait <= 0) { $('fishT').textContent = `Mordeu! Puxe quando a luz estiver no verde`; sfx('pop', .5, .7); splash(FS.spot.x, FS.spot.y - 20); } }
+  else FS.pos = .5 + Math.sin(FS.t * (2.2 + FS.f[2] * 2.6)) * .48;
+  fishDraw();
+};
+window.addEventListener('keydown', ev => { if (FS.on && (ev.key === ' ' || ev.key === 'Enter')) { ev.preventDefault(); ev.stopPropagation(); fishPull(); } if (FS.on && ev.key === 'Escape') fishEnd(); }, true);
+
+/* ---------- música por região ---------- */
+// cada tipo de região tem escala, tom, andamento e timbre próprios; chefes trocam para um tema de luta
+const THEMES = {
+  grass:  { root: 196, scale: [0, 2, 4, 7, 9], beat: .5, lead: 'triangle', pad: 'sine', bass: 1, prog: [0, 5, 3, 4] },
+  forest: { root: 174.6, scale: [0, 2, 3, 5, 7, 9, 10], beat: .58, lead: 'triangle', pad: 'sine', bass: 1, prog: [0, 3, 6, 4] },
+  city:   { root: 220, scale: [0, 2, 4, 5, 7, 9, 11], beat: .42, lead: 'square', pad: 'triangle', bass: 1, prog: [0, 3, 4, 0], vol: .7 },
+  desert: { root: 164.8, scale: [0, 1, 4, 5, 7, 8, 10], beat: .46, lead: 'sawtooth', pad: 'sine', bass: 1, drum: 1, prog: [0, 1, 0, 6], vol: .55 },
+  coast:  { root: 207.6, scale: [0, 2, 4, 7, 9], beat: .62, lead: 'sine', pad: 'triangle', bass: 0, prog: [0, 4, 5, 3] },
+  snow:   { root: 246.9, scale: [0, 2, 4, 6, 7, 9, 11], beat: .8, lead: 'sine', pad: 'sine', bass: 0, prog: [0, 4, 1, 5] },
+  swamp:  { root: 130.8, scale: [0, 2, 3, 5, 7, 8, 10], beat: .74, lead: 'triangle', pad: 'sawtooth', bass: 1, prog: [0, 5, 3, 6], vol: .6 },
+  ash:    { root: 146.8, scale: [0, 2, 3, 5, 7, 8, 11], beat: .5, lead: 'sawtooth', pad: 'triangle', bass: 1, drum: 1, prog: [0, 5, 6, 4], vol: .55 },
+  veil:   { root: 138.6, scale: [0, 2, 3, 6, 7, 9, 10], beat: .82, lead: 'sine', pad: 'sine', bass: 1, prog: [0, 6, 2, 5] },
+  cave:   { root: 110, scale: [0, 1, 3, 7, 8], beat: .8, lead: 'triangle', pad: 'sine', bass: 1, prog: [0, 1, 4, 0], vol: .8 },
+  boss:   { root: 123.5, scale: [0, 1, 3, 5, 7, 8, 10], beat: .3, lead: 'sawtooth', pad: 'square', bass: 2, drum: 2, prog: [0, 0, 5, 6], vol: .5 },
+  fest:   { root: 155.6, scale: [0, 1, 4, 5, 7, 8, 11], beat: .44, lead: 'square', pad: 'triangle', bass: 1, drum: 1, prog: [0, 3, 0, 4], vol: .55 }
+};
+const MUS2 = { next: 0, step: 0, theme: null, motif: null, bus: null };
+function musBus() {
+  if (MUS2.bus || !AU.ctx) return MUS2.bus;
+  const g = AU.ctx.createGain(); g.gain.value = .9; const f = AU.ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 3200;
+  const dl = AU.ctx.createDelay(1); dl.delayTime.value = .32; const fb = AU.ctx.createGain(); fb.gain.value = .25; dl.connect(fb); fb.connect(dl);
+  g.connect(f); f.connect(AU.ctx.destination); g.connect(dl); dl.connect(f); return (MUS2.bus = g);
+}
+function musTheme() {
+  const z = W.zone; if (!z) return 'grass';
+  const boss = W.enemies.some(e => e.alive && (e.d.boss || e.d.final) && (e.aggro === P || (e.aggro && dist(e, P) < 700)) && dist(e, P) < 900);
+  if (boss) return 'boss';
+  if (z.city) return typeof HW_ON !== 'undefined' && HW_ON ? 'fest' : 'city';
+  const k = zoneKind(z, W.zi); return THEMES[k] ? k : 'grass';
+}
+updateMusic = function () {
+  if (!AU.ctx || SAVE.mute || SAVE.music === false || !S) return;
+  const t = AU.ctx.currentTime; if (t < MUS2.next) return;
+  const name = musTheme(), T = THEMES[name], bus = musBus(); if (!bus) return;
+  if (MUS2.theme !== name) { MUS2.theme = name; MUS2.step = 0; const r = seeded(W.zi * 31 + name.length * 7); MUS2.motif = Array.from({ length: 8 }, () => r() < .2 ? null : Math.floor(r() * T.scale.length) + (r() < .25 ? T.scale.length : 0)); }
+  const v = (T.vol || 1) * (isNight() ? .8 : 1), beat = T.beat, st = MUS2.step, bar = Math.floor(st / 8), deg = T.prog[bar % T.prog.length];
+  const freq = d => { const n = T.scale.length, o = Math.floor(d / n), s = T.scale[((d % n) + n) % n]; return T.root * Math.pow(2, (s + 12 * o) / 12); };
+  const note = (f, dur, vol, type, at) => { const o = AU.ctx.createOscillator(), g = AU.ctx.createGain(); o.type = type; o.frequency.value = f; g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(vol, at + .02); g.gain.exponentialRampToValueAtTime(.0005, at + dur); o.connect(g); g.connect(bus); o.start(at); o.stop(at + dur + .05); };
+  const noise = (at, vol, hp) => { const len = AU.ctx.sampleRate * .12 | 0, buf = AU.ctx.createBuffer(1, len, AU.ctx.sampleRate), d = buf.getChannelData(0); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len); const s = AU.ctx.createBufferSource(), f = AU.ctx.createBiquadFilter(), g = AU.ctx.createGain(); s.buffer = buf; f.type = hp ? 'highpass' : 'lowpass'; f.frequency.value = hp ? 6000 : 180; g.gain.value = vol; s.connect(f); f.connect(g); g.connect(bus); s.start(at); };
+  if (st % 8 === 0) [0, 2, 4].forEach(x => note(freq(deg + x) / 2, beat * 7.5, .014 * v, T.pad, t));
+  if (T.bass && st % (T.bass === 2 ? 1 : 2) === 0) note(freq(deg) / 4, beat * (T.bass === 2 ? .9 : 1.8), .045 * v, 'triangle', t);
+  const m = MUS2.motif[st % 8]; if (m != null && (bar % 4 !== 3 || st % 2 === 0)) note(freq(m + deg % 3), beat * 1.6, .022 * v, T.lead, t);
+  if (T.drum) { if (st % 4 === 0) noise(t, .22 * v, false); if (T.drum === 2 || st % 2 === 1) noise(t, .04 * v, true); }
+  MUS2.next = t + beat; MUS2.step++;
+};
+
+/* ---------- mapa-múndi ---------- */
+OVERLAYS.push('wmap');
+(() => {
+  const d = document.createElement('div'); d.className = 'overlay'; d.id = 'wmap'; d.hidden = true;
+  d.innerHTML = `<div class="card wide" role="dialog" aria-labelledby="wmTitle" style="width:min(980px,96vw)"><button class="x" type="button" aria-label="Fechar"></button><h3>Valdora</h3><h2 id="wmTitle">Mapa do Mundo</h2>
+  <canvas id="wmCv" style="width:100%;aspect-ratio:16/10;border-radius:6px;background:#2a1f16;touch-action:none"></canvas><div id="wmInfo" class="sub" style="min-height:44px;margin-top:6px">Toque numa região para ver os detalhes.</div></div>`;
+  document.body.appendChild(d); d.querySelector('.x').onclick = closeAll;
+  d.addEventListener('click', ev => { if (ev.target === d) closeAll(); });
+})();
+function wmLayout() {
+  const pos = {}, q = [0], used = new Set(); pos[0] = [0, 0]; used.add('0,0');
+  const dirs = { e: [1, 0], w: [-1, 0], n: [0, -1], s: [0, 1] };
+  while (q.length) {
+    const i = q.shift(), z = ZONES[i];
+    (z.exits || []).forEach(e => {
+      const j = e.to; if (typeof j !== 'number' || pos[j] != null || !ZONES[j] || ZONES[j].hidden) return;
+      const [dx, dy] = dirs[e.side] || [1, 0]; let [x, y] = [pos[i][0] + dx, pos[i][1] + dy];
+      for (let k = 0; used.has(x + ',' + y) && k < 6; k++) { x += dy ? 1 : dx; y += dx ? 1 : dy; }
+      pos[j] = [x, y]; used.add(x + ',' + y); q.push(j);
+    });
+  }
+  ZONES.forEach((z, i) => { if (pos[i] == null && !z.hidden) { let x = 0; while (used.has(x + ',2')) x++; pos[i] = [x, 2]; used.add(x + ',2'); } });
+  return pos;
+}
+const WM = { pos: null, sel: null, hit: [] };
+const KIND_COL = { grass: '#7fbf5a', forest: '#3f8a3a', city: '#e5b850', desert: '#e0b070', coast: '#6ac0d8', snow: '#dfe8ef', swamp: '#6a7a4a', ash: '#b0503a', veil: '#8a6ad8', cave: '#5a5070' };
+function openWorldMap() {
+  open('wmap'); WM.pos = WM.pos || wmLayout(); WM.sel = W.zi; wmDraw(); wmInfo(W.zi);
+  const cv2 = $('wmCv'); cv2.onclick = ev => { const r = cv2.getBoundingClientRect(), x = (ev.clientX - r.left) * cv2.width / r.width, y = (ev.clientY - r.top) * cv2.height / r.height; const h = WM.hit.find(h => Math.hypot(h.x - x, h.y - y) < h.r + 8); if (h) { WM.sel = h.i; wmDraw(); wmInfo(h.i); sfx('clique', .3); } };
+}
+function wmDraw() {
+  const cv2 = $('wmCv'), r = cv2.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1); cv2.width = Math.max(320, r.width * dpr); cv2.height = cv2.width * .625;
+  const g = cv2.getContext('2d'), W2 = cv2.width, H2 = cv2.height, P0 = WM.pos, ks = Object.keys(P0).map(Number);
+  const xs = ks.map(i => P0[i][0]), ys = ks.map(i => P0[i][1]), x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+  const cell = Math.min(W2 / (x1 - x0 + 1.4), H2 / (y1 - y0 + 1.4)), ox = (W2 - (x1 - x0) * cell) / 2, oy = (H2 - (y1 - y0) * cell) / 2, R = Math.max(14, cell * .2);
+  const at = i => [ox + (P0[i][0] - x0) * cell, oy + (P0[i][1] - y0) * cell];
+  const gr = g.createRadialGradient(W2 / 2, H2 / 2, 10, W2 / 2, H2 / 2, W2 * .7); gr.addColorStop(0, '#4a3a28'); gr.addColorStop(1, '#1e150e'); g.fillStyle = gr; g.fillRect(0, 0, W2, H2);
+  g.strokeStyle = 'rgba(233,216,189,.35)'; g.lineWidth = Math.max(2, R * .18); g.setLineDash([R * .4, R * .3]);
+  ks.forEach(i => (ZONES[i].exits || []).forEach(e => { if (P0[e.to] == null || e.to < i && (ZONES[e.to].exits || []).some(x => x.to === i)) return; const [a, b] = at(i), [c, d] = at(e.to); g.beginPath(); g.moveTo(a, b); g.lineTo(c, d); g.stroke(); }));
+  g.setLineDash([]); WM.hit = [];
+  const wb = typeof wbNow === 'function' ? wbNow() : null;
+  ks.forEach(i => {
+    const z = ZONES[i], [x, y] = at(i), seen = S.visited.includes(i), here = i === W.zi, col = seen ? (KIND_COL[z.city ? 'city' : zoneKind(z, i)] || '#7fbf5a') : '#5a5048';
+    if (here) { g.strokeStyle = '#ffe27a'; g.lineWidth = 3; g.beginPath(); g.arc(x, y, R + 6 + Math.sin(performance.now() / 300) * 2, 0, 7); g.stroke(); }
+    g.fillStyle = col; g.strokeStyle = WM.sel === i ? '#fff3c0' : '#1a120c'; g.lineWidth = WM.sel === i ? 4 : 3; g.beginPath(); g.arc(x, y, R, 0, 7); g.fill(); g.stroke();
+    g.fillStyle = '#1a120c'; g.font = `700 ${Math.round(R * .75)}px ${FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(seen ? (z.city ? '♛' : z.rec) : '?', x, y + 1);
+    g.font = `700 ${Math.max(10, Math.round(R * .52))}px ${FONT}`; g.lineWidth = 3; g.strokeStyle = 'rgba(12,8,6,.9)'; g.fillStyle = seen ? '#f3e7cf' : '#a89a88'; const words = z.name.split(' '), lines = z.name.length > 12 && words.length > 1 ? [words.slice(0, Math.ceil(words.length / 2)).join(' '), words.slice(Math.ceil(words.length / 2)).join(' ')] : [z.name], lh = Math.max(11, R * .6); lines.forEach((t, k) => { g.strokeText(t, x, y + R + R * .55 + k * lh); g.fillText(t, x, y + R + R * .55 + k * lh); });
+    let bx = x + R * .8;
+    if (z.boss) { const done = S.stats && S.stats['k_' + z.boss[0]]; g.font = `${Math.round(R * .6)}px ${FONT}`; g.fillText(done ? '✔' : '☠', bx, y - R * .9); bx += R * .6; }
+    if (ZONES.some(d => d.dungeon && !d.fenda && d.back === i)) { g.font = `${Math.round(R * .6)}px ${FONT}`; g.fillText('⛫', x - R * .85, y - R * .9); }
+    if (wb && wb.active && wb.zone === i) { g.fillStyle = '#ff6a4a'; g.font = `700 ${Math.round(R * .5)}px ${FONT}`; g.strokeText('Chefe do mundo!', x, y - R * 1.5); g.fillText('Chefe do mundo!', x, y - R * 1.5); }
+    if (here) { g.fillStyle = '#ffe27a'; g.font = `700 ${Math.round(R * .5)}px ${FONT}`; g.strokeText('Você', x, y - R * 1.5 - (wb && wb.zone === i ? R * .6 : 0)); g.fillText('Você', x, y - R * 1.5 - (wb && wb.zone === i ? R * .6 : 0)); }
+    WM.hit.push({ i, x, y, r: R });
+  });
+}
+function wmInfo(i) {
+  const z = ZONES[i], seen = S.visited.includes(i), el = $('wmInfo');
+  if (!seen) { el.innerHTML = `<b>${z.name}</b> · nível ${z.rec}+ · ainda não visitada${z.where ? '. ' + z.where : ''}`; return; }
+  const mons = [...new Set((z.spawns || []).map(s => ENEMIES[s[0]]).filter(d => d && !d.hw).map(d => d.name))];
+  const dung = ZONES.filter(d => d.dungeon && !d.fenda && d.back === i).map(d => d.name);
+  const boss = z.boss && ENEMIES[z.boss[0]] ? ENEMIES[z.boss[0]].name : null, giver = typeof SQ_GIVERS !== 'undefined' && SQ_GIVERS[i] ? SQ_GIVERS[i][0] : null;
+  el.innerHTML = `<b>${z.name}</b> · nível ${z.rec}+${boss ? ` · Chefe: <b>${boss}</b>${S.stats && S.stats['k_' + z.boss[0]] ? ' (derrotado)' : ''}` : ''}${dung.length ? ` · Masmorra: ${dung.join(', ')}` : ''}${giver ? ` · Missões com ${giver}` : ''}<br><small>${mons.length ? 'Monstros: ' + mons.join(', ') : 'Sem monstros: lugar seguro.'}${(W.fishSpots || []).length && i === W.zi ? ' · Dá para pescar aqui.' : ''}</small>`;
+}
+window.addEventListener('keydown', ev => { if (!S || (document.activeElement && /INPUT|TEXTAREA/.test(document.activeElement.tagName))) return; if (ev.key && ev.key.toLowerCase() === 'n') { if ($('wmap').hidden) { if (!anyOpen()) openWorldMap(); } else closeAll(); } });
+// tocar no mini-mapa abre o mapa do mundo
+$('mini').addEventListener('click', ev => { if (!S) return; ev.stopPropagation(); openWorldMap(); });
+$('mini').style.cursor = 'pointer'; $('mini').title = 'Mapa do mundo (tecla N)';
+setInterval(() => { if (S && !$('wmap').hidden) wmDraw(); }, 250);
+
+/* ================= Arena, duelos, guildas e mercado entre jogadores ================= */
+const online = () => !!(typeof CT !== 'undefined' && CT.token && ctCfg());
+const needAcct = () => { toast('Entre numa conta (tela de personagens) para usar isso. Funciona na versão publicada do jogo.', 'small warn'); };
+const isoWeek = () => { const d = new Date(), t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())), day = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - day); const y = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return t.getUTCFullYear() + '-' + String(Math.ceil(((t - y) / 864e5 + 1) / 7)).padStart(2, '0'); };
+function panel(head, title, sub, tabs, cur, go) {
+  initAudio(); open('aurel'); $('auHead').textContent = head; $('auTitle').textContent = title; $('auSub').innerHTML = sub;
+  const t = $('auTabs'); t.innerHTML = '';
+  tabs.forEach(([lb, k]) => { const x = document.createElement('button'); x.type = 'button'; x.className = 'btn ' + (cur === k ? '' : 'alt'); x.textContent = lb; x.onclick = () => go(k); t.appendChild(x); });
+  const b = $('auBody'); b.innerHTML = ''; return b;
+}
+function auRow(b, icon, title, sub, btns) { const d = document.createElement('div'); d.className = 'aurow'; d.innerHTML = `${icon}<span><b>${title}</b><small>${sub}</small></span><span class="acts"></span>`; (btns || []).forEach(([t, f, dis, alt]) => { const x = document.createElement('button'); x.type = 'button'; x.className = 'btn' + (alt ? ' alt' : ''); x.textContent = t; x.disabled = !!dis; x.onclick = f; d.querySelector('.acts').appendChild(x); }); b.appendChild(d); return d; }
+
+/* ---------- arena de Aurel: escada de 10 campeões, renovada toda semana ---------- */
+const ARENA = ZONES.length;
+ZONES.push({ name: 'Arena de Aurel', rec: 1, w: 1600, h: 1100, hidden: true, arena: true, where: 'Fale com o Mestre da Arena em Aurel.', spawns: [], area: [500, 350, 1300, 800], spawn: [380, 560],
+  exits: [{ side: 'w', to: AUREL, pos: 560 }], bots: [], ground: { base: '#9a8a6a', light: '#ac9c7a', dark: '#857558', path: '#b8a882' }, trees: ['d_coluna'], rocks: ['pedra1'], bushes: ['d_estandarte'], small: ['seixos'], tint: '#ffe2ae',
+  layout: { hub: [800, 560], groves: 0, rocks: 0, pois: [['plaza', 800, 560]] }, deco: [['d_estandarte', 520, 250], ['d_estandarte', 1080, 250], ['d_tocha', 400, 300], ['d_tocha', 1200, 300], ['d_tocha', 400, 850], ['d_tocha', 1200, 850]], nodes: [] });
+const ARENA_OPS = [
+  ['Recruta Tobias', 'bot_ladino', '', 'melee'], ['Arqueira Lia', 'bot_arqueira', '', 'ranged'], ['Bárbaro Grom', 'bot_barbaro', 'hue-rotate(20deg)', 'tank'],
+  ['Maga Íris', 'bot_mago', 'hue-rotate(160deg)', 'ranged'], ['Clérigo Sol', 'clerigo', '', 'ranged'], ['Paladino Bastião', 'evo_paladino', '', 'tank'],
+  ['Atiradora Vesper', 'evo_atirador', 'hue-rotate(200deg)', 'ranged'], ['Berserker Ulf', 'evo_berserker', '', 'fast'], ['Arquimago Orin', 'evo_arquimago', 'hue-rotate(100deg)', 'ranged'],
+  ['Campeão Aurélio', 'evo_runico', 'saturate(1.4) brightness(1.1)', 'tank']
+];
+ENEMIES.arena_op = monAt(1, { name: 'Desafiante', sprite: 'bot_ladino' });
+function arenaState() { const w = isoWeek(); if (!S.arena || S.arena.week !== w) S.arena = { week: w, rank: 0, best: (S.arena && S.arena.best) || 0 }; return S.arena; }
+function arenaDef(rank) {
+  const [name, sprite, tint, role] = ARENA_OPS[Math.min(rank, 9)], L = S.blvl, bots = partyBots().length, el = rank >= 5;
+  const m = { hp: (2.4 + rank * .4) * (1 + bots * .7), dmg: .85 + rank * .07, xp: 2.5 + rank * .4 };
+  const d = monAt(L, { name, sprite, tint: tint || undefined, sfx: role === 'ranged' ? 'magia' : 'soco', elite: el, speed: role === 'fast' ? 105 : role === 'tank' ? 70 : 82, aggroR: 900, atkCd: role === 'fast' ? 1.1 : 1.6 }, m);
+  if (role === 'ranged') Object.assign(d, { ranged: true, range: 240, shot: sprite.includes('mago') || sprite.includes('arquimago') ? 'eco' : sprite === 'clerigo' ? 'sombra' : 'flecha' });
+  if (role === 'tank') d.range = 56;
+  return d;
+}
+function openArena(tab) {
+  const A = arenaState();
+  const b = panel('Mestre da Arena Kael', tab === 'rank' ? 'Ranking da semana' : 'Arena de Aurel', tab === 'rank' ? 'Pontos de PvP da semana: +1 por vitória na arena e +3 por duelo vencido contra outro jogador. Precisa de conta para pontuar.' :
+    `Vença os 10 campeões em sequência. A escada recomeça toda segunda-feira. Seu melhor: <b>${A.best}</b> vitórias. Dica: em Aurel, toque em outro jogador para desafiar para um duelo.`, [['Desafios', null], ['Ranking PvP', 'rank']], tab || null, openArena);
+  if (tab === 'rank') {
+    if (!ctCfg()) { b.innerHTML = '<p class="sub">O ranking só funciona na versão publicada do jogo.</p>'; return; }
+    b.innerHTML = '<p class="sub">Carregando…</p>';
+    rpc('valdora_pvp_ranking', {}).then(rows => { b.innerHTML = ''; if (!rows || !rows.length) b.innerHTML = '<p class="sub">Ninguém pontuou esta semana ainda. Seja o primeiro!</p>'; (rows || []).forEach((r, i) => auRow(b, iconImg(i < 3 ? 'i_estrela' : 'i_sword_A'), `${i + 1}º ${esc(r.personagem)}`, `${r.pontos} pontos · ${r.vitorias} vitórias · ${r.derrotas} derrotas`)); }).catch(e => { b.innerHTML = `<p class="sub">Não consegui carregar: ${esc(e.message)}</p>`; });
+    return;
+  }
+  ARENA_OPS.forEach(([name, sprite], i) => {
+    const done = i < A.rank, next = i === A.rank, gold = Math.round(40 * S.blvl * (1 + i * .35));
+    auRow(b, iconImg(done ? 'i_estrela' : 'i_sword_A'), `${i + 1}. ${name}${done ? ' ✔' : ''}`, done ? 'Vencido nesta semana' : `Prêmio: ${gold} ouro e experiência${i === 9 ? ' + baú épico' : ''}`, next ? [['Lutar', () => arenaGo(i)]] : []);
+  });
+  if (A.rank >= 10) auRow(b, iconImg('i_estrela'), 'Você é o campeão da semana!', 'Volte na segunda-feira para uma nova escada.', []);
+}
+let ARF = null;
+function arenaGo(rank) { closeAll(); if (typeof dismount === 'function') dismount(); ARF = { rank, t: 0, spawned: false, done: false }; ENEMIES.arena_op = arenaDef(rank); loadZone(ARENA, AUREL); }
+const _netTopicForA = netTopicFor;
+netTopicFor = function (zone) { return zone === ARENA ? 'valdora-arena-' + NET.id : _netTopicForA(zone); };
+const _onZoneAr = onZoneLoaded4;
+onZoneLoaded4 = function (i, from) {
+  _onZoneAr(i, from);
+  if (i !== ARENA) { ARF = null; return; }
+  if (!ARF) { later(.5, () => { toast('Fale com o Mestre da Arena em Aurel para lutar.', 'small'); loadZone(AUREL, ARENA); }); return; }
+  W.props = W.props.filter(p => ((p.x - 800) / 640) ** 2 + ((p.y - 560) / 430) ** 2 > 1 || ['d_tocha', 'd_estandarte', 'placa'].includes(p.key)); W.obelisk = null; buildGrid();
+  P.x = 450; P.y = 560; W.snap = true;
+  [3, 2, 1].forEach((n, k) => later(k * .9, () => { toast(String(n)); sfx('clique', .5, 1 + k * .2); }));
+  later(2.7, () => { if (!ARF || W.zi !== ARENA) return; const e = spawnEnemy('arena_op', 1150, 560, true); e.noRespawn = true; e.aggro = P; ARF.e = e; ARF.spawned = true; toast(`Lute! ${e.d.name}`, ''); sfx('chefe', .5, 1.2); FX.ring(e.x, e.y, 120, '#ffd27a', .8, 6); });
+};
+const _killEnemyA = killEnemy;
+killEnemy = function (e) {
+  _killEnemyA(e);
+  if (e.type !== 'arena_op' || !ARF || ARF.done) return;
+  ARF.done = true; const A = arenaState(), r = ARF.rank, gold = Math.round(40 * S.blvl * (1 + r * .35));
+  A.rank = Math.max(A.rank, r + 1); A.best = Math.max(A.best, A.rank);
+  grant({ gold, xp: Math.round(needBase(S.blvl) * (.3 + r * .06)) }); if (r === 9) { const it = lootFor(S.blvl, .2); it.r = 'epica'; it.x = {}; if (typeof rollAffixes === 'function') rollAffixes(it, 3); giveItem(it, true); toast(`Baú do Campeão: ${itemName(it)}`); }
+  achieve('arena'); toast(`Vitória na arena! +${gold} ouro`); sfx('missao_ok', .6);
+  if (online()) rpc('valdora_pvp_relato', { p_token: CT.token, p_tipo: 'arena', p_personagem: S.name }).catch(() => {});
+  save(); later(3, () => { if (W.zi === ARENA) loadZone(AUREL, ARENA); });
+};
+const _playerDieA = playerDie;
+playerDie = function () {
+  if (W.zi === ARENA) { P.hp = maxHp(); toast('Você perdeu na arena. Treine e tente de novo!', 'small warn'); ARF = null; later(.3, () => loadZone(AUREL, ARENA)); return; }
+  if (DUEL && DUEL.on) { duelLose(); return; }
+  return _playerDieA();
+};
+ACH.push({ id: 'arena', name: 'Gladiador', d: 'Vença 20 lutas na Arena de Aurel.', stat: 'arena', n: 20, title: 'Gladiador', bonus: { for: 2, agi: 2 } }); TITLE_BONUS['Gladiador'] = { for: 2, agi: 2 };
+
+/* ---------- duelos entre jogadores em Aurel ---------- */
+let DUEL = null;
+ENEMIES.duel_op = { name: 'Oponente', sprite: 'aprendiz', lvl: 1, hp: 100, dmg: [0, 0], xp: 0, gold: [0, 0], speed: 0, range: 0, atkCd: 99, aggroR: 0, sfx: 'soco', _buffed: 1 };
+const _openPlayerMenuD = openPlayerMenu;
+openPlayerMenu = function (o) {
+  _openPlayerMenuD(o);
+  if (!W.zone || !W.zone.city || DUEL) return;
+  const acts = document.querySelector('#dialog .acts, #dialog .btns') || document.querySelector('#dialog');
+  const x = document.createElement('button'); x.type = 'button'; x.className = 'btn'; x.textContent = 'Desafiar para duelo';
+  x.onclick = () => { netCast('dc', { to: o.id, n: S.name, lv: S.blvl }); toast(`Desafio enviado para ${o.n}`, 'small'); closeAll(); };
+  const ref = [...document.querySelectorAll('#dialog button')].find(b => b.textContent === 'Fechar'); if (ref) ref.parentNode.insertBefore(x, ref); else acts.appendChild(x);
+};
+function duelStart(oid) {
+  const o = NET.others[oid]; if (!o) return;
+  DUEL = { on: false, id: oid, n: o.n, t0: W.T };
+  [3, 2, 1].forEach((n, k) => later(k * .9, () => toast(`Duelo contra ${o.n} em ${n}…`, 'small')));
+  later(2.7, () => {
+    if (!DUEL || !NET.others[oid]) { DUEL = null; return; }
+    const r = NET.others[oid], cl = classOf(r.c in CLASSES ? r.c : 'aprendiz', r.e in EVOS ? r.e : null);
+    ENEMIES.duel_op = Object.assign({}, ENEMIES.duel_op, { name: r.n, sprite: cl.sprite, lvl: r.lv || 1, hp: r.mh || 100 });
+    const e = spawnEnemy('duel_op', r.x, r.y, true); e.duel = true; e.oppId = oid; e.noRespawn = true; e.r = 16;
+    DUEL.e = e; DUEL.on = true; DUEL.t0 = W.T; P.hp = maxHp(); toast(`Duelo! Derrote ${r.n}`); sfx('chefe', .5, 1.3);
+  });
+}
+function duelEnd(msg) {
+  if (!DUEL) return; const e = DUEL.e; if (e) { e.alive = false; W.enemies = W.enemies.filter(x => x !== e); if (P.target === e) P.target = null; }
+  DUEL = null; P.hp = maxHp(); if (msg) toast(msg);
+}
+function duelLose() {
+  if (!DUEL) return; const n = DUEL.n, id = DUEL.id;
+  netCast('dl', { to: id, n: S.name }); P.dead = false;
+  if (online()) rpc('valdora_pvp_relato', { p_token: CT.token, p_tipo: 'derrota', p_personagem: S.name, p_vencedor: n }).catch(() => {});
+  duelEnd(`Você perdeu o duelo para ${n}.`); sfx('queda', .4);
+}
+const _netEventD = netEvent;
+netEvent = function (ev, d) {
+  _netEventD(ev, d);
+  if (!S || !d || d.to !== NET.id) return;
+  if (ev === 'dc') {
+    if (DUEL || !W.zone || !W.zone.city) { netCast('dk', { to: d.id, ok: 0 }); return; }
+    const o = NET.others[d.id]; if (!o) return;
+    const D = dlgBase({ sprite: classOf(o.c in CLASSES ? o.c : 'aprendiz', o.e in EVOS ? o.e : null).sprite, name: o.n, title: `Nível ${d.lv || '?'}` }, 'Desafio de duelo', `${esc(String(d.n || o.n))} desafiou você para um duelo. Ninguém perde nada: quem chegar a 1 de vida perde, e o vencedor ganha pontos no ranking PvP da semana.`);
+    D.btn('Recusar', () => { netCast('dk', { to: d.id, ok: 0 }); closeAll(); }, 'alt'); D.btn('Aceitar', () => { netCast('dk', { to: d.id, ok: 1 }); closeAll(); duelStart(d.id); }); open('dialog');
+  } else if (ev === 'dk') { if (d.ok) duelStart(d.id); else toast('O desafio foi recusado.', 'small'); }
+  else if (ev === 'dh' && DUEL && DUEL.on && d.id === DUEL.id) {
+    const amt = clamp(+d.a || 0, 0, maxHp()), est = amt * (1 - defense());
+    if (P.hp - est <= 1) duelLose(); else { damageActor(P, amt, null); FX.impact(P.x, P.y, '#ff8a7a', .5); }
+  } else if (ev === 'dl' && DUEL && d.id === DUEL.id) { duelEnd(`Você venceu o duelo contra ${DUEL.n}!`); sfx('missao_ok', .6); achieve('duelo'); }
+};
+ACH.push({ id: 'duelista', name: 'Duelista', d: 'Vença 10 duelos contra outros jogadores.', stat: 'duelo', n: 10, title: 'Duelista', bonus: { des: 2, agi: 2 } }); TITLE_BONUS['Duelista'] = { des: 2, agi: 2 };
+const _hitEnemyD = hitEnemy;
+hitEnemy = function (e, amt, src, big) {
+  if (!e.duel) return _hitEnemyD(e, amt, src, big);
+  if (!DUEL || !DUEL.on || src !== P) return;
+  amt = Math.max(1, Math.round(amt)); netCast('dh', { to: e.oppId, a: amt }); float(e.x, e.y - 60, String(amt), '#fff3c0', 15); e.body.flash = .12;
+};
+const _updEnemiesD = updateEnemies;
+updateEnemies = function (dt) {
+  _updEnemiesD(dt);
+  if (!DUEL || !DUEL.on) return;
+  const r = NET.others[DUEL.id], e = DUEL.e;
+  if (!r || !W.zone || !W.zone.city || W.T - DUEL.t0 > 150) { duelEnd(r ? 'O duelo terminou empatado (tempo esgotado).' : 'O oponente saiu. Duelo cancelado.'); return; }
+  e.x = r.x; e.y = r.y; e.aggro = null; e.cd = 99; e.max = r.mh || e.max; e.hp = Math.max(1, r.hp || 1); if (r.body) e.body.dir = r.body.dir;
+};
+const _drawBodyD = drawBody;
+drawBody = function (g, o, alpha) { if (o.duel) return; _drawBodyD(g, o, alpha); };
+const _netSnapD = netSnap;
+netSnap = function () { if (!W.enemies.some(e => e.duel)) return _netSnapD(); const keep = W.enemies; W.enemies = keep.filter(e => !e.duel); try { _netSnapD(); } finally { W.enemies = keep; } };
+
+/* ---------- guildas ---------- */
+const GD = { info: null, topic: null, jref: null, pend: 0, last: 0, msgs: [] };
+const G_TIERS = [[300, 'Bronze'], [1000, 'Prata'], [2500, 'Ouro']];
+async function gdRefresh() {
+  if (!online()) { GD.info = null; return null; }
+  try { GD.info = await rpc('valdora_guilda_minha', { p_token: CT.token, p_personagem: S ? S.name : null }); } catch (e) { GD.info = null; }
+  gdSubscribe(); return GD.info;
+}
+function gdSubscribe() {
+  const want = GD.info ? 'realtime:valdora-guilda-' + GD.info.id : null;
+  if (GD.topic && GD.topic !== want && NET.ws) { netSend(GD.topic, 'phx_leave', {}, GD.jref); GD.topic = null; }
+  if (!want || !NET.ws || NET.ws.readyState !== 1 || !NET.cfg || GD.topic === want) return;
+  GD.topic = want; GD.jref = String(NET.ref);
+  netSend(GD.topic, 'phx_join', { config: { broadcast: { ack: false, self: false }, presence: { key: NET.id }, postgres_changes: [], private: false }, access_token: NET.cfg.key.trim() }, GD.jref);
+}
+const _netOnOpenG = netOnOpen; netOnOpen = function () { _netOnOpenG(); GD.topic = null; gdSubscribe(); };
+const _netTopicMsgG = netTopicMsg;
+netTopicMsg = function (m) {
+  if (GD.topic && m.topic === GD.topic) { const b = m.payload || {}, d = b.payload || {}; if (!d.id || d.id === NET.id) return; if (b.event === 'gm') gdGotMsg(String(d.n || '?').slice(0, 16), String(d.txt || '').slice(0, 120)); return; }
+  _netTopicMsgG(m);
+};
+function gdGotMsg(n, txt) { GD.msgs.push([n, txt]); if (GD.msgs.length > 30) GD.msgs.shift(); log(`<span class="net">[Guilda] ${esc(n)}:</span> ${esc(txt)}`); if (!$('aurel').hidden && $('auHead').textContent.startsWith('Guilda')) gdRenderChat(); }
+function gdSay(txt) { txt = String(txt || '').trim().slice(0, 120); if (!txt || !GD.topic) { if (!GD.topic) toast('Você não está numa guilda (ou está sem conexão).', 'small'); return; } netCast('gm', { n: S.name, txt }, GD.topic, GD.jref); gdGotMsg(S.name, txt); }
+const _netChatG = netChat; netChat = function (txt) { const t = String(txt || '').trim(); if (/^\/g\s/i.test(t)) return gdSay(t.slice(3)); return _netChatG(txt); };
+const _onKillG = onKill; onKill = function (e) { _onKillG(e); if (GD.info && e.tagged) GD.pend++; };
+setInterval(() => {
+  if (!S || !GD.info || GD.pend < 1 || !online() || Date.now() - GD.last < 21000) return;
+  const n = Math.min(40, GD.pend); GD.last = Date.now();
+  rpc('valdora_guilda_pontos', { p_token: CT.token, p_n: n }).then(v => { if (v != null) { GD.pend -= n; GD.info.pontos = v; } }).catch(() => {});
+}, 5000);
+function gdClaims() { const w = isoWeek(); if (!S.gclaim || S.gclaim.week !== w) S.gclaim = { week: w, t: [] }; return S.gclaim; }
+function gdReward(k) {
+  const L = S.blvl, g = [[150, 0], [350, 6], [700, 12]][k];
+  grant({ gold: g[0] * L, mats: g[1] ? { veu: g[1] } : {}, cons: { potg: 3 + k * 3 } });
+  if (k === 2) { const it = lootFor(L, .2); it.r = 'epica'; it.x = {}; if (typeof rollAffixes === 'function') rollAffixes(it, 3); giveItem(it, true); toast(`Baú da Guilda: ${itemName(it)}`); }
+}
+function gdRenderChat() { const c = $('gdChat'); if (!c) return; c.innerHTML = GD.msgs.slice(-12).map(([n, t]) => `<div><b>${esc(n)}:</b> ${esc(t)}</div>`).join('') || '<div class="sub">Nenhuma mensagem ainda. Use também /g no chat do jogo.</div>'; c.scrollTop = 1e6; }
+async function openGuild(tab) {
+  if (!online()) { panel('Guildas', 'Guildas', 'Para criar ou entrar numa guilda você precisa estar com uma conta (tela de personagens) e jogando a versão publicada.', [], null, () => {}); return; }
+  const b = panel('Guilda · Mestra Helena', 'Guildas', 'Carregando…', GD.info ? [['Minha guilda', null], ['Todas as guildas', 'list']] : [['Todas as guildas', 'list'], ['Criar guilda', 'new']], tab || (GD.info ? null : 'list'), openGuild);
+  tab = tab || (GD.info ? null : 'list');
+  if (!tab) {
+    await gdRefresh(); const G = GD.info; if (!G) return openGuild('list');
+    $('auTitle').textContent = `${G.nome} [${G.tag}]`; $('auSub').innerHTML = `${esc(G.descricao || '')}<br>Pontos da semana: <b>${G.pontos}</b> (cada monstro derrotado por um membro soma 1 ponto).`;
+    const C = gdClaims();
+    G_TIERS.forEach(([n, nm], k) => { const got = C.t.includes(k), ok = G.pontos >= n; auRow(b, iconImg(k === 2 ? 'kk_bau_ouro' : 'kk_bau'), `Baú ${nm} da semana · ${n} pontos`, got ? 'Já recebido nesta semana' : ok ? 'Pronto para receber!' : `Faltam ${n - G.pontos} pontos`, got || !ok ? [] : [['Receber', () => { C.t.push(k); gdReward(k); sfx('moedas', .6); save(); openGuild(); }]]); });
+    auRow(b, iconImg('i_journal'), `Membros (${(G.membros || []).length}/30)`, (G.membros || []).map(m => esc(m.nome) + (m.cargo === 'lider' ? ' ★' : '')).join(', '), []);
+    const ch = document.createElement('div'); ch.className = 'aurow'; ch.style.display = 'block';
+    ch.innerHTML = `<b>Chat da guilda</b><div id="gdChat" style="max-height:120px;overflow:auto;font-size:13px;margin:4px 0"></div><form id="gdForm" style="display:flex;gap:6px"><input id="gdIn" maxlength="120" placeholder="Mensagem para a guilda" style="flex:1;min-width:0"><button class="btn" type="submit">Enviar</button></form>`;
+    b.appendChild(ch); gdRenderChat();
+    $('gdForm').onsubmit = ev => { ev.preventDefault(); gdSay($('gdIn').value); $('gdIn').value = ''; };
+    $('gdIn').onkeydown = ev => ev.stopPropagation();
+    auRow(b, iconImg('i_map'), 'Sair da guilda', G.lider ? 'Você é o líder: a liderança passa para o membro mais antigo.' : '', [['Sair', async () => { try { await rpc('valdora_guilda_sair', { p_token: CT.token }); GD.info = null; gdSubscribe(); toast('Você saiu da guilda', 'small'); openGuild('list'); } catch (e) { toast(e.message, 'small warn'); } }, false, true]]);
+  } else if (tab === 'list') {
+    $('auSub').textContent = 'Guildas ordenadas pelos pontos da semana. Entrar é livre (até 30 membros).';
+    try { const rows = await rpc('valdora_guildas', {}); b.innerHTML = ''; if (!rows || !rows.length) b.innerHTML = '<p class="sub">Ainda não existe nenhuma guilda. Crie a primeira!</p>';
+      (rows || []).forEach((r, i) => auRow(b, iconImg(i < 3 ? 'i_estrela' : 'd_estandarte'), `${esc(r.nome)} [${esc(r.tag)}]`, `${r.membros} membros · ${r.pontos} pontos na semana${r.descricao ? ' · ' + esc(r.descricao) : ''}`,
+        GD.info ? [] : [['Entrar', async () => { try { await rpc('valdora_guilda_entrar', { p_token: CT.token, p_guilda: r.id, p_personagem: S.name }); await gdRefresh(); toast(`Bem-vindo à guilda ${r.nome}!`); sfx('missao_ok', .5); openGuild(); } catch (e) { toast(e.message, 'small warn'); } }]]));
+    } catch (e) { b.innerHTML = `<p class="sub">Não consegui carregar: ${esc(e.message)}</p>`; }
+  } else {
+    $('auSub').textContent = 'Criar uma guilda custa 5.000 de ouro. Você vira o líder.';
+    const f = document.createElement('form'); f.className = 'aurow'; f.style.display = 'grid'; f.style.gap = '6px';
+    f.innerHTML = `<input id="gNome" maxlength="20" placeholder="Nome da guilda (3 a 20 letras)"><input id="gTag" maxlength="4" placeholder="Sigla (2 a 4 letras)"><input id="gDesc" maxlength="120" placeholder="Descrição (opcional)"><button class="btn" type="submit"${S.gold < 5000 ? ' disabled' : ''}>Criar por 5.000 ouro</button>`;
+    b.appendChild(f); f.querySelectorAll('input').forEach(i => i.onkeydown = ev => ev.stopPropagation());
+    f.onsubmit = async ev => { ev.preventDefault(); if (S.gold < 5000) return; try { await rpc('valdora_guilda_criar', { p_token: CT.token, p_nome: $('gNome').value, p_tag: $('gTag').value, p_personagem: S.name, p_descricao: $('gDesc').value }); S.gold -= 5000; save(); await gdRefresh(); toast('Guilda criada!'); sfx('missao_ok', .6); openGuild(); } catch (e) { toast(e.message, 'small warn'); } };
+  }
+}
+
+/* ---------- mercado entre jogadores ---------- */
+const itemOk = it => it && typeof it === 'object' && ITEMS[it.id] && RARITY[it.r || 'comum'];
+async function openMarket(tab, busca) {
+  if (!ctCfg()) { panel('Leiloeiro Otávio', 'Mercado de Aurel', 'O mercado entre jogadores só funciona na versão publicada do jogo.', [], null, () => {}); return; }
+  const b = panel('Leiloeiro Otávio', 'Mercado de Aurel', 'Itens à venda por outros jogadores. O leiloeiro fica com 5% de cada venda.', [['Comprar', null], ['Vender', 'sell'], ['Minhas vendas', 'mine']], tab || null, k => openMarket(k));
+  if (!tab) {
+    const f = document.createElement('form'); f.style.cssText = 'display:flex;gap:6px;margin-bottom:6px'; f.innerHTML = `<input id="mkBusca" placeholder="Buscar item" value="${esc(busca || '')}" style="flex:1;min-width:0"><button class="btn alt" type="submit">Buscar</button>`; b.appendChild(f);
+    $('mkBusca').onkeydown = ev => ev.stopPropagation(); f.onsubmit = ev => { ev.preventDefault(); openMarket(null, $('mkBusca').value); };
+    const list = document.createElement('div'); b.appendChild(list); list.innerHTML = '<p class="sub">Carregando…</p>';
+    try {
+      const rows = (await rpc('valdora_mercado_listar', { p_busca: busca || null })) || []; list.innerHTML = rows.length ? '' : '<p class="sub">Nada à venda agora.</p>';
+      rows.filter(r => itemOk(r.item)).forEach(r => { const it = r.item; auRow(list, iconImg(ITEMS[it.id].icon), `<span style="color:${itemColor(it)}">${esc(itemName(it))}</span>`, `${RARITY[it.r].name} · nível ${ITEMS[it.id].lvl || 1} · de ${esc(r.personagem)} · <b>${r.preco.toLocaleString('pt-BR')} ouro</b>`,
+        [[online() ? 'Comprar' : 'Precisa de conta', async () => {
+          if (!online()) return needAcct(); if (S.gold < r.preco) return toast('Ouro insuficiente', 'small warn');
+          try { const res = await rpc('valdora_mercado_comprar', { p_token: CT.token, p_id: r.id, p_personagem: S.name }); if (!itemOk(res.item)) throw new Error('Item inválido'); S.gold -= res.preco; giveItem(res.item, true); toast(`Comprou: ${itemName(res.item)}`); sfx('moedas', .6); save(); openMarket(null, busca); } catch (e) { toast(e.message, 'small warn'); openMarket(null, busca); }
+        }, S.gold < r.preco]]); });
+    } catch (e) { list.innerHTML = `<p class="sub">Não consegui carregar: ${esc(e.message)}</p>`; }
+  } else if (tab === 'sell') {
+    if (!online()) { b.innerHTML = '<p class="sub">Entre numa conta para vender.</p>'; return; }
+    $('auSub').textContent = 'Escolha um item da mochila e o preço. Ele sai da sua mochila e fica à venda por 14 dias (até 10 itens).';
+    if (!S.bag.length) b.innerHTML = '<p class="sub">Sua mochila está vazia.</p>';
+    S.bag.slice(0, 60).forEach(it => {
+      const sug = Math.max(10, itemValue(it) * 3), d = auRow(b, iconImg(ITEMS[it.id].icon), `<span style="color:${itemColor(it)}">${esc(itemName(it))}</span>`, `${RARITY[it.r].name} · nível ${ITEMS[it.id].lvl || 1}`, []);
+      const inp = document.createElement('input'); inp.type = 'number'; inp.min = 1; inp.value = sug; inp.style.width = '90px'; inp.onkeydown = ev => ev.stopPropagation();
+      const x = document.createElement('button'); x.type = 'button'; x.className = 'btn'; x.textContent = 'Vender';
+      x.onclick = async () => { const p = Math.round(+inp.value || 0); if (p < 1) return; x.disabled = true; try { await rpc('valdora_mercado_vender', { p_token: CT.token, p_personagem: S.name, p_item: it, p_nome: itemName(it), p_preco: p }); const i = S.bag.indexOf(it); if (i >= 0) S.bag.splice(i, 1); toast('Item colocado à venda'); sfx('moeda', .5); save(); openMarket('sell'); } catch (e) { x.disabled = false; toast(e.message, 'small warn'); } };
+      d.querySelector('.acts').append(inp, x);
+    });
+  } else {
+    if (!online()) { b.innerHTML = '<p class="sub">Entre numa conta para ver suas vendas.</p>'; return; }
+    b.innerHTML = '<p class="sub">Carregando…</p>';
+    try {
+      const rows = (await rpc('valdora_mercado_meus', { p_token: CT.token })) || []; b.innerHTML = '';
+      const due = rows.filter(r => r.comprador_nome && !r.pago).reduce((a, r) => a + Math.floor(r.preco * .95), 0);
+      auRow(b, iconImg('i_coin'), `Ouro a receber: ${due.toLocaleString('pt-BR')}`, 'Vendas concluídas, já com os 5% do leiloeiro descontados.', due ? [['Receber', async () => { try { const v = await rpc('valdora_mercado_receber', { p_token: CT.token }); S.gold += v || 0; toast(`+${v} ouro das vendas`); sfx('moedas', .6); save(); openMarket('mine'); } catch (e) { toast(e.message, 'small warn'); } }]] : []);
+      rows.filter(r => itemOk(r.item)).forEach(r => auRow(b, iconImg(ITEMS[r.item.id].icon), esc(itemName(r.item)), r.comprador_nome ? `Vendido para ${esc(r.comprador_nome)} por ${r.preco} ouro` : `À venda por ${r.preco} ouro`,
+        r.comprador_nome ? [] : [['Cancelar', async () => { try { const it = await rpc('valdora_mercado_cancelar', { p_token: CT.token, p_id: r.id }); if (itemOk(it)) giveItem(it, true); toast('Venda cancelada, item de volta na mochila', 'small'); save(); openMarket('mine'); } catch (e) { toast(e.message, 'small warn'); } }, false, true]]));
+      if (!rows.length) b.insertAdjacentHTML('beforeend', '<p class="sub">Você não tem nada à venda.</p>');
+    } catch (e) { b.innerHTML = `<p class="sub">Não consegui carregar: ${esc(e.message)}</p>`; }
+  }
+}
+
+/* ---------- NPCs em Aurel e atalhos ---------- */
+AU_NPCS.push({ id: 'kael', name: 'Mestre da Arena Kael', title: 'Arena e duelos', sprite: 'evo_berserker', x: 2000, y: 1640, color: '#ff8a6a' },
+  { id: 'helena', name: 'Mestra Helena', title: 'Guildas', sprite: 'evo_sacerdote', x: 900, y: 1160, color: '#8fe0e6' },
+  { id: 'otavio', name: 'Leiloeiro Otávio', title: 'Mercado de jogadores', sprite: 'npc_tomas', x: 1720, y: 1700, color: '#e5b850' });
+const _openNpcS = openNpc;
+openNpc = function (npc) {
+  if (npc && npc.id === 'kael') { face(P, npc); return openArena(); }
+  if (npc && npc.id === 'helena') { face(P, npc); return openGuild(); }
+  if (npc && npc.id === 'otavio') { face(P, npc); return openMarket(); }
+  return _openNpcS(npc);
+};
+window.addEventListener('keydown', ev => { if (!S || ev.key == null || (document.activeElement && /INPUT|TEXTAREA/.test(document.activeElement.tagName))) return; if (ev.key.toLowerCase() === 'g' && !anyOpen()) openGuild(); });
+let _gdBoot = false;
+setInterval(() => { if (S && online() && !_gdBoot) { _gdBoot = true; gdRefresh(); } if (!S) _gdBoot = false; }, 3000);
 
 start();
 window.__game = { W, get P() { return P; }, get PET() { return PET; }, S: () => S, SAVE: () => SAVE, castSkill, setTarget, loadZone, changeClass, evolveTo, gainXp, dropLoot, openSheet, playChar, openNpc, openShop, openBag, startGather, npcById, mkItem, giveItem, grant, CL, netConnect: () => netConnect(), netChat: t => netChat(t), NET: () => NET };
