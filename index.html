@@ -447,8 +447,9 @@ body.touch #side{grid-template-rows:auto auto auto}
 body.touch #party{top:auto;bottom:150px}
 @media (max-height:520px){body.touch #party{bottom:auto;left:8px;top:180px}}
 #onlineBadge{position:absolute;left:16px;bottom:150px;font-family:var(--display);font-size:13px;color:#7ad0ff;background:rgba(10,20,30,.8);border:2px solid #000;border-radius:3px;padding:1px 8px}
-#chatBtn{position:absolute;left:16px;bottom:16px;width:34px;height:34px;background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAACNklEQVR4nLWVMWjbQBSGf9kWGYxwwRhBUqi3IEoJVO1QrwkOHgIZTJdSDwnZO3QpxJMKXkro1CU0Q7p6CGQQEYRsztCo0KGIjoXWIJKAi6qheFCHcMfT6Z2SpW+y7k7f99670xn4z2HctqDZ6mXjroWn3Z9yzHRTTEbL6AcJri/9UoZ2UgWbblpYMw/r+BzcLxUVBgW48+Y75mEdppvi46snbBLb7y8wD+sAoBXlHigcgBasE3GSnODsxfOMgzt2woKj2GIle1ePcHwyNHKCZquXTc+mObgAUxANdX7wMgIAPHjdkFXUxOJx15I9V1/e2l9lBQc7p3DsBI6dIIotmG6KeVjHuGth78rLjk+GhiGy//HuNwDg8JOTa8mzt5ssXMT57pH8HcWWbJWoQlYg7LeBRDt0VQkW0MDGupdJgWiPE+Q3VM2wDMwdhspdK+CypnKaKI0afTDdFO63GcJf90pFHBgA3KVZQVJTFy0MYmDECw52TgEAjs2LKw//yESBxs2YmJyMlguZqLG1v6rdA/oOZVWYtVgYxKzkfPeIbY+7NLupHMVLUX7JH9a2M8dO5D0k4u+hrd0TCqbZR7EFv9rOC8RFB6AgEUeYbh53fYvW9IMEnccdyC9ZrUIEFZVJaM9p9gVBs9XLvJVF9oNRq6JQCh9+ncrsAc0fjk5SFhQusgeYU3R96Rt+tY1+kGivaRXcDxL41XYBzlZAY2PdyyZfJvBWFgEU73+asQq+k4CKyuY5sIh/4ukqdFU2oU0AAAAASUVORK5CYII=) center/100% 100% no-repeat;filter:hue-rotate(160deg);pointer-events:auto;display:none}
+#chatBtn{position:absolute;left:16px;bottom:16px;width:34px;height:34px;background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAACPklEQVR4nLVVsWrbUBQ9cmI6GBFDKYXY0GwmlBCIqgz6gBc6ZBNdSgslP9AhS6CeNHgpoT/QpV41FDwIa+mmQl0VMplMoSAXjGNIUT2Zog7qfb6SnmRT6Jmk9+4759z7rq6A/wxtXcD9B08TV+gwRSTX6sYCQa8D248xn3mVHKWbeeK6sSjELMMGRn67UqiwSMTWxTWWYQN1Y4H3r58oTZy9+4pl2ACAUqHMCycHUEpcJqQSyQh8ev4ssS6uEfQ6GE91ub7/MFYS52NMEWHkt3F5e4DBsKsBwDZ3T87pIBFzIg6+P57qMAGYIkJwvjIkBVyhy5rTYdunQHUGq7OpSN1YYBk24Aodl7dOMhh2NY3cf3/7EwDwob8vySdfXlQSE1rHfbgizYLu49H5DuYzT6tRkKoN/xXEdXriJFKAyqO60NZxf+0zoG6GTAbU03nwUpU9c6NKARIxWndKkU1AZ7nIdj7o3ssp0GvCFXqhBGVwRdrGtce/pFFgJysQ9DryCzZadwgnqQh10+c3HzdyT1zU2jVVcDhpZg5sQh5Omsz9CjUAmM88bTzV/yqvRADg5tXvta45OY0Z68gCwGYRDToVaMbwf8LIb5cK234M68jCYNjV5B2kWZwlvJfpTgDARJRpZVNEshw889T9gXwvjGvncFf5wXCxPCkn7179kO4LAutEqsDJAUiBQhfNZ57mbe3B9uPSMZ0ntv0Y3tZegVyZAcfpiZME3wI4h7sAiv8H7jhPvJEAF6raVxET/gDsVSq/vbKG2AAAAABJRU5ErkJggg==) center/100% 100% no-repeat;image-rendering:pixelated;pointer-events:auto;display:none}
 body.online #chatBtn{display:block}
+#chatBtn:hover{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAACQ0lEQVR4nLWVMWjbQBSG/7Nce7ADghAC8eSpQ/CSQKCGFrI4ZAh0CF1CTDQaOtdLPblQDCWrR5l4zVDwYJylmwoFBTJ4Fh0UMI4hbaIhAvk6JHd5kk6yKe2b5Lv3vv+/u3dn4D8HW5SwurbPHSNAvj6RY7zQhN/toWxqmE2HqYzEySiYF5rxYq+Dh7P1VKHYoADnGidgXge80MT3j1+VJl59egvmdQAgUSj0g8IBJIKThFQiIYHfH2o81ziB3+3BdnU5vl26VYKjOfn6BA9n6zi6eo3BqMUAIEvd5xrHoUIBpiAadN52dVQxQb4+gbVryRwp4BiB3HNRXDa1p9k7pQCgPdXewnZ18EITzOvAMQIcXbX5YNRiTLi//nYNALA+v5Rw98dxAjgcpZ0+HCOA7eryPDZ2NzCbDllGJKna8G9DsA722lwKiO1RHWhpp7/wG1A3Q2gFoqejQbcq6ZsaVQoIkczmvVJkmRC1VCQbTcq+eQ9/3INjBLEtSArHCAAAL7Y9aRTohwX8bk/e4MzmPebjIhwjkN3kd3tLuRcs0cIZVfJ8XFQUpMPn4yJxT+YAYDYdMtvVQyBR8PPLr4WuKVw8M9WtKgDyFomH7l9E2dRQ3apiMGoxeQaPq3jHaS+LMwGe7wntELEddOWP7ivPdVR5dW2fn9dWlBeGikWhFH54cSfdxwQWiaQFhQOQArEumk2H7PSmgrKpJT7TUXDZ1HB6U4nBlSugcbDX5talhfPaCoD4/wN1HAUvJUCF0uZVYBF/AOjYKi1o6ry6AAAAAElFTkSuQmCC)}#chatBtn:active{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAACG0lEQVR4nNWUMYsTQRTHf7u5IkUuIiGcbBQ8wWJJsRhJilQWEknhN/AEEQu5XizcahsRW7VTyPoNrggnCFZXKJykCCkEDzEuHMeB5lKkuaxFeMPs7mwS7PxXuztv/783b94b+N9lrQqoVLtx4Dnca/xU3+z6lF7o4g8iTk/6Sz1yF9PGdn2aiZkPS7w/vLIUlPkoxvd3RsyHJez6lOevbhiTeLr7lfmwBJALSrzo5kCucR7IBEkAXt9+GJvMnfLMaBxNikZIv3CVvX3fSgAq1W784+WfhLkY60a60utPbn0DYPtdQe1iQ4IDz2E+PFeH6ZRn+IPIXJOUAs8hmhSx61PmwxKB59AvBPHevm9Zkv3Rg3MAXny6rsx/fd5ZC1BrhQoipZJd2BJkasN/lXjdvRPECiAtaTrQWitc+QzmZkjsQHo6Lb1Uec96okaAQNytMyNkHcm/OmQjHdTsjBmFLoHnZEqQp8BzALhZ+60ShQtJQC901QS7W2eMjjcJPEd109tHH9fKXrxg0eI2wOlJ39KHqdkZJ35Yx7zZGavso0mRdqMNpCZZv4dEXz5cZnS8udJYz94fRLQbbdSgiZ61dmOnPMtApIX1wzPNTS90iSZFBhcvAWQBlWo3frx9TfWzDloGWdR8cSe9Ofqusk+UKA8iSu9KTEW6uWRvBMBixA8ODzCB0kob6+a5ABMIstfzMuO1ADpo2brJWPQXs1kkCnDsH5UAAAAASUVORK5CYII=)}
 #chatForm{position:absolute;left:58px;bottom:16px;pointer-events:auto}
 #chatForm input{font:inherit;font-size:15px;width:min(340px,50vw);background:#1d120e;color:#fff;border:2px solid var(--gold);border-radius:3px;padding:6px 8px;user-select:text}
 #log .net{color:#7ad0ff}#log .me{color:#9fe08a}
@@ -544,6 +545,44 @@ button,.btn,.ghost,.cls,.plus,.x,.ico{cursor:url(data:image/png;base64,iVBORw0KG
   .slotc input{width:150px;padding:6px 8px}
 }
 @media (max-width:560px){.cols{grid-template-columns:1fr}}
+
+/* ---------- livro de habilidades (Ficha) ---------- */
+.sk-book{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:10px 6px;padding:10px 6px 8px;background:rgba(0,0,0,.3);border:2px solid rgba(18,10,8,.8);border-radius:3px}
+.sk-slot{position:relative;display:grid;justify-items:center;align-content:start;gap:4px;padding:0;background:none;border:0;cursor:pointer;color:#fff;font:inherit}
+.sk-slot .fr,.sk-slot img{grid-area:1/1}
+.sk-slot .fr{width:60px;height:60px;background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAB50lEQVR4nL2XIW/CQBiG35JOIRCEZKkYzRyKpJsg51ALYm5iP2MCi6pawl+YAYMgGMSCwtVBwh9oQkXTZJlATCGY6O5yLdfr3bjyKu5yvef9vvvofbUgULM1OInmTev769Oy8uB4HV+DDafvgHgEdh5+3NTPFk+mHYx25oztxwf2mxmI1zE+3h4ZaD8+MDDxXBDPNQIPtkFmbANp9MfNgcH9roP2ECCei9eXnnTDKExwd3+rPB9ss+MakEZP5Xedv6iJcAMVCIDSZ6lsGj2Qpj2N/DK4jmx+MJl2QDxXunEUJgDUIyxTjR+MdrES3KRYBmj0KnBT0QNcBor+51GYVAbPGCiC8zINlxqo4rxFewoNiBZWEb3QQFXwoveGtAaqhpcaMJV22T6FBnTgRQWrUshCA7rwSy6kMwOm4KoqLcIisA5cdhTaBnRfULzRKEyQ7zm1DOjeCfksBdsAx00dk2mHzdmiB2VgFXhRzyBqeksz8F94XrP5Qthxa92GZSo6otl8gXgdoz1ssDniEbkBnTtB1jNQuNN32BztPZarkSWsAV24aB0Fv/fqDE6/PfjOy2q2Bqe0G27AlPLFdvPwAwDsw4d4BMvVyGIG/K4j3smwKBxA1sA14BTMwwHAAoDnJ/8qJngw1S/6VALZ0X9N3QAAAABJRU5ErkJggg==) center/100% 100% no-repeat;image-rendering:pixelated}
+.sk-slot img{position:relative;z-index:1;width:42px;height:42px;margin-top:9px;image-rendering:pixelated;border:0!important;border-radius:0}
+.sk-slot.off .fr{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABJElEQVR4nO2XMW6DQBBF/yJugHwCN1bKldLMBawUaRAFl3GVy1AgGoqIC1CmpgHJVFgWuULSZPBAQIrl1VCE3+1Kq/dmWaQZg5kEu5evuX3X6a/vxkzBcRRqsJGkGcgS/L/A26ZD+VE6g0uOLzclSK73wQH74OAEXvfVaO0Bt2/OcLKEJM1wOX86Ay/FA8ZXQpaGqjXiyRcfR6EqHPi5AU7bdKrwXwIuX/rdAmtUPxJYo/qRwFrZBDaBTWAT+H8C07ZPVYDbsbbp1hGYa3rVBKbNqKpA3VeIoxBJmg17ZElHYA7OvUdenIy/dNAV+BlPA5xnDa4eEIMJH3IRBss1cJuwyBLy4mQGganVo5G/mQzDZYzWJCzBXD0AGAB4Pb6pSEgw5xsNI4Db5IxEmgAAAABJRU5ErkJggg==)}.sk-slot.off img{filter:grayscale(1) brightness(.5)}
+.sk-slot.can .fr{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAB80lEQVR4nL2XL2/CQBjGn5IKfIMosmYeEpKVoAdiWUJYNoea2T7CglgWHHY1GKpAEAxiYEkw5RNgJotYisYx0d2ttHfX3rjyuLs07+95/7R31cCQUWodWfuqFXx/aloc7Hj+Jdh4rpVhV2zocfhgX008vBlbMNy1Mri1MAHsAODPgOP5ePi4pyBrYVLwS+ca6LSVwCfT2claB8LsB3uTwoNuHWiG4OLrkzDgYRugeGVk3o+rAITZEwXdOgx3jcdOOzWACJIFDgA6yR747U3zfLiM9OhiM7bCsgsCH7YBgOwZpqkQXRjuOhNcpWgFSPZZ4KqyByIV4L3nh22QG/zEAA8elWq40EAe/WbFZBpgPZhH9kwDecF53w3hDOQNTzWgquyiOFwDMnDewGYZZKYBWfg5B1LCgCp4VqUOIQ8sAxe1QtqA7AcqavSwDRC/c0oZkD0T4lWaTGcY7KvYjC05A7IHEq9FrBu3nthhBIsqC5ylUX+IVSN545Y6DdPEq9KoP4Tj+fhq7uieXbHFBmTOBFGLCPy5VqZ75O4xX/a0s09DXotG/SFqd2+wFiaFO56Pzdii2QOxGYj/NPxXjudj1aiC3LbJ8NEfn4qN+bKnAYBmlFrHoFtXAk6T4a5p9icGLgGPlp3AAUADgNub94uYiIKJfgBJVPm4/9ERoQAAAABJRU5ErkJggg==)}
+.sk-slot.max .fr{background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAB30lEQVR4nL2XsWrCQBjH/9GMotAgBUGsuLR0CGTMCxSHPoTv4Jopq+8gtL6BQ/EFMgYcBBeRLIKUCEJXY4f0juS8XO7qJf8pd1zu9//uvuS+M8CR1R1fef26FX9/GQYLjmbnOtgYTDtwHRcmC082rZvBi7APb33QBt9PLvSZGohmZ3x8vlDQfnKh4JHVxshqa4Hv4m2ubQJp9MnmQuG+3cNwnoJd50k44TE64XHwIN2/i/PtBpBGT+Tbvb+on7kTyEAAlL5LZJLogXTZ08jvg6vIzDYWYR8jqy2c+BidAMhHWKZGtuGtD1JwnaIrQKKXgeuKPmeAfG4isG44wGxB3XChgSr2mzcn1wBvYBXRcw1UBS/6bwhzoGp4qQFdyy6ap9CACrwoYWUSmWtAFX7PgXRjQBdcVqVJWARWgYu2QtmA6g8qa/QYncDWnEoGVA8kdpV28RbJpoVF2Kd9Ju9FEVgGXlQz8Ire0hX4L5xVEAbcilvpNCxT0RYFYYBodsZw3qR9ruOKDaicCeSrEMEH0w7tI9X3cuUZ3BxQhfPGEXBityic3D2ypb5hdcfXtBpuQpfYZGu8/gAAvfi4jovlyjOoAd/uaYOLROAA8gbqgBNwFg4ABgC8v/m1mMiCiX4Bey8CwIvU2R4AAAAASUVORK5CYII=)}
+.sk-slot em{position:absolute;top:47px;left:50%;transform:translateX(-50%);font-style:normal;font-family:var(--display);font-size:11px;line-height:13px;background:#1a0f0b;border:1px solid #000;padding:0 4px;border-radius:2px;color:var(--gold2);white-space:nowrap}
+.sk-slot.off em{color:#9a8a78}
+.sk-slot .up{position:absolute;top:-5px;left:calc(50% + 18px);width:18px;height:18px;background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABGklEQVR4nGNgoBAwwhjCop7/SdH49vV2RrgBwqKe/5v1pRhijB4zMGl/QVHIavyVgYGBgeH3WW4GVuOvDD8XiTMsOSfLUHvxGcPb19sZ4QbcT/yLofn0LhkGBgYGBqvKmxiGKM5nZrAysmJggilG18zAwMBg2RLAYNkSwPD7LDfcNb/PcjOwx72Eq2HC0AW1GWY7jH+sXR3FEBhgQfYrTMKyJQDDJQwMDAy/D01hYDX+Cg0XfkwXwAIMH0C2HcUFKC45NAUiaZfDwMDAwPAHysdmCBM2QWJcguECWBjANCO7BJsrYWEAN+BYuzo8vgm5BBIjn1ENQEiQBuBhcP0lL9GakNWSnZmsjKxQDWBgYGDwdW8myZDNO2sZAVX7aLHSuBFLAAAAAElFTkSuQmCC) center/100% 100% no-repeat;image-rendering:pixelated;animation:skPulse 1.1s ease-in-out infinite}
+.sk-slot small{margin-top:6px;font-size:11.5px;line-height:1.1;text-align:center;color:var(--muted);max-width:86px;text-shadow:0 1px 0 var(--navy)}
+.sk-slot.sel .fr{filter:drop-shadow(0 0 3px #fff) drop-shadow(0 0 6px var(--gold2))}
+.sk-slot.sel small{color:var(--gold2)}
+.sk-slot:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
+@keyframes skPulse{50%{transform:scale(1.18)}}
+@media (prefers-reduced-motion:reduce){.sk-slot .up{animation:none}}
+.sk-det{display:grid;gap:8px;padding:6px 8px;border-style:solid;border-color:transparent;border-width:18px;border-image:url(data:image/png;base64,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) 20 fill / 18px stretch;background:none;image-rendering:pixelated}
+.sk-dh{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center}
+.sk-big{display:grid;width:68px;height:68px}.sk-big .fr,.sk-big img{grid-area:1/1}
+.sk-big .fr{background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAB50lEQVR4nL2XIW/CQBiG35JOIRCEZKkYzRyKpJsg51ALYm5iP2MCi6pawl+YAYMgGMSCwtVBwh9oQkXTZJlATCGY6O5yLdfr3bjyKu5yvef9vvvofbUgULM1OInmTev769Oy8uB4HV+DDafvgHgEdh5+3NTPFk+mHYx25oztxwf2mxmI1zE+3h4ZaD8+MDDxXBDPNQIPtkFmbANp9MfNgcH9roP2ECCei9eXnnTDKExwd3+rPB9ss+MakEZP5Xedv6iJcAMVCIDSZ6lsGj2Qpj2N/DK4jmx+MJl2QDxXunEUJgDUIyxTjR+MdrES3KRYBmj0KnBT0QNcBor+51GYVAbPGCiC8zINlxqo4rxFewoNiBZWEb3QQFXwoveGtAaqhpcaMJV22T6FBnTgRQWrUshCA7rwSy6kMwOm4KoqLcIisA5cdhTaBnRfULzRKEyQ7zm1DOjeCfksBdsAx00dk2mHzdmiB2VgFXhRzyBqeksz8F94XrP5Qthxa92GZSo6otl8gXgdoz1ssDniEbkBnTtB1jNQuNN32BztPZarkSWsAV24aB0Fv/fqDE6/PfjOy2q2Bqe0G27AlPLFdvPwAwDsw4d4BMvVyGIG/K4j3smwKBxA1sA14BTMwwHAAoDnJ/8qJngw1S/6VALZ0X9N3QAAAABJRU5ErkJggg==) center/100% 100% no-repeat;image-rendering:pixelated}
+.sk-big img{position:relative;z-index:1;width:48px;height:48px;margin:10px;image-rendering:pixelated;border:0!important}
+.sk-dh b{display:block;font-family:var(--display);font-size:21px;line-height:1.05;text-shadow:0 2px 0 var(--navy)}
+.sk-dh small{display:block;color:var(--muted);font-size:12.5px;margin:2px 0 5px}
+.sk-pips{display:flex;gap:4px}.sk-pips i{width:14px;height:10px;background:#140c08;border:2px solid #000;transform:skewX(-14deg)}.sk-pips i.on{background:linear-gradient(#ffe27a,#d8962a)}.sk-pips i.nx{background:repeating-linear-gradient(90deg,#5a4214 0 2px,#140c08 2px 4px);border-color:var(--gold2)}
+.sk-now,.sk-next{display:grid;gap:1px;padding:6px 9px;font-size:13.5px;line-height:1.35;background:rgba(0,0,0,.28);border-left:4px solid #8fe07a;border-radius:2px}
+.sk-now small,.sk-next small{font-family:var(--display);font-size:12px;color:#a8ff9a}
+.sk-now.off{border-left-color:#7a6a58}.sk-now.off small{color:#bfae98}
+.sk-next{border-left-color:var(--gold2)}.sk-next small{color:var(--gold2)}
+.sk-next.max{border-left-color:#c78cff}.sk-next.max small{color:#d9b8ff}
+.sk-req{font-size:13px;color:#ffb4a0}
+.sk-act{display:flex;justify-content:flex-end}
+/* ---------- talentos: moldura dourada no painel ---------- */
+.pt-side .ptinfo,.pt-pts{border-style:solid!important;border-color:transparent!important;border-width:16px!important;border-image:url(data:image/png;base64,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) 20 fill / 16px stretch!important;background:none!important;border-radius:0!important}
+.pt-stage{border-style:solid;border-color:transparent;border-width:16px;border-image:url(data:image/png;base64,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) 20 / 16px stretch;background:#0c0914 padding-box}
+.pt-stage #ptCanvas{border:0!important;border-radius:0}
 </style>
 
 <div id="app">
@@ -2612,7 +2651,14 @@ function updateEnemies(dt) {
     if (e.stun > 0) { e.stun -= dt; continue; }
     const d = e.d, spd = d.speed * (e.slow > 0 ? .5 : 1); e.cd -= dt;
     let a = e.aggro;
-    if (a && (a.dead || dist(e, e.home) > (d.boss ? 700 : 520))) { e.aggro = a = null; e.hp = e.max; e.tagged = false; e.goal = { x: e.home.x, y: e.home.y }; }
+    // desistiu da luta: volta correndo para casa sem levar dano (se travar no caminho, reaparece em casa)
+    if (e.evade) {
+      e.aggro = null; const hd = dist(e, e.home); e.evadeT = (e.evadeT || 0) + dt; e.hp = Math.min(e.max, e.hp + e.max * dt * .5);
+      if (hd < 24 || e.evadeT > 5) { if (hd >= 24) { e.x = e.home.x; e.y = e.home.y; e.fadeIn = 0; } e.evade = false; e.evadeT = 0; e.hp = e.max; e.goal = null; e.wt = rnd(1, 3); }
+      else { navTo(e, e.home.x, e.home.y, spd * 1.7 * dt, 4); e.moving = true; }
+      continue;
+    }
+    if (a && (a.dead || dist(e, e.home) > (d.boss ? 700 : 520))) { e.aggro = a = null; e.tagged = false; e.hitters = null; e.evade = true; e.evadeT = 0; continue; }
     if (!a && d.aggroR && !P.dead && dist(e, P) < d.aggroR) e.aggro = a = P;
     if (!a && d.aggroR && typeof netAggro === 'function') { const ra = netAggro(e, d.aggroR); if (ra) e.aggro = a = ra; }
     if (a) {
@@ -6104,7 +6150,7 @@ onZoneLoaded4 = function (i, from) {
   _ozlQ(i, from);
   const g = SQ_GIVERS[i]; if (!g || !SPR[g[2]] || ZONES[i].dungeon) return;
   let x = g[3], y = g[4];
-  if (x == null) { const o = W.obelisk || { x: ZONES[i].spawn[0], y: ZONES[i].spawn[1] }; x = o.x + 130; y = o.y + 40; for (let k = 0; k < 12 && blocked(x, y, 24); k++) { x += 40; y += (k % 2 ? -30 : 30); } }
+  if (x == null) { const o = W.obelisk || { x: ZONES[i].spawn[0], y: ZONES[i].spawn[1] }; x = o.x + 220; y = o.y + 60; for (let k = 0; k < 12 && blocked(x, y, 24); k++) { x += 40; y += (k % 2 ? -30 : 30); } }
   const n = { kind: 'npc', id: 'sq_' + i, sqZone: i, name: g[0], title: g[1], sprite: g[2], x, y, r: 14, color: '#ffe9a8' }; n.body = body(g[2]); n.body.dir = 's'; W.npcs.push(n);
 };
 const _openNpcQ = openNpc;
@@ -8061,9 +8107,10 @@ updateEnemies = function (dt) {
   const vil = W.zone && W.zone.village;
   for (const e of W.enemies) {
     if (!e.alive) continue;
-    if (vil && e.x < VILLAGE_EDGE && !e.duel) { e.aggro = null; e.hp = e.max; e.tagged = false; e.hitters = null; e.goal = { x: e.home.x, y: e.home.y }; }
+    if (vil && e.x < VILLAGE_EDGE && !e.duel && !e.evade) { e.aggro = null; e.tagged = false; e.hitters = null; e.evade = true; e.evadeT = 0; }
     // monstro que desistiu da luta esquece quem bateu nele
     if (!e.aggro && e.hitters && e.hp >= e.max) e.hitters = null;
+    if (e.evade) e.tagged = false;
   }
 };
 
@@ -8587,7 +8634,7 @@ const ATAB = { for: 'FOR', int: 'INT', des: 'DES', vit: 'VIT', agi: 'AGI', sor: 
 })();
 
 /* ---------- Ficha ---------- */
-let FX_TAB = 'at';
+let FX_TAB = 'at', FX_SK = null;
 const pct100 = (a, b) => Math.max(0, Math.min(100, b ? a / b * 100 : 100));
 function classPath() {
   const steps = [['aprendiz', 'Aprendiz']];
@@ -8606,12 +8653,11 @@ openSheet = function () {
   const bonus = k => st(k) - S.st[k];
   const derived = [['Vida máxima', maxHp()], ['Ataque', Math.round(atk())], ['Ataques/s', (1 / aspd()).toFixed(2)], ['Crítico', Math.round(critCh() * 100) + '%'], ['Esquiva', Math.round(dodgeCh() * 100) + '%'], ['Redução de dano', Math.round(defense() * 100) + '%'], ['Velocidade', Math.round(moveSpd())]];
   const atts = STATS.map(([k, n, d]) => `<div class="fx-at" style="--c:${ATC[k]}"><span class="ab">${ATAB[k]}</span><span><b>${n}</b><small>${d}</small></span><span class="v">${S.st[k]}${bonus(k) ? `<em>+${bonus(k)}</em>` : ''}</span><button type="button" class="plus" data-st="${k}" ${S.stPts ? '' : 'disabled'} aria-label="Aumentar ${n}"></button></div>`).join('');
-  const skills = c.skills.map(sk => {
-    const L = skLv(sk.id), req = skReqText(sk);
-    const pips = Array.from({ length: SK_MAX }, (_, i) => `<i class="${i < L ? 'on' : ''}"></i>`).join('');
-    return `<div class="fx-sk${L ? '' : ' off'}">${skIcon(sk)}<div class="t1"><b>${sk.name}</b><span class="fx-pips" title="Nível ${L} de ${SK_MAX}">${pips}</span><span class="fx-cd">recarga ${sk.cd} s</span></div><button type="button" class="plus" data-sk="${sk.id}" ${canLearn(sk) ? '' : 'disabled'} aria-label="Aprender ${sk.name}"></button>
-      <p>${L ? sk.d(L) : sk.d(1)}${L && L < SK_MAX ? ` <i>Próximo nível: ${sk.d(L + 1)}</i>` : ''}</p>${req.length ? `<p class="req">Precisa de ${req.join(' e ')}</p>` : ''}</div>`;
-  }).join('');
+  if (!FX_SK || !c.skills.some(x => x.id === FX_SK)) FX_SK = (c.skills.find(x => canLearn(x)) || c.skills[0]).id;
+  const skills = `<div class="sk-book">${c.skills.map(sk => {
+    const L = skLv(sk.id), can = canLearn(sk), st = L >= SK_MAX ? 'max' : can ? 'can' : L ? 'on' : 'off';
+    return `<button type="button" class="sk-slot ${st}${sk.id === FX_SK ? ' sel' : ''}" data-pick="${sk.id}" aria-label="${sk.name}"><span class="fr"></span>${skIcon(sk)}<em>${L}/${SK_MAX}</em>${can ? '<i class="up"></i>' : ''}<small>${sk.name}</small></button>`;
+  }).join('')}</div><div class="sk-det" id="skDet"></div>`;
   const bn = S.blvl >= MAX_BASE ? 100 : pct100(S.bxp, needBase(S.blvl)), jn = S.jlvl >= maxJob(S.cls) ? 100 : pct100(S.jxp, needJob(S.jlvl, S.cls));
   b.innerHTML = `<div class="fx-head"><canvas class="fx-port" width="76" height="76"></canvas>
       <div class="fx-name">${esc(S.name)}<small>${c.name}${S.title ? ` · « ${esc(S.title)} »` : ''}</small></div>
@@ -8629,12 +8675,28 @@ openSheet = function () {
   try { const pc = b.querySelector('.fx-port'), g = pc.getContext('2d'); g.imageSmoothingEnabled = false; drawPortrait(pc, c.sprite); } catch (e) { }
   b.querySelectorAll('.fx-tabs [data-tab]').forEach(x => { x.setAttribute('aria-selected', x.dataset.tab === FX_TAB); x.onclick = () => { FX_TAB = x.dataset.tab; sfx('clique', .25); openSheet(); }; });
   b.querySelectorAll('[data-st]').forEach(x => x.onclick = () => { const k = x.dataset.st; if (S.stPts <= 0) return; const r = P.hp / maxHp(); S.st[k]++; S.stPts--; P.hp = Math.round(maxHp() * r); sfx('clique', .3); save(); openSheet(); });
-  b.querySelectorAll('[data-sk]').forEach(x => x.onclick = () => { const sk = c.skills.find(s => s.id === x.dataset.sk); if (!canLearn(sk)) return; S.sk[sk.id] = skLv(sk.id) + 1; S.skPts--; sfx('magia', .35, 1.3); save(); buildBar(); openSheet(); });
+  b.querySelectorAll('[data-pick]').forEach(x => x.onclick = () => { FX_SK = x.dataset.pick; sfx('clique', .25); b.querySelectorAll('.sk-slot').forEach(y => y.classList.toggle('sel', y === x)); skDetail(c); });
+  skDetail(c);
   const au = $('autoSt'); if (au) au.onclick = () => { const w = c.auto || { for: 1, vit: 1 }, ks = Object.keys(w); let n = 0; while (S.stPts > 0 && n < 999) { for (const k of ks) for (let j = 0; j < w[k] && S.stPts > 0; j++) { S.st[k]++; S.stPts--; } n++; } P.hp = Math.min(P.hp, maxHp()); sfx('clique', .3); save(); openSheet(); };
   if (typeof bindSheetExtra === 'function') bindSheetExtra(b);
   $('sheetTitle').textContent = 'Ficha';
   if ($('sheet').hidden) open('sheet');
 };
+
+// painel da habilidade escolhida
+const SK_KIND = { strike: 'Golpe', nova: 'Em área ao redor', area: 'Em área no alvo', buff: 'Bônus', heal: 'Cura', pshield: 'Escudo do grupo', shot: 'Disparo', summon: 'Invocação' };
+function skDetail(c) {
+  const box = $('skDet'), sk = c.skills.find(x => x.id === FX_SK); if (!box || !sk) return;
+  const L = skLv(sk.id), req = skReqText(sk), can = canLearn(sk), g = sk.g || {};
+  const kind = SK_KIND[g.type] || (sk.range ? 'Ataque à distância' : 'Habilidade');
+  const pips = Array.from({ length: SK_MAX }, (_, i) => `<i class="${i < L ? 'on' : i === L && can ? 'nx' : ''}"></i>`).join('');
+  box.innerHTML = `<div class="sk-dh"><span class="sk-big"><span class="fr"></span>${skIcon(sk)}</span><span><b>${sk.name}</b><small>${kind} · recarga ${sk.cd} s${sk.range ? ` · alcance ${sk.range}` : ''}</small><span class="sk-pips">${pips}</span></span></div>
+    ${L ? `<div class="sk-now"><small>Nível ${L}</small>${sk.d(L)}</div>` : `<div class="sk-now off"><small>Ainda não aprendida</small>${sk.d(1)}</div>`}
+    ${L && L < SK_MAX ? `<div class="sk-next"><small>Nível ${L + 1}</small>${sk.d(L + 1)}</div>` : L >= SK_MAX ? `<div class="sk-next max"><small>Nível máximo</small>Essa habilidade já está no máximo.</div>` : ''}
+    ${req.length ? `<div class="sk-req">Precisa de ${req.join(' e ')}</div>` : ''}
+    <div class="sk-act">${L >= SK_MAX ? '' : `<button class="btn" type="button" id="skLearn" ${can ? '' : 'disabled'}>${!S.skPts ? 'Sem pontos de habilidade' : can ? (L ? `Subir para o nível ${L + 1}` : 'Aprender') + ' · 1 ponto' : 'Ainda bloqueada'}</button>`}</div>`;
+  const lb = $('skLearn'); if (lb) lb.onclick = () => { if (!canLearn(sk)) return; S.sk[sk.id] = skLv(sk.id) + 1; S.skPts--; sfx('magia', .35, 1.3); save(); buildBar(); openSheet(); };
+}
 
 /* ---------- Diário ---------- */
 (() => {
@@ -8695,7 +8757,100 @@ treeInfo = function () {
   const box = $('ptInfo'); if (!TV.sel || !PT_NODES[TV.sel]) box.innerHTML = `<span><b>Escolha um talento</b>Toque num círculo para ver o que ele dá. Só dá para aprender talentos ligados aos que você já tem, começando pelo centro. As cores seguem os atributos da Ficha.</span>`;
 };
 const _openTreeN = openTree;
-openTree = function () { _openTreeN(); ptSideUpdate(); };
+openTree = function () { if (!TV.user) TV.fit = 0; _openTreeN(); requestAnimationFrame(() => { if (!TV.user) { const r = $('ptCanvas').getBoundingClientRect(); TV.z = clamp(Math.min(r.width, r.height) / (r.width < 560 ? 1380 : 1180), .3, 1); TV.x = TV.y = 0; treeDraw(); } }); ptSideUpdate(); };
+$('ptCanvas').addEventListener('wheel', () => { TV.user = 1; }); $('ptCanvas').addEventListener('pointermove', e => { if (e.buttons) TV.user = 1; }); ['ptZin', 'ptZout'].forEach(id => $(id).addEventListener('click', () => { TV.user = 1; }));
+
+/* ---------- árvore de talentos redesenhada: céu estrelado, setores por atributo, gemas e constelações ---------- */
+const PT_STARS = Array.from({ length: 140 }, (_, i) => { const r = seeded(900 + i); return [r() * 2 - 1, r() * 2 - 1, .4 + r() * 1.3, r() * 6.28]; });
+const PT_BR = ['for', 'int', 'des', 'vit', 'agi', 'sor'];
+function ptGem(g, x, y, R, fill, stroke, lw) { g.beginPath(); g.moveTo(x, y - R); g.lineTo(x + R * .85, y); g.lineTo(x, y + R); g.lineTo(x - R * .85, y); g.closePath(); g.fillStyle = fill; g.fill(); g.lineWidth = lw; g.strokeStyle = stroke; g.stroke(); }
+function ptStar(g, x, y, R, pts, inner) { g.beginPath(); for (let k = 0; k < pts * 2; k++) { const a = k / (pts * 2) * 6.283 - Math.PI / 2, rr = k % 2 ? R * inner : R; g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); } g.closePath(); }
+treeDraw = function () {
+  const c = $('ptCanvas'); if (!c || $('tree').hidden) return;
+  const g = c.getContext('2d'), d = TV.d || 1, set = ptSet(), W2 = c.width / 2, H2 = c.height / 2, z = TV.z * d, t = performance.now() / 1000;
+  const has = id => set.has(id) || id === 'start', can = ptPoints() > 0;
+  g.setTransform(1, 0, 0, 1, 0, 0);
+  const bg = g.createRadialGradient(W2, H2, 0, W2, H2, Math.max(W2, H2) * 1.2); bg.addColorStop(0, '#2b2142'); bg.addColorStop(.6, '#15101f'); bg.addColorStop(1, '#09070e');
+  g.fillStyle = bg; g.fillRect(0, 0, c.width, c.height);
+  // estrelas ao fundo (andam um pouco com o arrasto)
+  for (const [sx, sy, sr, ph] of PT_STARS) { const x = W2 + sx * W2 * 1.1 + TV.x * d * .25, y = H2 + sy * H2 * 1.1 + TV.y * d * .25; g.globalAlpha = .25 + .25 * Math.sin(t * 1.3 + ph); g.fillStyle = '#e8e0ff'; g.fillRect(x, y, sr * d, sr * d); }
+  g.globalAlpha = 1;
+  g.setTransform(z, 0, 0, z, W2 + TV.x * d, H2 + TV.y * d);
+  // setores coloridos de cada atributo
+  PT_BR.forEach((k, i) => {
+    const a = -Math.PI / 2 + i * Math.PI / 3, gr = g.createRadialGradient(0, 0, 40, 0, 0, 600);
+    gr.addColorStop(0, ATC[k] + '00'); gr.addColorStop(.35, ATC[k] + '22'); gr.addColorStop(1, ATC[k] + '00');
+    g.fillStyle = gr; g.beginPath(); g.moveTo(0, 0); g.arc(0, 0, 600, a - Math.PI / 6 + .03, a + Math.PI / 6 - .03); g.closePath(); g.fill();
+  });
+  g.lineWidth = 1.5 / TV.z; g.strokeStyle = 'rgba(200,180,255,.10)'; g.setLineDash([6, 8]); [3.6, 6.6, 8.6].forEach(r => { g.beginPath(); g.arc(0, 0, r * 62, 0, 7); g.stroke(); }); g.setLineDash([]);
+  // ligações
+  for (const [a, b] of PT_EDGES) {
+    const A = PT_NODES[a], B = PT_NODES[b], on = has(a) && has(b), av = !on && can && (has(a) || has(b));
+    if (on) { const col = (b === 'start' ? A : B).c; g.strokeStyle = col; g.globalAlpha = .35; g.lineWidth = 11; g.beginPath(); g.moveTo(A.x, A.y); g.lineTo(B.x, B.y); g.stroke(); g.globalAlpha = 1; g.strokeStyle = '#fff6dc'; g.lineWidth = 3; }
+    else if (av) { g.strokeStyle = 'rgba(255,226,122,.75)'; g.lineWidth = 2.5; g.setLineDash([7, 6]); g.lineDashOffset = -t * 18; }
+    else { g.strokeStyle = 'rgba(150,135,180,.28)'; g.lineWidth = 2; }
+    g.beginPath(); g.moveTo(A.x, A.y); g.lineTo(B.x, B.y); g.stroke(); g.setLineDash([]);
+  }
+  // nós
+  for (const id in PT_NODES) {
+    const n = PT_NODES[id], on = has(id), av = !on && can && ptCanTake(id), col = n.c;
+    const R = n.type === 'key' ? 24 : n.type === 'notable' ? 16 : n.type === 'start' ? 20 : 8;
+    if (on || av) { const gl = g.createRadialGradient(n.x, n.y, 0, n.x, n.y, R * 2.4); gl.addColorStop(0, (av ? '#ffe27a' : col) + (av ? '66' : '88')); gl.addColorStop(1, (av ? '#ffe27a' : col) + '00'); g.globalAlpha = av ? .6 + .4 * Math.sin(t * 4) : 1; g.fillStyle = gl; g.beginPath(); g.arc(n.x, n.y, R * 2.4, 0, 7); g.fill(); g.globalAlpha = 1; }
+    if (n.type === 'start') {
+      g.strokeStyle = '#ffe9a8'; g.lineWidth = 2; for (let k = 0; k < 12; k++) { const a = k / 12 * 6.283 + t * .2; g.beginPath(); g.moveTo(n.x + Math.cos(a) * 24, n.y + Math.sin(a) * 24); g.lineTo(n.x + Math.cos(a) * 32, n.y + Math.sin(a) * 32); g.stroke(); }
+      const sg = g.createRadialGradient(n.x - 5, n.y - 6, 2, n.x, n.y, R); sg.addColorStop(0, '#ffffff'); sg.addColorStop(1, '#f2c96a'); g.fillStyle = sg; g.beginPath(); g.arc(n.x, n.y, R, 0, 7); g.fill(); g.lineWidth = 3; g.strokeStyle = '#5a3a10'; g.stroke();
+    } else if (n.type === 'small') {
+      ptGem(g, n.x, n.y, R + 1, on ? col : '#1c1626', on ? '#fff6dc' : av ? '#ffe27a' : col + 'aa', on ? 2.5 : 2);
+      if (on) { g.fillStyle = 'rgba(255,255,255,.55)'; g.beginPath(); g.moveTo(n.x, n.y - R + 2); g.lineTo(n.x + R * .45, n.y - 1); g.lineTo(n.x, n.y - 1); g.closePath(); g.fill(); }
+    } else if (n.type === 'notable') {
+      g.fillStyle = on ? col : '#1c1626'; g.beginPath(); g.arc(n.x, n.y, R, 0, 7); g.fill();
+      g.lineWidth = 3.5; g.strokeStyle = on ? '#fff6dc' : av ? '#ffe27a' : col; g.stroke();
+      g.lineWidth = 1.5; g.strokeStyle = on ? 'rgba(0,0,0,.35)' : col + '88'; g.beginPath(); g.arc(n.x, n.y, R - 5, 0, 7); g.stroke();
+      g.font = '700 10px "Pixelify Sans",system-ui,sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = on ? '#1a0f0b' : col; g.fillText(ATAB[id.slice(0, 3)] || '', n.x, n.y + .5); g.textBaseline = 'alphabetic';
+    } else if (n.type === 'key') {
+      ptStar(g, n.x, n.y, R, 8, .78); g.fillStyle = on ? col : '#1c1626'; g.fill(); g.lineWidth = 4; g.strokeStyle = on ? '#fff6dc' : av ? '#ffe27a' : col; g.stroke();
+      ptStar(g, n.x, n.y, R * .5, 4, .45); g.fillStyle = on ? '#fff6dc' : col + 'cc'; g.fill();
+    }
+    if (TV.sel === id) { g.save(); g.translate(n.x, n.y); g.rotate(t * 1.4); g.strokeStyle = '#ffffff'; g.lineWidth = 2; g.setLineDash([5, 5]); g.beginPath(); g.arc(0, 0, R + 8, 0, 7); g.stroke(); g.restore(); }
+    if (n.type !== 'small' && TV.z > .3) {
+      const fs = (n.type === 'key' ? 13 : 12) / TV.z; g.font = `700 ${fs}px "Pixelify Sans",system-ui,sans-serif`; g.textAlign = 'center';
+      g.lineWidth = 4 / TV.z; g.strokeStyle = '#0c0914'; g.strokeText(n.name, n.x, n.y + R + fs + 2); g.fillStyle = on ? '#fff6dc' : n.type === 'key' ? col : '#cfc3e6'; g.fillText(n.name, n.x, n.y + R + fs + 2);
+    }
+  }
+  if ($('ptPts')) $('ptPts').textContent = `${ptPoints()} pontos`;
+  if (!$('tree').hidden && !TV._raf) { TV._raf = requestAnimationFrame(() => { TV._raf = 0; treeDraw(); }); }
+};
+
+/* ================= Ajustes: monstro que volta para casa não leva dano e botão de viajar sempre visível ================= */
+// monstro que desistiu da luta e está voltando para casa mostra "Evadiu" em vez de perder vida
+const _hitEnemyEv = hitEnemy;
+hitEnemy = function (e, amt, src, big) {
+  if (e && e.alive && e.evade) { if (!e.evT || W.T - e.evT > .6) { e.evT = W.T; float(e.x, e.y - e.body.h - 8, 'Evadiu', '#c9d6e0', 15); } return; }
+  return _hitEnemyEv(e, amt, src, big);
+};
+// perto do obelisco e de um NPC ao mesmo tempo: aparecem os dois botões (falar e viajar)
+(() => {
+  const a = $('actBtn'); if (!a) return;
+  const b = document.createElement('button'); b.className = 'btn alt'; b.id = 'actBtn2'; b.type = 'button'; b.hidden = true; b.textContent = 'Viajar';
+  a.after(b);
+  const st = document.createElement('style');
+  st.textContent = `#actBtn2{position:absolute;left:50%;bottom:104px;transform:translateX(calc(-50% - var(--off,0px)));pointer-events:auto}
+#actBtn.dual{transform:translateX(calc(-50% + var(--off,0px)))}
+@media (max-height:520px){#actBtn2{bottom:74px}}
+body.touch #actBtn2{bottom:16px}`;
+  document.head.appendChild(st);
+  b.addEventListener('click', () => { initAudio(); sfx('clique', .3); openTravel(); });
+})();
+const _updateActEv = updateAct;
+updateAct = function () {
+  _updateActEv();
+  const a = $('actBtn'), b = $('actBtn2'); if (!b) return;
+  const n = !a.hidden && S && !P.dead && W.obelisk && dist(P, W.obelisk) < 150 ? nearAction() : null;
+  const dual = !!(n && n.kind !== 'obelisk');
+  if (b.hidden !== !dual) b.hidden = !dual;
+  if (a.classList.contains('dual') !== dual) a.classList.toggle('dual', dual);
+  if (dual) { const off = Math.round(a.offsetWidth / 2 + 6) + 'px', offB = Math.round(b.offsetWidth / 2) + 'px'; a.style.setProperty('--off', offB); b.style.setProperty('--off', off); }
+};
 
 start();
 window.__game = { W, get P() { return P; }, get PET() { return PET; }, S: () => S, SAVE: () => SAVE, castSkill, setTarget, loadZone, changeClass, evolveTo, gainXp, dropLoot, openSheet, playChar, openNpc, openShop, openBag, startGather, npcById, mkItem, giveItem, grant, CL, netConnect: () => netConnect(), netChat: t => netChat(t), NET: () => NET };
