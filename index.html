@@ -872,6 +872,8 @@ const MAX_BASE = 99;
 const needBase = l => Math.round(30 * Math.pow(1.16, Math.min(l, 30) - 1) * (l > 30 ? 1 + (l - 30) * .12 : 1));
 const needJob = (l, cls) => cls === 'aprendiz' ? 15 + 8 * l : Math.round(18 + 6 * l + .35 * l * l);
 const maxJob = cls => cls === 'aprendiz' ? 10 : 50;
+const VK = 1.25; // escala da vila de Brisaclara (tudo mais espaçado)
+const inVillageXY = (z, x, y) => !!z.village && ((x < 1320 * VK && y > 250 * VK && y < 1450 * VK) || (x > 1760 && x < 2420 && y > 590 && y < 1470));
 const EVO_JOB = 40; // nível de classe para a primeira evolução
 
 /* ================= Classes e habilidades ================= */
@@ -879,7 +881,7 @@ const EVO_JOB = 40; // nível de classe para a primeira evolução
 // Habilidades com g: {...} usam o executor genérico (strike, shot, nova, area, buff, heal, pshield, summon).
 const CLASSES = {
   aprendiz: { name: 'Aprendiz', role: 'Iniciante', sprite: 'aprendiz', hpMod: .9, main: 'for', armor: 0, range: 50, spd: 1.3, shot: null, sfx: 'golpe',
-    desc: 'Todo Desperto começa aqui. No nível de classe 10, escolha sua classe com a Capitã Lira.', auto: { for: 2, vit: 2, agi: 1, des: 1 },
+    desc: 'Todo Desperto começa aqui. No nível de classe 10, faça a prova de um dos Mestres de Classe, a leste da vila.', auto: { for: 2, vit: 2, agi: 1, des: 1 },
     skills: [
       { id: 'firme', name: 'Golpe Firme', icon: 'earth-spike', cd: 5, range: 62, d: L => `Golpe de ${120 + 15 * L}% de dano.` },
       { id: 'socorro', name: 'Primeiros Socorros', icon: 'nature-heal', cd: 12, d: L => `Cura ${8 + 4 * L}% da sua vida.` }] },
@@ -1101,8 +1103,8 @@ const PET_CHANCE = .01;
 /* ================= Mapas ================= */
 // saídas: lado (n, s, e, w) e posição ao longo da borda (pos)
 const ZONES = [
-  { name: 'Campos de Brisaclara', rec: 1, w: 2400, h: 1600, spawns: [['slime', 6], ['lacaio', 5], ['caranguejo', 3]], area: [1400, 280, 2250, 1420], spawn: [560, 870],
-    exits: [{ side: 'e', to: 1, pos: 820 }], bots: [{ name: 'Tavi', cls: 'cacador' }, { name: 'Kael', cls: 'ecomante' }],
+  { name: 'Campos de Brisaclara', rec: 1, w: 3600, h: 2000, spawns: [['slime', 7], ['lacaio', 6], ['caranguejo', 4]], area: [2500, 360, 3420, 1800], spawn: [700, 1088],
+    exits: [{ side: 'e', to: 1, pos: 1025 }], bots: [{ name: 'Tavi', cls: 'cacador' }, { name: 'Kael', cls: 'ecomante' }],
     ground: { base: '#6f9c4f', light: '#86b25c', dark: '#5b8642', path: '#b59a68' }, trees: ['arvore1', 'arvore2', 'arvore3'], rocks: ['pedra2', 'pedra3', 'pedra_musgo'], bushes: ['arbusto1', 'arbusto2', 'samambaia'], small: ['flor1', 'flor2', 'flor3', 'cog1', 'cog2'], tint: null, village: true,
     nodes: [['no_tora', 4]] },
   { name: 'Colinas Ventosas', rec: 3, w: 2200, h: 1500, spawns: [['guerreiro', 4], ['abelha', 4], ['morcego', 3], ['chifrudo', 2]], area: [500, 250, 1900, 1250], spawn: [120, 760],
@@ -1140,8 +1142,8 @@ const NODES = {
 // npc: quem entrega (padrão Lira). kind: kill, collect (cai do monstro), gather (material da mochila)
 const QUESTS = [
   { title: 'Treino do Aprendiz', kind: 'kill', target: 'slime', need: 6, rec: 1,
-    intro: 'Bem-vindo a Brisaclara, Aprendiz. Antes de enfrentar o que saiu da fenda, treine nos Slimes do Orvalho, a leste da vila. Derrote 6. Quem chega ao nível de classe 10 pode escolher uma classe comigo.',
-    track: 'Derrote Slimes do Orvalho a leste da vila.', done: 'Nada mal! Continue treinando: no nível de classe 10 eu ajudo você a escolher seu caminho.',
+    intro: 'Bem-vindo a Brisaclara, Aprendiz. Antes de enfrentar o que saiu da fenda, treine nos Slimes do Orvalho, a leste da vila. Derrote 6. No nível de classe 10, os Mestres de Classe, a leste da vila, testam quem quer seguir um caminho.',
+    track: 'Derrote Slimes do Orvalho a leste da vila.', done: 'Nada mal! Continue treinando: no nível de classe 10, procure os Mestres de Classe no campo a leste da vila.',
     reward: { xp: 40, jxp: 120, potions: 3 } },
   { title: 'Ossos na Estrada', kind: 'kill', target: 'lacaio', need: 5, rec: 2,
     intro: 'Desde que a fenda se abriu, Lacaios de Ossos levantam do chão e atacam quem passa pelos Campos. Derrote 5 deles e a estrada volta a ser segura.',
@@ -1191,10 +1193,10 @@ const ORDERS = {
 };
 // NPCs da vila
 const NPCS = [
-  { id: 'lira', name: 'Capitã Lira', title: 'Guarda de Aurel', sprite: 'lira', x: 690, y: 775, color: '#f3d2b3' },
-  { id: 'bram', name: 'Bram', title: 'Ferreiro', sprite: 'npc_bram', x: 770, y: 1150, color: '#ffc27a', greet: 'Aço bom não se faz com pressa. O que vai ser?' },
-  { id: 'nina', name: 'Nina', title: 'Alquimista', sprite: 'npc_nina', x: 245, y: 815, color: '#d7b3ff', greet: 'Poções fresquinhas! E se tiver ervas, eu pago.' },
-  { id: 'tomas', name: 'Tomas', title: 'Mercador', sprite: 'npc_tomas', x: 450, y: 1150, color: '#9fe08a', greet: 'Compro de tudo e vendo o que o aventureiro precisa.' }
+  { id: 'lira', name: 'Capitã Lira', title: 'Guarda de Aurel', sprite: 'lira', x: 862, y: 969, color: '#f3d2b3' },
+  { id: 'bram', name: 'Bram', title: 'Ferreiro', sprite: 'npc_bram', x: 962, y: 1438, color: '#ffc27a', greet: 'Aço bom não se faz com pressa. O que vai ser?' },
+  { id: 'nina', name: 'Nina', title: 'Alquimista', sprite: 'npc_nina', x: 306, y: 1019, color: '#d7b3ff', greet: 'Poções fresquinhas! E se tiver ervas, eu pago.' },
+  { id: 'tomas', name: 'Tomas', title: 'Mercador', sprite: 'npc_tomas', x: 562, y: 1438, color: '#9fe08a', greet: 'Compro de tudo e vendo o que o aventureiro precisa.' }
 ];
 const BOT_LINES = ['mais um pra conta', 'alguém quer formar grupo?', 'cuidado com os do leste', 'pronto!', 'esse dropou nada de novo...', 'bora, Desperto', 'tô sem mana, segura aí', 'alguém viu um shiba por aí?', 'o Bram refinou minha espada +6!', 'vendo gosma, aceito ouro'];
 
@@ -1418,7 +1420,7 @@ function paintGround(z, r) {
   const road = (ps, w) => { g.lineCap = 'round'; g.lineJoin = 'round'; [[w + 20, G.dark, .35], [w, G.path, .9], [w * .5, G.light, .18]].forEach(([lw, col, al]) => { g.globalAlpha = al; g.strokeStyle = col; g.lineWidth = lw; g.beginPath(); ps.forEach((p, i) => i ? g.lineTo(p.x, p.y) : g.moveTo(p.x, p.y)); g.stroke(); }); g.globalAlpha = 1; };
   const curve = (a, b, wig) => { const pts = []; for (let k = 0; k <= 24; k++) { const t = k / 24, nx = -(b.y - a.y), ny = b.x - a.x, L = Math.hypot(nx, ny) || 1, s = Math.sin(t * 6.3 + 1) * wig; pts.push({ x: a.x + (b.x - a.x) * t + nx / L * s, y: a.y + (b.y - a.y) * t + ny / L * s }); } return pts; };
   // estradas: de cada saída até o centro do mapa (ou até a fenda)
-  const hub = z.rift ? { x: z.rift[0] - 200, y: z.rift[1] } : z.village ? { x: 600, y: 820 } : { x: z.w * .5, y: z.h * .55 };
+  const hub = z.rift ? { x: z.rift[0] - 200, y: z.rift[1] } : z.village ? { x: 600 * VK, y: 820 * VK } : { x: z.w * .5, y: z.h * .55 };
   const LY = typeof zoneLayout === 'function' ? zoneLayout(z) : null;
   if (LY) {
     // estradas e trilhas pintadas juntas, camada por camada: sem bordas escuras por cima de outras estradas
@@ -1440,7 +1442,7 @@ function paintGround(z, r) {
   for (let k = 0; k < 900; k++) { const x = r() * z.w, y = r() * z.h; if (inLake(z, x, y, 4)) continue; g.strokeStyle = r() < .5 ? G.dark : G.light; g.lineWidth = 2; g.globalAlpha = .7; g.beginPath(); g.moveTo(x, y); g.lineTo(x - 3, y - 7); g.moveTo(x + 2, y); g.lineTo(x + 4, y - 8); g.stroke(); }
   g.globalAlpha = 1;
   // flores e cogumelos pintados direto no chão (leve para desenhar)
-  if (!LY) (z.small || []).forEach(key => { const im = tinted(key, z.tint), m = PROPMETA[key]; if (!m) return; for (let k = 0; k < 40; k++) { const x = 80 + r() * (z.w - 160), y = 80 + r() * (z.h - 160), s = .8 + r() * .5; if (z.village && x < 1300 && y > 250 && y < 1450) continue; if (inLake(z, x, y, 8)) continue; g.drawImage(im, x - m.cx * s, y - m.base * s, m.w * s, m.h * s); } });
+  if (!LY) (z.small || []).forEach(key => { const im = tinted(key, z.tint), m = PROPMETA[key]; if (!m) return; for (let k = 0; k < 40; k++) { const x = 80 + r() * (z.w - 160), y = 80 + r() * (z.h - 160), s = .8 + r() * .5; if (inVillageXY(z, x + 20, y)) continue; if (inLake(z, x, y, 8)) continue; g.drawImage(im, x - m.cx * s, y - m.base * s, m.w * s, m.h * s); } });
   if (z.village && typeof paintVillage === 'function') paintVillage(g, z, r);
   if (LY) paintLayout(g, z, r);
   if (z.rift) {
@@ -1502,16 +1504,19 @@ const VILLAGE = [
   ['arvore_antiga', 1650, 380, 1, 1]
 ];
 // cerca do campo de treino e paliçada do portão leste
-[[930, 912], [995, 912], [1125, 912], [1190, 912], [930, 1075], [995, 1075], [1060, 1075], [1125, 1075], [1190, 1075]].forEach(([x, y]) => VILLAGE.push(['cerca_q', x, y, 1, 1]));
-for (let y = 290; y <= 690; y += 30) VILLAGE.push(['cerca', 1290, y, 1, 1]);
-for (let y = 950; y <= 1430; y += 30) VILLAGE.push(['cerca', 1290, y, 1, 1]);
+// a vila foi desenhada em 1×; tudo se afasta por VK (as construções mantêm o tamanho)
+VILLAGE.forEach(v => { v[1] = Math.round(v[1] * VK); v[2] = Math.round(v[2] * VK); });
+// cerca do campo de treino (sem buracos) e paliçada do portão leste
+for (const y of [912, 1075]) for (let x = 930 * VK; x <= 1190 * VK + 1; x += 62) if (y === 1075 || Math.abs(x - 1060 * VK) > 50) VILLAGE.push(['cerca_q', Math.round(x), Math.round(y * VK), 1, 1]);
+for (let y = 290 * VK; y <= 690 * VK; y += 30) VILLAGE.push(['cerca', Math.round(1290 * VK), Math.round(y), 1, 1]);
+for (let y = 950 * VK; y <= 1430 * VK; y += 30) VILLAGE.push(['cerca', Math.round(1290 * VK), Math.round(y), 1, 1]);
 const inLake = (z, x, y, pad) => [z.lake, ...(z.pools || [])].some(l => l && ((x - l[0]) / (l[2] + pad)) ** 2 + ((y - l[1]) / (l[3] + pad * .7)) ** 2 < 1);
 function loadZone(i, from) {
   const z = ZONES[i], r = seeded(31 + i * 97);
   if (S) { S.zone = i; if (!S.visited.includes(i)) S.visited.push(i); }
   W.ready = false; W.zone = z; W.zi = i; W.props = []; W.enemies = []; W.bots = W.bots.filter(b => b.party); W.loot = []; W.projs = []; W.fx = W.fx.filter(f => f.keep); W.parts = []; W.texts = []; W.npcs = [];
   W.ground = paintGround(z, r);
-  const inVillage = (x, y) => z.village && x < 1320 && y > 250 && y < 1450;
+  const inVillage = (x, y) => inVillageXY(z, x, y);
   const nearExit = (x, y) => z.exits.some(e => { const p = exitPoint(z, e); return Math.hypot(p.x - x, p.y - y) < 260; });
   const LZ = typeof zoneLayout === 'function' ? zoneLayout(z) : null;
   const free = (x, y, rad) => !inVillage(x, y) && !(LZ && LZ.blocks(x, y, rad * .4)) && !inLake(z, x, y, 60) && W.props.every(p => Math.hypot(p.x - x, p.y - y) > rad + (p.r || 20)) && !nearExit(x, y) && Math.hypot(z.spawn[0] - x, z.spawn[1] - y) > 200 && (!z.rift || ((x - z.rift[0]) / 380) ** 2 + ((y - z.rift[1]) / 205) ** 2 > 1) && (!z.boss || Math.hypot(z.boss[1] - x, z.boss[2] - y) > 180);
@@ -1522,16 +1527,16 @@ function loadZone(i, from) {
   const borderTree = () => pick(trees.filter(t => !t.startsWith('cog')));
   if (!z.dungeon) for (let x = 40; x < z.w; x += 90 + r() * 50) [20 + r() * 40, z.h - 10 - r() * 30].forEach(y => { if (free(x, y, 30) || (z.village && (y < 80 || y > z.h - 60))) W.props.push(makeProp(borderTree(), x, y, 1 + r() * .25, true, z.tint)); });
   if (!z.dungeon) for (let y = 120; y < z.h - 60; y += 90 + r() * 50) [20 + r() * 30, z.w - 20 - r() * 30].forEach(x => { if (free(x, y, 30) || (z.village && x < 80 && Math.abs(y - z.spawn[1]) > 200)) W.props.push(makeProp(borderTree(), x, y, 1 + r() * .25, true, z.tint)); });
-  const nTrees = z.forest ? 70 : 26;
+  const DN = z.dens || 1, nTrees = Math.round((z.forest ? 70 : 26) * DN);
   if (!z.dungeon && !LZ) for (let k = 0; k < nTrees; k++) { const x = 150 + r() * (z.w - 300), y = 150 + r() * (z.h - 300); if (free(x, y, z.forest ? 55 : 70)) W.props.push(makeProp(pick(trees), x, y, .95 + r() * .3, true, z.tint)); }
-  if (!z.dungeon && !LZ) for (let k = 0; k < 22; k++) { const x = 100 + r() * (z.w - 200), y = 100 + r() * (z.h - 200); if (z.rocks.length && free(x, y, 40)) W.props.push(makeProp(pick(z.rocks.filter(t => PROPMETA[t])), x, y, 1 + r() * .3, true, z.tint)); }
-  if (!LZ) for (let k = 0; k < (z.forest ? 50 : 30); k++) { const x = 100 + r() * (z.w - 200), y = 100 + r() * (z.h - 200); if (z.bushes.length && free(x, y, 30)) { const b = pick(z.bushes.filter(t => PROPMETA[t])); W.props.push(makeProp(b, x, y, 1 + r() * .3, false, z.tint)); } }
+  if (!z.dungeon && !LZ) for (let k = 0; k < 22 * DN; k++) { const x = 100 + r() * (z.w - 200), y = 100 + r() * (z.h - 200); if (z.rocks.length && free(x, y, 40)) W.props.push(makeProp(pick(z.rocks.filter(t => PROPMETA[t])), x, y, 1 + r() * .3, true, z.tint)); }
+  if (!LZ) for (let k = 0; k < (z.forest ? 50 : 30) * DN; k++) { const x = 100 + r() * (z.w - 200), y = 100 + r() * (z.h - 200); if (z.bushes.length && free(x, y, 30)) { const b = pick(z.bushes.filter(t => PROPMETA[t])); W.props.push(makeProp(b, x, y, 1 + r() * .3, false, z.tint)); } }
   // nós de coleta
   (z.nodes || []).forEach(([key, n]) => { for (let k = 0, tries = 0; k < n && tries < 80; tries++) { const x = 150 + r() * (z.w - 300), y = 150 + r() * (z.h - 300); if (!free(x, y, 40) || !PROPMETA[key]) continue; const p = makeProp(key, x, y, 1, true); p.node = key; p.r = 14; W.props.push(p); k++; } });
   if (z.village) NPCS.forEach(n => { const o = Object.assign({ kind: 'npc', r: 14 }, n); o.body = body(n.sprite); o.body.dir = 's'; W.npcs.push(o); });
   if (z.rift) for (let k = 0; k < 10; k++) { const a = k / 10 * 6.28, x = z.rift[0] + Math.cos(a) * 300 - 100, y = z.rift[1] + Math.sin(a) * 260; if (x < z.w - 60 && Math.hypot(x - z.boss[1], y - z.boss[2]) > 140) W.props.push(makeProp('pilar', x, y, .8 + r() * .3, true)); }
   z.exits.forEach(e => { const q = exitInside(z, e, 150), p = makeProp('placa', q.x + (e.side === 'n' || e.side === 's' ? 90 : 0), q.y - (e.side === 'n' ? -40 : 110), 1, false); p.label = `${ZONES[e.to].name} · Nv ${ZONES[e.to].rec}+`; W.props.push(p); });
-  W.obelisk = z.dungeon ? null : i === 0 ? { kind: 'obelisk', x: 405, y: 835, r: 20 } : (() => { const e0 = z.exits[0], v = e0.side === 'n' || e0.side === 's', q = exitInside(z, e0, v ? 330 : 300); return { kind: 'obelisk', x: q.x + (v ? 260 : 0), y: q.y - (v ? 0 : 170), r: 20 }; })();
+  W.obelisk = z.dungeon ? null : i === 0 ? { kind: 'obelisk', x: 405 * VK, y: 835 * VK, r: 20 } : (() => { const e0 = z.exits[0], v = e0.side === 'n' || e0.side === 's', q = exitInside(z, e0, v ? 330 : 300); return { kind: 'obelisk', x: q.x + (v ? 260 : 0), y: q.y - (v ? 0 : 170), r: 20 }; })();
   if (W.obelisk) { W.props.push({ kind: 'prop', key: '_ob', x: W.obelisk.x, y: W.obelisk.y, r: 20, scale: 1 });
   // tira árvores e pedras que caíram em cima do obelisco ou da chegada
   W.props = W.props.filter(p => p.key === '_ob' || p.label || (Math.hypot(p.x - W.obelisk.x, p.y - W.obelisk.y) > 90)); }
@@ -1905,7 +1910,7 @@ function updateHud() {
   const pts = S.stPts + S.skPts, sb = $('sheetBtn'); if (sb.dataset.pts !== String(pts || '')) sb.dataset.pts = pts || ''; if (sb.classList.contains('alert') !== pts > 0) sb.classList.toggle('alert', pts > 0);
   const T = P.target && P.target.alive ? P.target : null;
   if ($('tgt').hidden !== !T) $('tgt').hidden = !T;
-  if (T) { setTxt('tName', T.d.name); setTxt('tLvl', 'Nv ' + T.d.lvl); setSty($('tFill'), 'width', pctS(T.hp / T.max * 100)); setTxt('tTxt', `${Math.max(0, Math.ceil(T.hp))} / ${T.max}`); }
+  if (T) { setTxt('tName', T.d.name); setTxt('tLvl', 'Nv ' + T.d.lvl + (T.d.passive && !T.aggro ? ' · pacífico' : '')); setSty($('tFill'), 'width', pctS(T.hp / T.max * 100)); setTxt('tTxt', `${Math.max(0, Math.ceil(T.hp))} / ${T.max}`); }
   CL().skills.forEach((sk, i) => {
     const b = $('sk' + (i + 1)); if (!b) return; const L = skLv(sk.id);
     if (b.classList.contains('locked') !== !L) b.classList.toggle('locked', !L); setTxtE(b.querySelector('.lv'), L ? L : '');
@@ -2009,9 +2014,9 @@ function openSheet() {
     return `<div class="skrow${L ? '' : ' off'}">${skIcon(sk)}<span><b>${sk.name}</b> <small>· nível ${L} de ${SK_MAX} · recarga ${sk.cd} s</small><br><small>${L ? sk.d(L) : sk.d(1)}${L && L < SK_MAX ? ` <i>Próximo: ${sk.d(L + 1)}</i>` : ''}</small>${req.length ? `<br><small class="req">Precisa de ${req.join(' e ')}</small>` : ''}</span><button type="button" class="plus" data-sk="${sk.id}" ${canLearn(sk) ? '' : 'disabled'} aria-label="Aprender ${sk.name}">+</button></div>`;
   }).join('');
   const evo = S.cls === 'aprendiz'
-    ? `<p class="sub">Evolução: no <b>nível de classe 10</b> você escolhe uma das 6 classes com a Capitã Lira. Agora: classe ${S.jlvl} de 10.</p>`
+    ? `<p class="sub">Evolução: no <b>nível de classe 10</b> você escolhe uma das 6 classes com o Mestre dela, no Campo dos Mestres (leste de Brisaclara). Agora: classe ${S.jlvl} de 10.</p>`
     : S.evo ? `<p class="sub">Você é <b>${c.name}</b> (evolução de ${c.baseName}). A próxima evolução chega em uma fase futura.</p>`
-    : `<p class="sub">Evolução no <b>nível de classe ${EVO_JOB}</b> com a Capitã Lira: ${CLASSES[S.cls].evo.map(e => EVOS[e].name).join(' ou ')}. Agora: classe ${S.jlvl}.</p>`;
+    : `<p class="sub">Evolução no <b>nível de classe ${EVO_JOB}</b> com os mentores de Aurel: ${CLASSES[S.cls].evo.map(e => EVOS[e].name).join(' ou ')}. Agora: classe ${S.jlvl}.</p>`;
   b.innerHTML = `<div class="cols">
     <div class="slots"><h3>Atributos <span class="pts">${S.stPts} pontos</span></h3>${stats}
       <div class="actions left"><button class="btn alt" type="button" id="autoSt" ${S.stPts ? '' : 'disabled'}>Distribuir sugerido</button></div>
@@ -2100,11 +2105,11 @@ function openLira(npc, other) {
 }
 function openQuestDialog(npc) {
   const q = QUESTS[S.quest.i], st = S.quest.status;
-  if (npc.id === 'lira' && canChangeClass()) {
+  if (npc.id === 'lira' && canChangeClass() && typeof MASTERS === 'undefined') {
     const D = dlgBase(npc, 'Hora de escolher', `${S.name}, você terminou o treino de Aprendiz. Escolha seu caminho: cada classe tem habilidades próprias e, mais adiante, duas evoluções. A escolha é para sempre neste personagem.`);
     D.btn('Ainda não', closeAll, 'alt'); D.btn('Escolher minha classe', () => openClasses('class')); open('dialog'); return;
   }
-  if (npc.id === 'lira' && canEvolve()) {
+  if (npc.id === 'lira' && canEvolve() && typeof MASTERS === 'undefined') {
     const D = dlgBase(npc, 'Hora de evoluir', `${S.name}, você domina a arte de ${CL().name}. Existem dois caminhos: ${CLASSES[S.cls].evo.map(e => EVOS[e].name).join(' ou ')}. Escolha com calma: é definitivo.`);
     D.btn('Ainda não', closeAll, 'alt'); D.btn('Ver evoluções', () => openClasses('evo')); open('dialog'); return;
   }
@@ -2499,8 +2504,8 @@ function gainXp(b, j) {
       S.jxp -= needJob(S.jlvl, S.cls); S.jlvl++; S.skPts++;
       toast(`Nível de classe ${S.jlvl}! +1 ponto de habilidade`, 'small'); sfx('magia', .4, 1.4);
       FX.ring(P.x, P.y, 80, '#8fe0e6', .6, 4);
-      if (canChangeClass()) { later(1, () => toast('Fale com a Capitã Lira para escolher sua classe!')); renderQuest(); }
-      if (canEvolve()) { later(1, () => toast('Você pode evoluir! Fale com a Capitã Lira.')); renderQuest(); }
+      if (canChangeClass()) { later(1, () => toast('Procure os Mestres de Classe, a leste da vila de Brisaclara!')); renderQuest(); }
+      if (canEvolve()) { later(1, () => toast('Você pode evoluir! Procure seu mentor no Pátio dos Mentores, em Aurel.')); renderQuest(); }
     }
     if (S.jlvl >= mj) S.jxp = 0;
   }
@@ -2891,11 +2896,11 @@ function render() {
     if (n.walker) { label(g, n.x, n.y - n.body.h - 6, n.name, '#e9d8bd', 11.5); return; }
     label(g, n.x, n.y - n.body.h - 6, n.name, n.color || '#f3d2b3', 14); label(g, n.x, n.y - n.body.h + 8, n.title, '#e9d8bd', 10.5);
     const q = QUESTS[S.quest.i], st = S.quest.status, giver = q ? (q.npc || 'lira') : 'lira';
-    let m = '';
-    if (n.id === 'lira' && (canChangeClass() || canEvolve())) m = '!';
+    let m = n.markFn ? n.markFn() || '' : '';
+    if (m) { /* marcador próprio (mestres de classe) */ }
     else if (q && giver === n.id) m = st === 'available' ? '!' : st === 'complete' || (q.kind === 'gather' && questProgress(q) >= q.need) ? '?' : '…';
     else if (ORDERS[n.id] && Object.entries(ORDERS[n.id].need).every(([k, v]) => (S.mats[k] || 0) >= v)) m = '$';
-    if (m) { g.font = `700 30px "Pixelify Sans", system-ui, sans-serif`; g.textAlign = 'center'; g.lineWidth = 5; g.strokeStyle = '#2a1d05'; const yy = n.y - n.body.h - 30 + Math.sin(W.T * 4) * 4; g.strokeText(m, n.x, yy); g.fillStyle = m === '$' ? '#9fe08a' : (canChangeClass() || canEvolve()) && n.id === 'lira' ? '#8fe0e6' : st === 'active' && m === '…' ? '#a9bdb6' : '#e5b850'; g.fillText(m, n.x, yy); }
+    if (m) { g.font = `700 30px "Pixelify Sans", system-ui, sans-serif`; g.textAlign = 'center'; g.lineWidth = 5; g.strokeStyle = '#2a1d05'; const yy = n.y - n.body.h - 30 + Math.sin(W.T * 4) * 4; g.strokeText(m, n.x, yy); g.fillStyle = m === '$' ? '#9fe08a' : n.markFn && m ? '#8fe0e6' : st === 'active' && m === '…' ? '#a9bdb6' : '#e5b850'; g.fillText(m, n.x, yy); }
   });
   if (P.gather) { const k = P.gather.t / P.gather.dur, w = 56, y = P.y - P.body.h - 26; g.fillStyle = 'rgba(20,10,8,.85)'; g.fillRect(P.x - w / 2 - 2, y - 2, w + 4, 10); g.fillStyle = '#ffe27a'; g.fillRect(P.x - w / 2, y, w * k, 6); label(g, P.x, y - 6, NODES[P.gather.n.node].verb + '...', '#ffe27a', 12); }
   if (!P.dead) { label(g, P.x, P.y - P.body.h - 6, `${S.name} · ${CL().name}`, '#8fe0e6', 14); if (S.title) label(g, P.x, P.y - P.body.h - 22, `« ${S.title} »`, '#ffd27a', 11.5); }
@@ -3121,7 +3126,7 @@ const VILLAGERS = [
   { name: 'Pipo', sprite: 'ald_1', lines: ['Você viu o cachorrinho de lenço vermelho?', 'Quero ser Caçador quando crescer!', 'Dá pra pescar no Lago Espelhado? Só tem caranguejo...'] },
   { name: 'Guarda Hugo', sprite: 'ald_4', lines: ['Tudo calmo por aqui.', 'O lampião me ajuda na ronda da noite.', 'A Capitã Lira confia em você.'] }
 ];
-const VWAY = [[600, 900], [470, 720], [740, 720], [600, 560], [600, 1060], [600, 1190], [380, 860], [960, 820], [1150, 820], [700, 1200], [520, 640], [330, 900]];
+const VWAY = [[600, 900], [470, 720], [740, 720], [600, 560], [600, 1060], [600, 1190], [380, 860], [960, 820], [1150, 820], [700, 1200], [520, 640], [330, 900]].map(([x, y]) => [x * VK, y * VK]);
 function onZoneLoaded(i, from) {
   W.weather.drops = []; W.splashes = [];
   if (S && typeof netJoin === 'function') netJoin(i);
@@ -3179,7 +3184,7 @@ function updateWorldExtra(dt) {
 }
 
 /* ---------- tela de título: a câmera passeia pela vila ---------- */
-const TITLE_PATH = [[600, 820], [900, 560], [1300, 700], [1700, 420], [1500, 1100], [800, 1150], [400, 900]];
+const TITLE_PATH = [[600, 820], [900, 560], [1300, 700], [1700, 420], [1500, 1100], [800, 1150], [400, 900]].map(([x, y]) => [x * VK, y * VK]);
 function titleCam() {
   const t = (W.T * .035) % TITLE_PATH.length, i = Math.floor(t), k = t - i, a = TITLE_PATH[i], b = TITLE_PATH[(i + 1) % TITLE_PATH.length], e = k * k * (3 - 2 * k);
   return { x: a[0] + (b[0] - a[0]) * e, y: a[1] + (b[1] - a[1]) * e };
@@ -4424,7 +4429,8 @@ function setupRank() {
 setupRank();
 
 /* ================= Vila de Brisaclara: chão calçado, ruas e canteiros ================= */
-function paintVillage(g, z, r) {
+function paintVillage(g, z, r) { g.save(); g.scale(VK, VK); try { paintVillage1(g, z, r); } finally { g.restore(); } }
+function paintVillage1(g, z, r) {
   const STONE = ['#cbbb93', '#bba980', '#d6c7a0', '#ad9a70', '#c4b48a'];
   const pave = (inside, x0, y0, x1, y1, step) => {
     for (let y = y0; y < y1; y += step) for (let x = x0 + ((y / step) % 2 ? step / 2 : 0); x < x1; x += step) {
@@ -4878,7 +4884,7 @@ function _tuft(dark, mid, light, h) {
 function enrichGround(c, z, i) {
   const g = c.getContext('2d'), G = z.ground, r = seeded(911 + i * 131), kind = zoneKind(z, i), A = z.w * z.h;
   const LY = typeof zoneLayout === 'function' ? zoneLayout(z) : null;
-  const paved = (x, y) => (z.village && x < 1320 && y > 250 && y < 1450) || (LY && LY.blocks(x, y, 4)) || inLake(z, x, y, 30);
+  const paved = (x, y) => inVillageXY(z, x, y) || (LY && LY.blocks(x, y, 4)) || inLake(z, x, y, 30);
   // 1) relevo suave: manchas grandes de luz e sombra (soft-light dá contraste sem mudar a cor)
   g.save(); g.globalCompositeOperation = 'soft-light';
   for (let k = 0; k < A / 90000; k++) { const x = r() * z.w, y = r() * z.h, R = 160 + r() * 320, li = r() < .5; const gr = g.createRadialGradient(x, y, 0, x, y, R); gr.addColorStop(0, li ? 'rgba(255,250,225,.55)' : 'rgba(0,10,20,.5)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(x - R, y - R, R * 2, R * 2); }
@@ -5999,7 +6005,7 @@ giveItem = function (it, quiet) { _giveItemI(it, quiet); if (S.bag.length > BAG_
 const EN = t => (ENEMIES[t] || { name: t }).name;
 // quem dá as missões em cada mapa: [nome, título, sprite, x, y]
 const SQ_GIVERS = {
-  0: ['Fazendeiro Joca', 'Lavrador', 'ald_3', 1460, 640], 1: ['Pastora Tess', 'Pastora', 'ald_1', null, null], 2: ['Erudita Mirela', 'Estudiosa da Fenda', 'clerigo', null, null],
+  0: ['Fazendeiro Joca', 'Lavrador', 'ald_3', 1830, 800], 1: ['Pastora Tess', 'Pastora', 'ald_1', null, null], 2: ['Erudita Mirela', 'Estudiosa da Fenda', 'clerigo', null, null],
   3: ['Lenhador Rurik', 'Lenhador', 'npc_bram', null, null], 4: ['Pescador Tobias', 'Pescador', 'ald_2', null, null], [ASH]: ['Batedora Kaia', 'Batedora', 'bot_arqueira', null, null],
   [ASH + 1]: ['Caçador Orm', 'Caçador do Norte', 'bot_barbaro', null, null], [SWAMP]: ['Velha Nimue', 'Bruxa do Brejo', 'bot_mago', null, null], [SWAMP + 1]: ['Corvo', 'Paladino Exilado', 'guardiao', null, null],
   [AUREL]: ['Taverneiro Gus', 'Dono da taverna', 'ald_2', 900, 1380]
@@ -7996,6 +8002,700 @@ runGeneric = function (sk, L, T, ang) {
 };
 const _dfgS = drawFxGround; drawFxGround = function (g) { _dfgS(g); drawMeteorGround(g); };
 const _dfaS = drawFxAir; drawFxAir = function (g) { _dfaS(g); drawMeteorAir(g); };
+
+/* ================= Mapas mais amplos, monstros pacíficos, vila sem monstros e XP só para quem lutou ================= */
+// os mapas abertos crescem 30% (as construções, árvores e monstros mantêm o tamanho: tudo fica mais espaçado)
+const MAPK = 1.3;
+ZONES.forEach((z, i) => {
+  if (z.village || z.city || z.dungeon || z.hidden || z.arena || z.fenda || z._scaled) return;
+  z._scaled = true; delete z._L;
+  const S2 = v => Math.round(v * MAPK), pt = a => { a[0] = S2(a[0]); a[1] = S2(a[1]); };
+  z.w = S2(z.w); z.h = S2(z.h);
+  z.area = z.area.map(S2); z.spawn = z.spawn.map(S2);
+  if (z.boss) { z.boss[1] = S2(z.boss[1]); z.boss[2] = S2(z.boss[2]); }
+  z.exits.forEach(e => { e.pos = S2(e.pos); });
+  (z.deco || []).forEach(d => { d[1] = S2(d[1]); d[2] = S2(d[2]); });
+  if (z.layout) {
+    const L = z.layout; if (L.hub) pt(L.hub);
+    (L.pois || []).forEach(p => { p[1] = S2(p[1]); p[2] = S2(p[2]); });
+    (L.links || []).forEach(l => l.forEach(pt));
+    L.groves = Math.round((L.groves || (z.forest ? 16 : 9)) * MAPK); L.rocks = Math.round((L.rocks || 8) * MAPK);
+  }
+  if (z.lake) z.lake = z.lake.map(S2);
+  if (z.pools) z.pools = z.pools.map(p => p.map(S2));
+  if (z.rift) z.rift = z.rift.map(S2);
+  z.dens = MAPK;
+  z.spawns.forEach(s => { if (s[1] > 1) s[1] = Math.round(s[1] * 1.25); });
+  (z.nodes || []).forEach(n => { n[1] = Math.round(n[1] * MAPK); });
+  const g = typeof SQ_GIVERS !== 'undefined' && SQ_GIVERS[i]; if (g && g[3] != null) { g[3] = S2(g[3]); g[4] = S2(g[4]); }
+});
+ZONES[0].dens = 1.35;
+
+// cerca de metade das espécies de cada mapa (as mais fracas, que lutam de perto) só ataca se for atacada
+ZONES.forEach(z => {
+  if (z.dungeon || z.city || z.arena || !z.spawns) return;
+  const sp = [...new Set(z.spawns.filter(([, n]) => n > 1).map(([t]) => t))].map(t => ENEMIES[t]).filter(d => d && !d.boss && !d.elite);
+  const melee = sp.filter(d => !d.ranged).sort((a, b) => a.xp - b.xp);
+  melee.slice(0, Math.ceil(sp.length * .45)).forEach(d => { d.aggroR = 0; d.passive = true; });
+});
+Object.values(ENEMIES).forEach(d => { if (!d.aggroR && !d.boss) d.passive = true; });
+// quem é pacífico chama os parentes por perto quando apanha
+const _hitEnemyPz = hitEnemy;
+hitEnemy = function (e, amt, src, big) {
+  const was = e && e.alive && !e.aggro;
+  _hitEnemyPz(e, amt, src, big);
+  if (src === P || (src && src.summon)) P.fightT = W.T;
+  if (was && e.d.passive && src) W.enemies.forEach(o => { if (o !== e && o.alive && !o.aggro && o.type === e.type && dist(o, e) < 200) o.aggro = src; });
+};
+// apanhar ou curar um colega também conta como estar na luta
+const _damageActorPz = damageActor;
+damageActor = function (a, amt, src) { if (a === P && src && P) P.fightT = W.T; return _damageActorPz(a, amt, src); };
+const _healUnitPz = healUnit;
+healUnit = function (u, amt) { if (u && u !== P && !u.dead && P) P.fightT = W.T; return _healUnitPz(u, amt); };
+
+// a vila (e o campo dos mestres ao lado) não tem monstros: quem chega perto desiste e volta para casa
+const VILLAGE_EDGE = 2380;
+const _updEnemiesV = updateEnemies;
+updateEnemies = function (dt) {
+  _updEnemiesV(dt);
+  const vil = W.zone && W.zone.village;
+  for (const e of W.enemies) {
+    if (!e.alive) continue;
+    if (vil && e.x < VILLAGE_EDGE && !e.duel) { e.aggro = null; e.hp = e.max; e.tagged = false; e.hitters = null; e.goal = { x: e.home.x, y: e.home.y }; }
+    // monstro que desistiu da luta esquece quem bateu nele
+    if (!e.aggro && e.hitters && e.hp >= e.max) e.hitters = null;
+  }
+};
+
+// grupo: só ganha a parte da experiência quem estava lutando junto (bateu em algo ou ajudou nos últimos 10 s, e perto)
+const _castSkillXp = castSkill;
+castSkill = function (n) { const r = _castSkillXp.apply(this, arguments); if (P) P.fightT = W.T; return r; };
+netPartyShare = function (e, ids) {
+  if (!PT || !S || P.dead || ids.includes(NET.id) || !ids.some(id => PT.members[id])) return;
+  if (dist(P, e) > 700 || W.T - (P.fightT || -99) > 10) return;
+  const xp = Math.max(1, Math.round(e.d.xp * .5));
+  gainXp(xp, xp); log(`<span class="net">Grupo</span> · ${esc(e.d.name)} · +${xp} XP`);
+  const q = QUESTS[S.quest.i];
+  if (q && S.quest.status === 'active' && q.target === e.type && q.kind !== 'collect') questEvent(e.type);
+  save();
+};
+
+// chão dos mapas ampliados: mais tufos de grama para não ficar vazio
+const _paintGroundK = paintGround;
+paintGround = function (z, r) {
+  const c = _paintGroundK(z, r);
+  if (!z._scaled && !z.village) return c;
+  try {
+    const g = c.getContext('2d'), G = z.ground, q = seeded(4242 + z.w), LY = z._L || null;
+    for (let k = 0; k < 500; k++) { const x = q() * z.w, y = q() * z.h; if (inLake(z, x, y, 4) || inVillageXY(z, x, y) || (LY && LY.blocks(x, y, 0))) continue; g.strokeStyle = q() < .5 ? G.dark : G.light; g.lineWidth = 2; g.globalAlpha = .6; g.beginPath(); g.moveTo(x, y); g.lineTo(x - 3, y - 7); g.moveTo(x + 2, y); g.lineTo(x + 4, y - 8); g.stroke(); }
+    g.globalAlpha = 1;
+  } catch (e) { console.warn(e); }
+  return c;
+};
+
+/* ================= Som mais encorpado: mixagem, eco do ambiente, posição na tela e camadas sintetizadas ================= */
+// Cada efeito gravado continua tocando, mas agora passa por um compressor (nada estoura quando tudo toca junto),
+// ganha um pouco de reverberação conforme o lugar (masmorra ecoa, campo aberto quase nada), é posicionado
+// à esquerda/direita conforme onde aconteceu e recebe uma camada sintetizada que dá peso, brilho ou textura.
+const AU2 = { ready: false, bus: null, send: null, wet: null, noise: null, pos: null, last: {} };
+function au2Init() {
+  const c = AU.ctx; if (!c || AU2.ready) return;
+  try {
+    const comp = c.createDynamicsCompressor();
+    comp.threshold.value = -18; comp.knee.value = 12; comp.ratio.value = 3.5; comp.attack.value = .004; comp.release.value = .22;
+    const master = c.createGain(); master.gain.value = 1;
+    const bus = c.createGain(); bus.connect(comp);
+    // reverberação: resposta de impulso gerada (ruído com queda exponencial, um pouco diferente em cada lado)
+    const len = Math.floor(c.sampleRate * 2.2), ir = c.createBuffer(2, len, c.sampleRate);
+    for (let ch = 0; ch < 2; ch++) { const d = ir.getChannelData(ch); for (let i = 0; i < len; i++) { const t = i / len; d[i] = (Math.random() * 2 - 1) * Math.pow(1 - t, 3.2) * (i < 200 ? i / 200 : 1); } }
+    const conv = c.createConvolver(); conv.buffer = ir;
+    const send = c.createGain(); send.gain.value = 1;
+    const wet = c.createGain(); wet.gain.value = .12;
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 4200;
+    send.connect(conv); conv.connect(lp); lp.connect(wet); wet.connect(comp);
+    comp.connect(master); master.connect(c.destination);
+    // ruído branco reaproveitado pelas camadas
+    const nb = c.createBuffer(1, c.sampleRate, c.sampleRate), nd = nb.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+    Object.assign(AU2, { ready: true, bus, send, wet, noise: nb });
+    au2Room();
+  } catch (e) { console.warn(e); }
+}
+// quanto o lugar ecoa
+function au2Room() {
+  if (!AU2.ready || !W.zone) return;
+  const z = W.zone, v = z.dungeon ? .34 : z.city ? .1 : z.forest ? .16 : z.voidz ? .3 : .09;
+  AU2.wet.gain.setTargetAtTime(v, AU.ctx.currentTime, .3);
+}
+// saída de uma voz: ganho, posição estéreo e quanto vai para o eco
+function au2Out(vol, pos, revAmt) {
+  const c = AU.ctx, g = c.createGain(); g.gain.value = vol;
+  let node = g;
+  if (pos && c.createStereoPanner && P) {
+    const p = c.createStereoPanner(), dx = pos.x - W.cam.x, d = Math.hypot(pos.x - P.x, pos.y - P.y);
+    p.pan.value = clamp(dx / 650, -1, 1) * .75; g.gain.value = vol * clamp(1 - (d - 260) / 1100, .18, 1);
+    g.connect(p); node = p;
+  }
+  node.connect(AU2.bus);
+  if (revAmt) { const s = c.createGain(); s.gain.value = revAmt; node.connect(s); s.connect(AU2.send); }
+  return g;
+}
+// blocos de síntese
+const au2T = () => AU.ctx.currentTime;
+function au2Env(g, t0, a, peak, dec, sus) { g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(Math.max(.0002, peak), t0 + a); g.gain.exponentialRampToValueAtTime(.0001, t0 + a + dec + (sus || 0)); }
+function au2Osc(type, f0, f1, dur, vol, out, t0, a) {
+  const c = AU.ctx, o = c.createOscillator(), g = c.createGain(); t0 = t0 || au2T();
+  o.type = type; o.frequency.setValueAtTime(f0, t0); if (f1 && f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t0 + dur);
+  au2Env(g, t0, a || .005, vol, dur); o.connect(g); g.connect(out); o.start(t0); o.stop(t0 + dur + .05); return o;
+}
+function au2Noise(type, f0, f1, q, dur, vol, out, t0, a) {
+  const c = AU.ctx, s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(); t0 = t0 || au2T();
+  s.buffer = AU2.noise; s.loop = true; s.playbackRate.value = .7 + Math.random() * .6;
+  f.type = type; f.Q.value = q || 1; f.frequency.setValueAtTime(f0, t0); if (f1 && f1 !== f0) f.frequency.exponentialRampToValueAtTime(f1, t0 + dur);
+  au2Env(g, t0, a || .004, vol, dur); s.connect(f); f.connect(g); g.connect(out); s.start(t0, Math.random() * .5); s.stop(t0 + dur + .05); return f;
+}
+const PENTA = [0, 2, 4, 7, 9, 12, 14, 16, 19];
+const au2Note = (base, i) => base * Math.pow(2, PENTA[i % PENTA.length] / 12);
+// as camadas: cada uma recebe o volume e a posição do som original
+const LAYERS = {
+  impact(v, o) { au2Osc('sine', 150, 48, .16, .55 * v, o); au2Noise('bandpass', 2600, 900, 1.2, .06, .35 * v, o); },
+  heavy(v, o) { au2Osc('sine', 110, 38, .3, .7 * v, o); au2Noise('lowpass', 900, 200, .8, .25, .4 * v, o); au2Noise('bandpass', 3200, 1200, 2, .05, .3 * v, o); },
+  crit(v, o) { au2Osc('triangle', 1900, 1750, .35, .16 * v, o); au2Osc('triangle', 2870, 2700, .3, .1 * v, o); au2Osc('sine', 120, 45, .2, .5 * v, o); },
+  slash(v, o) { au2Noise('bandpass', 1800, 5200, 2.5, .14, .65 * v, o, null, .02); },
+  magic(v, o) { const t = au2T(), b = 660 * (1 + Math.random() * .25); for (let i = 0; i < 4; i++) au2Osc('sine', au2Note(b, i * 2 + rint(0, 1)), 0, .45, .09 * v, o, t + i * .035, .01); au2Noise('highpass', 6000, 9000, .7, .35, .07 * v, o, t, .03); },
+  whoosh(v, o) { au2Noise('bandpass', 350, 2600, 1.4, .32, .7 * v, o, null, .06); },
+  boom(v, o) { const t = au2T(); au2Osc('sine', 85, 28, .7, .9 * v, o, t, .004); au2Noise('lowpass', 1400, 120, .7, .9, .55 * v, o, t, .005); au2Noise('bandpass', 2400, 600, .8, .18, .3 * v, o, t + .02); },
+  zap(v, o) { const t = au2T(); au2Osc('sawtooth', 1400, 180, .18, .12 * v, o, t); for (let i = 0; i < 5; i++) au2Noise('highpass', 3000 + Math.random() * 3000, 0, 1, .03, .3 * v, o, t + i * .035 + Math.random() * .02, .002); },
+  dark(v, o) { const t = au2T(), f = AU.ctx.createBiquadFilter(), g = AU.ctx.createGain(); f.type = 'lowpass'; f.frequency.setValueAtTime(1400, t); f.frequency.exponentialRampToValueAtTime(180, t + .55); f.connect(o); g.gain.value = 1; g.connect(f); au2Osc('sawtooth', 98, 82, .55, .14 * v, g, t, .06); au2Osc('sawtooth', 101, 84, .55, .14 * v, g, t, .06); au2Noise('bandpass', 500, 220, 3, .5, .18 * v, o, t, .1); },
+  holy(v, o) { const t = au2T(); [1046.5, 1318.5, 1568, 2093].forEach((f, i) => au2Osc('sine', f, 0, .9, .07 * v, o, t + i * .05, .04)); au2Noise('highpass', 7000, 0, .7, .6, .05 * v, o, t, .1); },
+  ice(v, o) { const t = au2T(); for (let i = 0; i < 6; i++) au2Osc('triangle', 2200 + Math.random() * 2600, 0, .25, .06 * v, o, t + i * .03 + Math.random() * .02, .002); au2Noise('highpass', 4000, 8000, 1, .2, .12 * v, o, t); },
+  fire(v, o) { const t = au2T(); au2Noise('bandpass', 300, 1200, .9, .45, .4 * v, o, t, .05); for (let i = 0; i < 6; i++) au2Noise('highpass', 2500, 0, 1, .02, .18 * v, o, t + .05 + Math.random() * .35, .002); },
+  bow(v, o) { au2Osc('triangle', 330, 170, .12, .3 * v, o); au2Noise('highpass', 2500, 5000, 1, .18, .14 * v, o, null, .02); },
+  shield(v, o) { const t = au2T(); au2Osc('triangle', 660, 640, .6, .1 * v, o, t, .01); au2Osc('triangle', 990, 970, .55, .07 * v, o, t + .02, .01); au2Noise('bandpass', 3000, 6000, 2, .3, .07 * v, o, t); },
+  squish(v, o) { const t = au2T(), os = au2Osc('sine', 320, 110, .2, .35 * v, o, t); },
+  bone(v, o) { au2Noise('bandpass', 1600, 900, 4, .07, .7 * v, o); au2Osc('square', 420, 260, .05, .05 * v, o); },
+  chime(v, o) { const t = au2T(); [523.3, 659.3, 784, 1046.5].forEach((f, i) => au2Osc('triangle', f, 0, .5, .08 * v, o, t + i * .07, .005)); },
+  coin(v, o) { au2Osc('sine', 2400 + Math.random() * 400, 0, .1, .06 * v, o); },
+  sparkle(v, o) { const t = au2T(); for (let i = 0; i < 3; i++) au2Osc('sine', au2Note(1320, i * 2), 0, .18, .05 * v, o, t + i * .05, .004); },
+  bubble(v, o) { const t = au2T(); for (let i = 0; i < 4; i++) au2Osc('sine', 380 + Math.random() * 500, 700 + Math.random() * 400, .06, .08 * v, o, t + i * .06, .004); },
+  whistle(v, o, dur) { const t = au2T(); au2Osc('sine', 1900, 380, dur || .55, .07 * v, o, t, .15); au2Noise('bandpass', 2500, 500, 3, dur || .55, .1 * v, o, t, .2); },
+  hurt(v, o) { au2Osc('sine', 120, 60, .12, .4 * v, o); }
+};
+const SFX_LAYER = {
+  golpe: ['impact', .05], soco: ['impact', .05], corte: ['slash', .08], critico: ['crit', .1], osso: ['bone', .05], dor: ['hurt', 0],
+  magia: ['magic', .3], sopro: ['whoosh', .12], explosao: ['boom', .25], explosao2: ['heavy', .3], chefe: ['boom', .3], dragao: ['fire', .25],
+  raio: ['zap', .2], sombra: ['dark', .3], cura: ['holy', .35], escudo: ['shield', .25], arco: ['bow', .05], slime: ['squish', .05],
+  nivel: ['chime', .35], missao_ok: ['chime', .3], moeda: ['coin', .1], moedas: ['coin', .1], item: ['sparkle', .2], pocao: ['bubble', .1], refino: ['shield', .2]
+};
+// reverberação dos sons gravados (sem camada)
+const SFX_REV = { clique: 0, pagina: 0, cancelar: 0, mapa: 0, porta: .3, rangido: .3, bau: .2, viagem: .35, alerta: .1, missao: .25, misterio: .4 };
+sfx = function (name, vol, rate) {
+  if (SAVE.mute || !AU.ctx) return;
+  if (!AU2.ready) au2Init();
+  const now = AU.ctx.currentTime; if (lastPlay[name] && now - lastPlay[name] < .05) return; lastPlay[name] = now;
+  if (AU.ctx.state === 'suspended') AU.ctx.resume();
+  vol = vol == null ? .5 : vol;
+  const pos = AU2.pos, L = SFX_LAYER[name], rev = L ? L[1] : (SFX_REV[name] != null ? SFX_REV[name] : .12);
+  if (!AU2.ready) { // sem mixagem: comportamento antigo
+    if (!AU.buf[name]) return; const s = AU.ctx.createBufferSource(), g = AU.ctx.createGain(); s.buffer = AU.buf[name]; s.playbackRate.value = rate || rnd(.94, 1.06); g.gain.value = vol; s.connect(g); g.connect(AU.ctx.destination); s.start(); return;
+  }
+  if (AU.buf[name]) {
+    const s = AU.ctx.createBufferSource(); s.buffer = AU.buf[name]; s.playbackRate.value = rate || rnd(.94, 1.06);
+    s.connect(au2Out(vol, pos, rev)); s.start();
+  }
+  if (L && LAYERS[L[0]]) try { LAYERS[L[0]](Math.min(1.2, vol * 1.6), au2Out(1, pos, rev * 1.2)); } catch (e) { }
+};
+// toca uma camada solta (para as assinaturas das habilidades)
+function sfxLayer(kind, vol, pos, extra) {
+  if (SAVE.mute || !AU.ctx) return; if (!AU2.ready) au2Init(); if (!AU2.ready || !LAYERS[kind]) return;
+  const now = AU.ctx.currentTime, k = 'L' + kind; if (AU2.last[k] && now - AU2.last[k] < .06) return; AU2.last[k] = now;
+  try { LAYERS[kind](vol, au2Out(1, pos || null, .25), extra); } catch (e) { }
+}
+// sons com lugar: morte de monstro e golpe de outros (bots, monstros) soam do lado certo e mais baixo de longe
+function sfxAt(o, fn) { const prev = AU2.pos; AU2.pos = o; try { return fn(); } finally { AU2.pos = prev; } }
+const _killEnemySnd = killEnemy;
+killEnemy = function (e) { return sfxAt(e, () => _killEnemySnd(e)); };
+const _hitEnemySnd = hitEnemy;
+hitEnemy = function (e, amt, src, big) {
+  const r = sfxAt(e, () => _hitEnemySnd(e, amt, src, big));
+  if (src === P && e) sfxLayer(big ? 'heavy' : 'impact', big ? .55 : .3, e);
+  return r;
+};
+// assinatura sonora de cada habilidade, conforme o elemento
+const SK_ELEM = { fogo: 'fire', meteoros: 'fire', supremo: 'fire', gelo: 'ice', prisao: 'ice', eletrica: 'zap', luz: 'holy', cura: 'holy', aurora: 'holy', fonte: 'holy', socorro: 'holy',
+  raio: 'dark', marca: 'dark', vortice: 'dark', certeira: 'bow', duplo: 'bow', vinhas: 'bow', chuva: 'bow', escudo: 'shield', brado: 'chime', furia: 'heavy', sismico: 'heavy', redemoinho: 'whoosh', investida: 'whoosh', nova: 'magic' };
+function skElem(sk) {
+  if (SK_ELEM[sk.id]) return SK_ELEM[sk.id];
+  const g = sk.g || {};
+  if (g.meteor) return 'fire'; if (g.bolt) return 'zap';
+  if (g.type === 'heal' || g.type === 'pshield') return 'holy';
+  if (g.type === 'buff') return 'chime';
+  if (g.type === 'nova') return 'magic';
+  if (g.type === 'strike') return g.fx === 'smash' ? 'heavy' : 'slash';
+  if (g.type === 'area') return 'magic';
+  return null;
+}
+const _castSkillSnd = castSkill;
+castSkill = function (n) {
+  const before = P && P.cds ? P.cds[n] : 0, sk = CL().skills[n - 1];
+  const r = _castSkillSnd.apply(this, arguments);
+  if (sk && P && P.cds[n] > (before || 0)) { const el = skElem(sk); if (el) sfxLayer(el, .7, null); }
+  return r;
+};
+// meteoro caindo: assobio que desce até o impacto
+const _fxMeteorSnd = FX.meteor;
+FX.meteor = function (x, y, delay, onHit, big) {
+  const r = _fxMeteorSnd.apply(this, arguments);
+  later(Math.max(0, delay || 0), () => sfxLayer('whistle', big ? 1 : .7, { x, y }, .55));
+  return r;
+};
+// eco muda com o lugar
+const _onZoneSnd = onZoneLoaded4;
+onZoneLoaded4 = function (i, from) { _onZoneSnd(i, from); au2Room(); };
+
+/* ================= Mestres de classe: cada classe e cada evolução tem quem ensine, com uma prova antes ================= */
+// classes base: mestres no Campo dos Mestres, a leste da vila de Brisaclara (sem monstros)
+const MASTERS = {
+  guardiao:  { name: 'Mestre Bóris',  title: 'Mestre dos Guardiões',   x: 1880, y: 740,  deco: 'armas',
+    trial: { kind: 'kill', target: 'guerreiro', n: 8 }, where: 'nas Colinas Ventosas',
+    intro: 'Um Guardião aguenta o golpe que derrubaria os outros e fica de pé para proteger o grupo. Os Guerreiros de Ossos das Colinas Ventosas batem forte: derrote 8 deles e volte aqui.',
+    done: 'Você não recuou. Pegue este escudo: a partir de hoje, quem estiver atrás de você está seguro.' },
+  lamina:    { name: 'Mestra Kaida', title: 'Mestra das Lâminas Rúnicas', x: 2090, y: 740, deco: 'alvo',
+    trial: { kind: 'kill', target: 'chifrudo', n: 6 }, where: 'nas Colinas Ventosas',
+    intro: 'A lâmina rúnica corta o que é duro. Os Chifrudos do Bosque, nas Colinas Ventosas, têm couro grosso como casca de árvore. Derrote 6 e me mostre o fio do seu golpe.',
+    done: 'Golpes limpos. As runas da sua arma já reconhecem a sua mão.' },
+  arcanista: { name: 'Mestre Orvalis', title: 'Mestre Arcanista',      x: 2300, y: 740,  deco: 'lampiao',
+    trial: { kind: 'mats', mat: 'asa', n: 4 }, where: 'dos Morcegos Sombrios das Colinas Ventosas',
+    intro: 'Magia exige componentes. Traga 4 Asas de Morcego dos Morcegos Sombrios das Colinas Ventosas: com elas eu preparo o seu primeiro foco arcano.',
+    done: 'Asas perfeitas. Segure o cajado e sinta o calor: isso é só o começo.' },
+  cacador:   { name: 'Mestra Sylvia', title: 'Mestra dos Caçadores',   x: 1880, y: 1320, deco: 'alvo',
+    trial: { kind: 'kill', target: 'abelha', n: 8 }, where: 'nas Colinas Ventosas',
+    intro: 'Quem acerta uma abelha em pleno voo acerta qualquer coisa. Derrote 8 Abelhas Zumbidoras nas Colinas Ventosas.',
+    done: 'Olho firme e mão leve. O arco é seu.' },
+  clerigo:   { name: 'Irmã Celeste', title: 'Clero da Aurora',         x: 2090, y: 1320, deco: 'santuario',
+    trial: { kind: 'kill', target: 'lacaio', n: 8 }, where: 'nos campos a leste daqui',
+    intro: 'A luz da Aurora devolve o descanso aos mortos. Liberte 8 Lacaios de Ossos nos campos a leste daqui, depois do Campo dos Mestres.',
+    done: 'Eles descansam graças a você. A Aurora agora responde ao seu chamado.' },
+  ecomante:  { name: 'Mestre Vesper', title: 'Mestre dos Ecomantes',   x: 2300, y: 1320, deco: 'd_caveira',
+    trial: { kind: 'kill', target: 'morcego', n: 6 }, where: 'nas Colinas Ventosas',
+    intro: 'O Eco vive nas sombras. Os Morcegos Sombrios das Colinas Ventosas ouvem o Véu: derrote 6 e escute o que ele sussurra quando caem.',
+    done: 'Você ouviu, não ouviu? Esse sussurro agora obedece a você.' }
+};
+// evoluções: mentores no Pátio dos Mentores, no nordeste de Aurel
+const MENTORS = {
+  paladino:  { name: 'Sir Aldric',    x: 2140, y: 230,  intro: 'Um Paladino do Véu luta com o martelo e cura com a fé.' },
+  runico:    { name: 'Thorvald',      x: 2290, y: 230, intro: 'O Cavaleiro Rúnico grava runas de ferro na própria espada.' },
+  berserker: { name: 'Grum',          x: 2440, y: 230,  intro: 'O Berserker não sente dor: transforma cada ferida em força.' },
+  mestre:    { name: 'Yume',          x: 2590, y: 230, intro: 'O Mestre das Lâminas dança entre os inimigos com duas espadas.' },
+  arquimago: { name: 'Magnus',        x: 2140, y: 380,  intro: 'O Arquimago derruba meteoros sobre exércitos inteiros.' },
+  elemental: { name: 'Isolde',        x: 2290, y: 380, intro: 'A Elementalista dobra o raio e o gelo ao mesmo tempo.' },
+  atirador:  { name: 'Dario',         x: 2440, y: 380,  intro: 'O Atirador de Elite acerta o ponto fraco de longe.' },
+  feras:     { name: 'Raíssa',        x: 2590, y: 380, intro: 'O Mestre das Feras luta ao lado dos animais do bosque.' },
+  sacerdote: { name: 'Padre Elói',    x: 2140, y: 530,  intro: 'O Sumo Sacerdote mantém o grupo inteiro de pé.' },
+  monge:     { name: 'Monge Tsen',    x: 2290, y: 530, intro: 'O Monge da Aurora cura com as mãos e bate com os punhos.' },
+  necro:     { name: 'Morvena',       x: 2440, y: 530,  intro: 'O Necromante do Eco chama os mortos para lutar por ele.' },
+  ilusao:    { name: 'Lumi',          x: 2590, y: 530, intro: 'A Ilusionista engana os inimigos com cópias e sombras.' }
+};
+const EVO_N = 15;
+// o Fazendeiro Joca sai do caminho dos mestres
+if (SQ_GIVERS[0]) { SQ_GIVERS[0][3] = 1760; SQ_GIVERS[0][4] = 1640; }
+
+const provaOf = () => (S && S.prova) || null;
+const trialName = id => MASTERS[id] ? MASTERS[id].name : MENTORS[id] ? MENTORS[id].name : '';
+function trialProgress(t) {
+  if (!t) return 0;
+  if (t.kind === 'mats') return Math.min(t.n, S.mats[t.mat] || 0);
+  return Math.min(t.n, t.p || 0);
+}
+function trialDone(t) {
+  if (!t) return false;
+  if (t.kind === 'evo') return t.p >= t.n && t.boss2;
+  return trialProgress(t) >= t.n;
+}
+function trialText(t) {
+  if (!t) return '';
+  if (t.kind === 'mats') return `${trialProgress(t)} / ${t.n} ${MATS[t.mat].name}`;
+  if (t.kind === 'kill') return `${trialProgress(t)} / ${t.n} ${ENEMIES[t.target].name}`;
+  return t.p < t.n ? `${t.p} / ${t.n} ${ENEMIES[t.target].name} em ${ZONES[t.z].name}` : t.boss2 ? 'Prova cumprida' : `Derrote ${ENEMIES[t.boss].name} em ${ZONES[t.z].name}`;
+}
+// prova de evolução: um mapa do nível do jogador, uma espécie dele e depois o chefe
+function evoTrialFor(id) {
+  const zs = ZONES.map((z, i) => [z, i]).filter(([z]) => z.boss && !z.dungeon && !z.hidden && !z.city && !z.village && z.rec <= S.blvl + 2 && z.rec >= 13);
+  const [z, zi] = zs.length ? zs.sort((a, b) => b[0].rec - a[0].rec)[0] : [ZONES[3], 3];
+  const sp = [...new Set(z.spawns.filter(([t, n]) => n > 1 && !t.startsWith('hw_') && ENEMIES[t] && !ENEMIES[t].critter && ENEMIES[t].xp > 20).map(([t]) => t))];
+  const evIdx = Object.keys(MENTORS).indexOf(id);
+  return { id, kind: 'evo', z: zi, target: sp[evIdx % Math.max(1, sp.length)] || sp[0], n: EVO_N, p: 0, boss: z.boss[0], boss2: false };
+}
+// mortes que contam para a prova
+const _onKillM = onKill;
+onKill = function (e) {
+  _onKillM(e);
+  const t = provaOf(); if (!t || !e.tagged) return;
+  if (t.kind === 'kill' && e.type === t.target && t.p < t.n) { t.p++; if (t.p >= t.n) { toast(`Prova cumprida! Volte ao ${trialName(t.id)}.`, 'small'); sfx('missao_ok', .5); } renderQuest(); }
+  if (t.kind === 'evo' && W.zi === t.z) {
+    if (e.type === t.target && t.p < t.n) { t.p++; if (t.p >= t.n) { toast(`Agora derrote ${ENEMIES[t.boss].name}!`, 'small'); sfx('missao', .5); } renderQuest(); }
+    else if (e.type === t.boss && t.p >= t.n && !t.boss2) { t.boss2 = true; toast(`Prova cumprida! Volte a ${trialName(t.id)}, em Aurel.`, 'small'); sfx('missao_ok', .5); renderQuest(); }
+  }
+};
+// mudar de classe só depois da prova do mestre
+const _changeClassM = changeClass;
+changeClass = function (id) {
+  if (pickMode !== 'evo' && S.provaOk !== id) { toast(`Para ser ${CLASSES[id].name}, faça a prova de ${MASTERS[id].name} no Campo dos Mestres.`, 'small warn'); closeAll(); return; }
+  return _changeClassM(id);
+};
+const _evolveToM = evolveTo;
+evolveTo = function (id) {
+  if (S.provaOk !== id) { toast(`Para evoluir para ${EVOS[id].name}, faça a prova de ${MENTORS[id].name} em Aurel.`, 'small warn'); closeAll(); return; }
+  return _evolveToM(id);
+};
+// painel da missão mostra a prova
+const _renderQuestM = renderQuest;
+renderQuest = function () {
+  _renderQuestM();
+  if (!S || !(canChangeClass() || canEvolve())) return;
+  const t = provaOf(), p = $('qProg');
+  if (!t) {
+    $('qBody').textContent = canChangeClass() ? 'Você chegou ao nível de classe 10. Escolha um dos 6 Mestres de Classe no campo a leste da vila e faça a prova dele.' : `Você chegou ao nível de classe ${EVO_JOB}. Os mentores das duas evoluções de ${CL().name} esperam você no Pátio dos Mentores, no nordeste de Aurel.`;
+    p.textContent = canChangeClass() ? 'Fale com um Mestre' : 'Fale com um mentor';
+    return;
+  }
+  $('qTitle').textContent = `Prova de ${trialName(t.id)}`;
+  $('qBody').textContent = trialDone(t) ? `Volte a ${trialName(t.id)} para ${canChangeClass() ? 'receber sua classe' : 'evoluir'}.` : trialText(t);
+  p.textContent = trialDone(t) ? 'Pronto' : 'Em andamento'; p.classList.toggle('done', trialDone(t));
+};
+
+/* ---------- conversas ---------- */
+function masterMark(id, evo) {
+  if (!S) return '';
+  const t = provaOf();
+  if (t && t.id === id) return trialDone(t) ? '?' : '…';
+  if (evo) return canEvolve() && EVOS[id].base === S.cls && !(t && CLASSES[S.cls].evo.includes(t.id)) ? '!' : '';
+  return canChangeClass() && !t ? '!' : '';
+}
+function skillChips(D, cls) { const r = $('dReward'); cls.skills.forEach(s => { const sp = document.createElement('span'); sp.textContent = s.name; r.appendChild(sp); }); }
+function openMaster(id, npc) {
+  const M = MASTERS[id], c = CLASSES[id], t = provaOf();
+  face(P, npc); face(npc, P);
+  if (S.cls === id) { const D = dlgBase(npc, c.name, S.evo ? `Você foi longe, ${S.name}. Um ${EVOS[S.evo].name} é motivo de orgulho para todo ${c.name}.` : canEvolve() ? `Você domina tudo o que eu sei. Para evoluir, procure os mentores de ${c.name} no Pátio dos Mentores, no nordeste de Aurel.` : `Continue treinando, ${S.name}. No nível de classe ${EVO_JOB}, os mentores de Aurel ensinam as evoluções de ${c.name}.`); D.btn('Até logo', closeAll); open('dialog'); return; }
+  if (S.cls !== 'aprendiz') { const D = dlgBase(npc, c.name, `Você já seguiu o caminho de ${CL().name}. Mas um ${c.name} sempre respeita um bom aliado.`); D.btn('Até logo', closeAll); open('dialog'); return; }
+  if (t && t.id === id && trialDone(t)) {
+    const D = dlgBase(npc, `Prova de ${M.name}`, M.done);
+    D.btn('Agora não', closeAll, 'alt');
+    D.btn(`Tornar-me ${c.name}`, () => { if (t.kind === 'mats') addTo(S.mats, t.mat, -t.n); S.provaOk = id; S.prova = null; pickMode = 'class'; changeClass(id); S.provaOk = null; save(); });
+    open('dialog'); return;
+  }
+  if (t && t.id === id) {
+    const D = dlgBase(npc, `Prova de ${M.name}`, `${M.intro} Progresso: ${trialText(t)}.`);
+    D.btn('Desistir da prova', () => { S.prova = null; save(); renderQuest(); closeAll(); toast('Prova cancelada', 'small'); }, 'alt'); D.btn('Voltar à prova', closeAll); open('dialog'); return;
+  }
+  const D = dlgBase(npc, c.name, `${c.desc} ${canChangeClass() ? M.intro : `Volte quando chegar ao nível de classe 10 (agora: ${S.jlvl}). Aí eu testo você.`}`);
+  skillChips(D, c);
+  if (!canChangeClass()) { D.btn('Até logo', closeAll); open('dialog'); return; }
+  D.btn('Depois', closeAll, 'alt');
+  D.btn(t ? `Trocar de prova (cancela a de ${trialName(t.id)})` : 'Aceitar a prova', () => {
+    S.prova = Object.assign({ id, p: 0 }, M.trial); save(); renderQuest(); closeAll(); sfx('missao', .6);
+    toast(`Prova aceita: ${trialText(S.prova)} ${M.where}.`, 'small');
+  });
+  open('dialog');
+}
+function openMentor(id, npc) {
+  const M = MENTORS[id], e = EVOS[id], base = CLASSES[e.base], t = provaOf();
+  face(P, npc); face(npc, P);
+  if (S.evo === id) { const D = dlgBase(npc, e.name, `Você honra o nome de ${e.name}. Continue assim.`); D.btn('Até logo', closeAll); open('dialog'); return; }
+  if (S.cls !== e.base || S.evo) { const D = dlgBase(npc, e.name, `${M.intro} Esse caminho é só para quem já é ${base.name}.`); skillChips(D, e); D.btn('Até logo', closeAll); open('dialog'); return; }
+  if (t && t.id === id && trialDone(t)) {
+    const D = dlgBase(npc, `Prova de ${M.name}`, `Você enfrentou ${ENEMIES[t.boss].name} e voltou inteiro. Está pronto para ser ${e.name}. A evolução é definitiva.`);
+    D.btn('Agora não', closeAll, 'alt');
+    D.btn(`Evoluir para ${e.name}`, () => { S.provaOk = id; S.prova = null; pickMode = 'evo'; evolveTo(id); S.provaOk = null; save(); });
+    open('dialog'); return;
+  }
+  if (t && t.id === id) {
+    const D = dlgBase(npc, `Prova de ${M.name}`, `${M.intro} Progresso: ${trialText(t)}.`);
+    D.btn('Desistir da prova', () => { S.prova = null; save(); renderQuest(); closeAll(); toast('Prova cancelada', 'small'); }, 'alt'); D.btn('Voltar à prova', closeAll); open('dialog'); return;
+  }
+  if (!canEvolve()) { const D = dlgBase(npc, e.name, `${M.intro} ${e.desc} Volte no nível de classe ${EVO_JOB} (agora: ${S.jlvl}) e eu testo você.`); skillChips(D, e); D.btn('Até logo', closeAll); open('dialog'); return; }
+  const nt = evoTrialFor(id), z = ZONES[nt.z];
+  const D = dlgBase(npc, e.name, `${M.intro} ${e.desc} Prova: derrote ${nt.n} ${ENEMIES[nt.target].name} em ${z.name} e depois ${ENEMIES[nt.boss].name}, o chefe de lá.`);
+  skillChips(D, e);
+  D.btn('Depois', closeAll, 'alt');
+  D.btn(t ? `Trocar de prova (cancela a de ${trialName(t.id)})` : 'Aceitar a prova', () => { S.prova = nt; save(); renderQuest(); closeAll(); sfx('missao', .6); toast(`Prova aceita: ${trialText(nt)}.`, 'small'); });
+  open('dialog');
+}
+const _openNpcMs = openNpc;
+openNpc = function (npc) {
+  if (npc && npc.master) return openMaster(npc.master, npc);
+  if (npc && npc.mentor) return openMentor(npc.mentor, npc);
+  return _openNpcMs(npc);
+};
+// a Capitã Lira manda o jogador aos mestres
+const _openLiraM = openLira;
+openLira = function (npc, other) {
+  if (canChangeClass() || canEvolve()) {
+    const D = dlgBase(npc, canChangeClass() ? 'Hora de escolher' : 'Hora de evoluir', canChangeClass() ? `${S.name}, seu treino de Aprendiz acabou. Os seis Mestres de Classe esperam no Campo dos Mestres, logo depois da cerca a leste da vila. Converse com eles: cada um aplica uma prova antes de ensinar.` : `${S.name}, você domina a arte de ${CL().name}. Os mentores de ${CLASSES[S.cls].evo.map(e => EVOS[e].name).join(' e ')} ficam no Pátio dos Mentores, no nordeste de Aurel. Cada um tem uma prova.`);
+    D.btn('Até logo', closeAll); open('dialog'); return;
+  }
+  return _openLiraM(npc, other);
+};
+const _openQuestDialogM = openQuestDialog;
+openQuestDialog = function (npc) {
+  const q = QUESTS[S.quest.i], giver = q ? (q.npc || 'lira') : 'lira';
+  if (npc.id === 'lira' && (canChangeClass() || canEvolve()) && giver !== 'lira') return openLira(npc, true);
+  return _openQuestDialogM(npc);
+};
+
+/* ---------- os NPCs no mundo ---------- */
+function addTrainer(o) {
+  if (!SPR[o.sprite]) return;
+  let x = o.x, y = o.y; for (let k = 0; k < 10 && blocked(x, y, 18); k++) { x += 26; y += k % 2 ? -18 : 18; }
+  const n = Object.assign({ kind: 'npc', r: 14 }, o, { x, y }); n.body = body(o.sprite); n.body.dir = 's'; W.npcs.push(n); return n;
+}
+const _ozlM = onZoneLoaded4;
+onZoneLoaded4 = function (i, from) {
+  _ozlM(i, from);
+  if (!S) return;
+  const z = ZONES[i];
+  if (z.village) {
+    Object.entries(MASTERS).forEach(([id, M]) => {
+      if (PROPMETA.anel_pedra) W.props.push(makeProp('anel_pedra', M.x, M.y - 22, 1.2, false));
+      if (PROPMETA.bandeira) W.props.push(makeProp('bandeira', M.x - 70, M.y - 30, 1, false));
+      if (M.deco && PROPMETA[M.deco]) W.props.push(makeProp(M.deco, M.x + 75, M.y - 20, 1, true));
+    });
+    buildGrid();
+    Object.entries(MASTERS).forEach(([id, M]) => { const n = addTrainer({ id: 'mc_' + id, master: id, name: M.name, title: M.title, sprite: CLASSES[id].sprite, x: M.x, y: M.y - 10, color: CLASSES[id].aura || '#ffd27a' }); if (n) n.markFn = () => masterMark(id, false); });
+  }
+  if (z.city) {
+    [[2060, 150], [2670, 150], [2670, 610]].forEach(([x, y]) => PROPMETA.bandeira_v && W.props.push(makeProp('bandeira_v', x, y, 1, false)));
+    Object.values(MENTORS).forEach(M => PROPMETA.anel_pedra && W.props.push(makeProp('anel_pedra', M.x, M.y - 12, 1.1, false)));
+  }
+  if (z.city) Object.entries(MENTORS).forEach(([id, M]) => { const n = addTrainer({ id: 'me_' + id, mentor: id, name: M.name, title: `Mentor: ${EVOS[id].name}`, sprite: EVOS[id].sprite, x: M.x, y: M.y, color: EVOS[id].aura || '#ffd27a' }); if (n) n.markFn = () => masterMark(id, true); });
+};
+
+/* ================= Telas novas: Ficha, Diário e Talentos ================= */
+// Cada atributo tem uma cor própria, a mesma na Ficha e na árvore de Talentos (Força vermelha, Inteligência azul...).
+const ATC = { for: '#ff7a5a', int: '#7ab8ff', des: '#9fe08a', vit: '#ffb35a', agi: '#8fe0e6', sor: '#e4a8ff' };
+const ATAB = { for: 'FOR', int: 'INT', des: 'DES', vit: 'VIT', agi: 'AGI', sor: 'SOR' };
+(() => {
+  const st = document.createElement('style');
+  st.textContent = `
+/* ---------- Ficha ---------- */
+#sheet .card>h3,#sheetSub{display:none}
+.fx-head{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;align-items:center;padding:8px 10px;background:rgba(0,0,0,.28);border:2px solid rgba(18,10,8,.75);border-radius:3px}
+.fx-port{grid-row:span 3;width:76px;height:76px;border:2px solid #1a0f0b;border-radius:3px;background:radial-gradient(circle at 50% 35%,#5b4a3a,#2a1d16);image-rendering:pixelated}
+.fx-name{font-family:var(--display);font-size:24px;line-height:1;text-shadow:0 2px 0 var(--navy)}
+.fx-name small{font-size:15px;color:var(--gold2);margin-left:8px;font-weight:500}
+.fx-bars{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fx-bar{display:grid;gap:2px;font-size:12px;color:var(--muted)}
+.fx-bar b{font-family:var(--display);font-weight:500;color:#fff;font-size:13px}
+.fx-bar i{display:block;height:7px;background:#1a0f0b;border:1px solid #000;border-radius:2px;overflow:hidden}
+.fx-bar i u{display:block;height:100%;background:linear-gradient(#ffe27a,#d89a22)}
+.fx-bar.job i u{background:linear-gradient(#a9f0ff,#3e9ec8)}
+.fx-path{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-family:var(--display);font-size:13px}
+.fx-path span{padding:1px 8px;border:2px solid rgba(18,10,8,.8);border-radius:3px;background:rgba(0,0,0,.3);color:var(--muted)}
+.fx-path span.on{color:#22190a;background:var(--gold2);border-color:#5a3a10}
+.fx-path span.next{border-style:dashed;color:#fff}
+.fx-path em{font-style:normal;color:var(--muted);opacity:.7}
+.fx-tabs{display:none;gap:6px}
+.fx-tabs button{flex:1;font-family:var(--display);font-size:15px;color:#fff;background:rgba(0,0,0,.3);border:2px solid rgba(18,10,8,.8);border-radius:3px;padding:5px 4px}
+.fx-tabs button[aria-selected=true]{background:var(--gold2);color:#22190a}
+.fx-cols{display:grid;grid-template-columns:1fr 1.1fr;gap:14px;align-items:start}
+.fx-sec{display:grid;gap:6px;align-content:start}
+.fx-h{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--display);font-size:17px;color:#fff;text-shadow:0 1px 0 var(--navy);margin-top:2px}
+.fx-h .chip{font-size:13px;color:#22190a;background:var(--gold2);border-radius:3px;padding:0 7px;border:2px solid #5a3a10}
+.fx-h .chip.zero{background:rgba(0,0,0,.3);color:var(--muted);border-color:rgba(18,10,8,.8)}
+.fx-at{display:grid;grid-template-columns:40px 1fr auto 32px;gap:8px;align-items:center;padding:5px 6px;background:rgba(0,0,0,.26);border:2px solid rgba(18,10,8,.75);border-left:4px solid var(--c);border-radius:3px}
+.fx-at .ab{font-family:var(--display);font-size:13px;color:var(--c);text-align:center}
+.fx-at b{display:block;font-size:14px}.fx-at small{display:block;color:var(--muted);font-size:12px;line-height:1.2}
+.fx-at .v{font-family:var(--display);font-size:22px;min-width:38px;text-align:right;color:#fff}
+.fx-at .v em{font-style:normal;font-size:13px;color:#a8ff9a;margin-left:2px}
+.fx-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:5px}
+.fx-tiles div{padding:4px 8px;background:rgba(0,0,0,.22);border:2px solid rgba(18,10,8,.6);border-radius:3px}
+.fx-tiles small{display:block;color:var(--muted);font-size:11.5px}
+.fx-tiles b{font-family:var(--display);font-size:18px;font-weight:500}
+.fx-sk{display:grid;grid-template-columns:38px 1fr 32px;gap:4px 10px;align-items:center;padding:6px 7px;background:rgba(0,0,0,.26);border:2px solid rgba(18,10,8,.75);border-radius:3px}
+.fx-sk img{width:38px;height:38px;image-rendering:pixelated;border:2px solid var(--navy);border-radius:2px}
+.fx-sk.off img{filter:grayscale(1) brightness(.6)}
+.fx-sk .t1{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.fx-sk .t1 b{font-size:14.5px}
+.fx-pips{display:inline-flex;gap:2px}.fx-pips i{width:8px;height:8px;background:#1a0f0b;border:1px solid #000}.fx-pips i.on{background:var(--gold2)}
+.fx-cd{font-size:11.5px;color:var(--muted)}
+.fx-sk p{grid-column:2/4;margin:0;font-size:12.5px;line-height:1.3;color:var(--muted)}
+.fx-sk p i{font-style:normal;color:var(--gold2)}
+.fx-sk p.req{color:#ffb4a0}
+.fx-note{font-size:13px;color:var(--muted);padding:6px 8px;border:2px dashed rgba(255,226,122,.35);border-radius:3px}
+.fx-note b{color:var(--gold2)}
+.fx-extra h3{font-family:var(--display);font-size:17px;letter-spacing:0;text-transform:none;color:#fff;margin:6px 0 0}
+.fx-extra .pts{font-size:13px}
+@media (max-width:640px),(max-height:520px){
+  .fx-tabs{display:flex}.fx-cols{grid-template-columns:1fr}
+  .fx-cols[data-tab=at] .fx-sk-sec,.fx-cols[data-tab=at] .fx-more,.fx-cols[data-tab=sk] .fx-at-sec,.fx-cols[data-tab=sk] .fx-more,.fx-cols[data-tab=mais] .fx-at-sec,.fx-cols[data-tab=mais] .fx-sk-sec{display:none}
+  .fx-cols[data-tab=mais] .fx-more{display:grid}
+  .fx-port{width:56px;height:56px}.fx-name{font-size:20px}.fx-bars{grid-template-columns:1fr}
+}
+@media (min-width:641px) and (min-height:521px){.fx-more{grid-column:2}}
+/* ---------- Diário ---------- */
+#daily .card>h3:first-of-type{display:none}
+.dy-track{position:relative;display:grid;grid-template-columns:repeat(7,1fr);gap:4px;padding:6px 2px 2px}
+.dy-track::before{content:"";position:absolute;left:7%;right:7%;top:34px;height:4px;background:#1a0f0b;border:1px solid #000}
+.dy-track::after{content:"";position:absolute;left:7%;top:34px;height:4px;width:calc(86% * var(--k));background:var(--gold2)}
+.dy-n{position:relative;z-index:1;display:grid;justify-items:center;gap:3px;text-align:center}
+.dy-n .disc{width:52px;height:52px;display:grid;place-items:center;border-radius:50%;background:#2a1d16;border:3px solid #1a0f0b;box-shadow:0 0 0 2px rgba(255,226,122,.25)}
+.dy-n .disc img{width:30px;height:30px;image-rendering:pixelated}
+.dy-n small{font-family:var(--display);font-size:13px;color:var(--muted)}
+.dy-n span{font-size:11.5px;line-height:1.15;color:var(--muted);max-width:90px}
+.dy-n.got .disc{background:#3a2c14;box-shadow:0 0 0 2px var(--gold2)}
+.dy-n.got .disc::after{content:"✓";position:absolute;top:22px;right:calc(50% - 30px);width:18px;height:18px;border-radius:50%;background:#6fd06a;color:#0f2a0c;font-size:12px;font-weight:700;line-height:18px}
+.dy-n.now .disc{background:radial-gradient(circle,#5a4214,#2a1d16);box-shadow:0 0 0 3px var(--gold2),0 0 18px rgba(255,226,122,.55)}
+.dy-n.now small,.dy-n.now span{color:#fff}
+.dy-n.big .disc{width:60px;height:60px;margin-top:-4px;background:radial-gradient(circle,#4a2a6a,#241634);box-shadow:0 0 0 2px #c78cff}
+.dy-claim{display:flex;justify-content:center}
+.dy-mis{display:grid;gap:6px}
+.dy-m{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;padding:7px 10px;background:rgba(0,0,0,.26);border:2px solid rgba(18,10,8,.75);border-radius:3px}
+.dy-m b{font-size:14.5px}
+.dy-m .rw{font-size:12px;color:var(--gold2);font-family:var(--display);font-weight:500;text-align:right}
+.dy-m .pb{grid-column:1/-1;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;font-family:var(--display);font-size:12.5px;color:var(--muted)}
+.dy-m .pb i{height:8px;background:#1a0f0b;border:1px solid #000;border-radius:2px;overflow:hidden}.dy-m .pb i u{display:block;height:100%;background:linear-gradient(#a8ff9a,#3e9e3a)}
+.dy-m.got{opacity:.6}.dy-m.ok{border-color:var(--gold2)}
+.dy-m .btn{min-height:30px;font-size:14px}
+.dy-chest{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:7px 10px;border:2px dashed rgba(199,140,255,.55);border-radius:3px;background:rgba(60,30,90,.25)}
+.dy-chest img{width:34px;height:34px;image-rendering:pixelated}
+.dy-chest small{display:block;color:var(--muted);font-size:12px}
+.dy-chest .pp{display:flex;gap:4px}.dy-chest .pp i{width:14px;height:14px;border:2px solid #1a0f0b;background:#2a1d16;transform:rotate(45deg)}.dy-chest .pp i.on{background:#c78cff}
+@media (max-width:640px){.dy-track{grid-template-columns:repeat(4,1fr);row-gap:10px}.dy-track::before,.dy-track::after{display:none}.dy-n .disc{width:44px;height:44px}.dy-n.big .disc{width:50px;height:50px}}
+/* ---------- Talentos ---------- */
+.ptcard .pthead{display:none}
+.pt-wrap{display:grid;grid-template-columns:1fr 250px;gap:10px;align-items:stretch}
+.pt-stage{position:relative}
+.pt-stage #ptCanvas{margin:0;height:min(62vh,560px)}
+.pt-tools{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:4px}
+.pt-tools button{width:34px;height:34px;font-family:var(--display);font-size:18px;color:#fff;background:rgba(14,10,22,.8);border:2px solid #4a3a66;border-radius:3px;padding:0}
+.pt-tools button:hover{border-color:var(--gold2)}
+.pt-side{display:grid;gap:8px;align-content:start}
+.pt-pts{display:grid;grid-template-columns:auto 1fr;gap:0 10px;align-items:center;padding:6px 10px;background:rgba(0,0,0,.28);border:2px solid rgba(18,10,8,.75);border-radius:3px}
+.pt-pts b{grid-row:span 2;font-family:var(--display);font-size:38px;line-height:1;color:var(--gold2)}
+.pt-pts span{font-size:13px}.pt-pts small{color:var(--muted);font-size:12px}
+.pt-leg{display:grid;grid-template-columns:1fr 1fr;gap:3px 8px;font-size:12.5px}
+.pt-leg span{display:flex;align-items:center;gap:6px}.pt-leg i{width:10px;height:10px;border-radius:50%;background:var(--c);box-shadow:0 0 0 2px #1a0f0b}
+.pt-leg em{font-style:normal;color:var(--muted);margin-left:auto;font-family:var(--display)}
+.ptcard .ptinfo{display:grid;gap:6px;align-content:start;min-height:120px;padding:8px 10px}
+.ptcard .ptinfo b{font-size:18px}
+.ptcard .ptinfo .btn{justify-self:start}
+.pt-reset{justify-self:start;min-height:30px!important;font-size:13px!important}
+@media (max-width:700px),(max-height:520px){.pt-wrap{grid-template-columns:1fr}.pt-stage #ptCanvas{height:min(52vh,460px)}.pt-leg{grid-template-columns:repeat(3,1fr)}.ptcard .ptinfo{min-height:0}}
+#daily h3.fx-h{font-size:17px;letter-spacing:0;text-transform:none;color:#fff;font-weight:700;margin:4px 0 0}
+@media (max-height:520px){.pt-side{padding-top:30px}.pt-stage #ptCanvas{height:56vh}.pt-wrap{grid-template-columns:1fr 220px}.pt-leg{grid-template-columns:1fr 1fr}}
+`;
+  document.head.appendChild(st);
+})();
+
+/* ---------- Ficha ---------- */
+let FX_TAB = 'at';
+const pct100 = (a, b) => Math.max(0, Math.min(100, b ? a / b * 100 : 100));
+function classPath() {
+  const steps = [['aprendiz', 'Aprendiz']];
+  if (S.cls === 'aprendiz') steps.push(['?', 'Classe']); else steps.push([S.cls, CLASSES[S.cls].name]);
+  if (S.evo) steps.push([S.evo, EVOS[S.evo].name]); else if (S.cls !== 'aprendiz') steps.push(['?', CLASSES[S.cls].evo.map(e => EVOS[e].name).join(' ou ')]); else steps.push(['?', 'Evolução']);
+  const curI = S.evo ? 2 : S.cls === 'aprendiz' ? 0 : 1;
+  return steps.map(([id, n], i) => `<span class="${i === curI ? 'on' : i === curI + 1 ? 'next' : ''}">${n}</span>`).join('<em>›</em>');
+}
+function nextStepNote() {
+  if (S.cls === 'aprendiz') return S.jlvl >= 10 ? `<b>Pronto para escolher.</b> Faça a prova de um Mestre de Classe, no campo a leste da vila de Brisaclara.` : `No nível de classe <b>10</b> (agora ${S.jlvl}), os Mestres de Classe a leste de Brisaclara ensinam uma das 6 classes.`;
+  if (S.evo) return `Você chegou à evolução de <b>${CL().name}</b>. Novas evoluções chegam numa próxima fase.`;
+  return S.jlvl >= EVO_JOB ? `<b>Pronto para evoluir.</b> Os mentores ficam no Pátio dos Mentores, no nordeste de Aurel.` : `No nível de classe <b>${EVO_JOB}</b> (agora ${S.jlvl}), os mentores de Aurel ensinam ${CLASSES[S.cls].evo.map(e => EVOS[e].name).join(' ou ')}.`;
+}
+openSheet = function () {
+  const c = CL(), b = $('sheetBody');
+  const bonus = k => st(k) - S.st[k];
+  const derived = [['Vida máxima', maxHp()], ['Ataque', Math.round(atk())], ['Ataques/s', (1 / aspd()).toFixed(2)], ['Crítico', Math.round(critCh() * 100) + '%'], ['Esquiva', Math.round(dodgeCh() * 100) + '%'], ['Redução de dano', Math.round(defense() * 100) + '%'], ['Velocidade', Math.round(moveSpd())]];
+  const atts = STATS.map(([k, n, d]) => `<div class="fx-at" style="--c:${ATC[k]}"><span class="ab">${ATAB[k]}</span><span><b>${n}</b><small>${d}</small></span><span class="v">${S.st[k]}${bonus(k) ? `<em>+${bonus(k)}</em>` : ''}</span><button type="button" class="plus" data-st="${k}" ${S.stPts ? '' : 'disabled'} aria-label="Aumentar ${n}"></button></div>`).join('');
+  const skills = c.skills.map(sk => {
+    const L = skLv(sk.id), req = skReqText(sk);
+    const pips = Array.from({ length: SK_MAX }, (_, i) => `<i class="${i < L ? 'on' : ''}"></i>`).join('');
+    return `<div class="fx-sk${L ? '' : ' off'}">${skIcon(sk)}<div class="t1"><b>${sk.name}</b><span class="fx-pips" title="Nível ${L} de ${SK_MAX}">${pips}</span><span class="fx-cd">recarga ${sk.cd} s</span></div><button type="button" class="plus" data-sk="${sk.id}" ${canLearn(sk) ? '' : 'disabled'} aria-label="Aprender ${sk.name}"></button>
+      <p>${L ? sk.d(L) : sk.d(1)}${L && L < SK_MAX ? ` <i>Próximo nível: ${sk.d(L + 1)}</i>` : ''}</p>${req.length ? `<p class="req">Precisa de ${req.join(' e ')}</p>` : ''}</div>`;
+  }).join('');
+  const bn = S.blvl >= MAX_BASE ? 100 : pct100(S.bxp, needBase(S.blvl)), jn = S.jlvl >= maxJob(S.cls) ? 100 : pct100(S.jxp, needJob(S.jlvl, S.cls));
+  b.innerHTML = `<div class="fx-head"><canvas class="fx-port" width="76" height="76"></canvas>
+      <div class="fx-name">${esc(S.name)}<small>${c.name}${S.title ? ` · « ${esc(S.title)} »` : ''}</small></div>
+      <div class="fx-bars"><div class="fx-bar"><b>Nível ${S.blvl}</b><i><u style="width:${bn}%"></u></i></div><div class="fx-bar job"><b>Classe ${S.jlvl} de ${maxJob(S.cls)}</b><i><u style="width:${jn}%"></u></i></div></div>
+      <div class="fx-path">${classPath()}</div></div>
+    <div class="fx-tabs" role="tablist"><button type="button" role="tab" data-tab="at">Atributos</button><button type="button" role="tab" data-tab="sk">Habilidades</button><button type="button" role="tab" data-tab="mais">Perfil</button></div>
+    <div class="fx-cols" data-tab="${FX_TAB}">
+      <div class="fx-sec fx-at-sec"><div class="fx-h">Atributos <span class="chip${S.stPts ? '' : ' zero'}">${S.stPts} ${S.stPts === 1 ? 'ponto' : 'pontos'}</span></div>${atts}
+        ${S.stPts ? `<div class="actions left"><button class="btn alt" type="button" id="autoSt">Distribuir para ${c.name}</button></div>` : ''}
+        <div class="fx-tiles">${derived.map(([n, v]) => `<div><small>${n}</small><b>${v}</b></div>`).join('')}</div></div>
+      <div class="fx-sec fx-sk-sec"><div class="fx-h">Habilidades <span class="chip${S.skPts ? '' : ' zero'}">${S.skPts} ${S.skPts === 1 ? 'ponto' : 'pontos'}</span></div>${skills}
+        <div class="fx-note">${nextStepNote()}</div></div>
+      <div class="fx-sec fx-more fx-extra">${typeof sheetExtra === 'function' ? sheetExtra() : ''}</div>
+    </div>`;
+  try { const pc = b.querySelector('.fx-port'), g = pc.getContext('2d'); g.imageSmoothingEnabled = false; drawPortrait(pc, c.sprite); } catch (e) { }
+  b.querySelectorAll('.fx-tabs [data-tab]').forEach(x => { x.setAttribute('aria-selected', x.dataset.tab === FX_TAB); x.onclick = () => { FX_TAB = x.dataset.tab; sfx('clique', .25); openSheet(); }; });
+  b.querySelectorAll('[data-st]').forEach(x => x.onclick = () => { const k = x.dataset.st; if (S.stPts <= 0) return; const r = P.hp / maxHp(); S.st[k]++; S.stPts--; P.hp = Math.round(maxHp() * r); sfx('clique', .3); save(); openSheet(); });
+  b.querySelectorAll('[data-sk]').forEach(x => x.onclick = () => { const sk = c.skills.find(s => s.id === x.dataset.sk); if (!canLearn(sk)) return; S.sk[sk.id] = skLv(sk.id) + 1; S.skPts--; sfx('magia', .35, 1.3); save(); buildBar(); openSheet(); });
+  const au = $('autoSt'); if (au) au.onclick = () => { const w = c.auto || { for: 1, vit: 1 }, ks = Object.keys(w); let n = 0; while (S.stPts > 0 && n < 999) { for (const k of ks) for (let j = 0; j < w[k] && S.stPts > 0; j++) { S.st[k]++; S.stPts--; } n++; } P.hp = Math.min(P.hp, maxHp()); sfx('clique', .3); save(); openSheet(); };
+  if (typeof bindSheetExtra === 'function') bindSheetExtra(b);
+  $('sheetTitle').textContent = 'Ficha';
+  if ($('sheet').hidden) open('sheet');
+};
+
+/* ---------- Diário ---------- */
+(() => {
+  const card = $('daily') && $('daily').querySelector('.card'); if (!card) return;
+  const cal = $('dyCal'), claim = $('dyClaim'), mis = $('dyMis'), sub = $('dySub');
+  cal.className = 'dy-track'; claim.parentElement.className = 'dy-claim'; mis.className = 'dy-mis';
+  const h = card.querySelector('.dyh'); if (h) { h.className = 'fx-h'; h.textContent = 'Missões de hoje'; }
+  const h0 = document.createElement('div'); h0.className = 'fx-h'; h0.textContent = 'Prêmio por entrar'; cal.before(h0);
+  const ch = document.createElement('div'); ch.id = 'dyChest'; mis.after(ch); sub.hidden = true;
+})();
+openDaily = function () {
+  if (!S) return; dmEnsure(); initAudio();
+  const d = S.daily || { step: 0, last: null }, ready = dayReady(), cal = $('dyCal');
+  const cur = ready ? d.step % 7 : (d.step + 6) % 7, gotN = ready ? cur : cur + 1;
+  cal.style.setProperty('--k', Math.max(0, Math.min(1, (gotN - (ready ? 0 : 1)) / 6)));
+  cal.innerHTML = DAY_R.map((R, i) => {
+    const s = i < cur || (!ready && i === cur) ? 'got' : i === cur && ready ? 'now' : '';
+    return `<div class="dy-n ${s}${i === 6 ? ' big' : ''}"><small>Dia ${i + 1}</small><div class="disc">${iconImg(ICON(R.icon))}</div><span>${R.t}</span></div>`;
+  }).join('');
+  const b = $('dyClaim'); b.disabled = !ready; b.textContent = ready ? `Receber o prêmio do dia ${cur + 1}` : 'Prêmio de hoje recebido. Volte amanhã';
+  const rw = dmReward(S.blvl);
+  $('dyMis').innerHTML = S.dm.list.map((m, i) => {
+    const def = dmDef(m.k), k = Math.min(1, m.p / m.n), done = m.p >= m.n;
+    return `<div class="dy-m${m.got ? ' got' : done ? ' ok' : ''}"><b>${def.t}</b>${done && !m.got ? `<button class="btn" type="button" data-dm="${i}">Receber</button>` : `<span class="rw">${m.got ? 'Recebido' : `${rw.gold} ouro · XP${rw.mats.veu ? ' · Fragmento' : ''}`}</span>`}
+      <div class="pb"><i><u style="width:${k * 100}%"></u></i><span>${Math.min(m.p, m.n)} / ${m.n}</span></div></div>`;
+  }).join('');
+  $('dyMis').querySelectorAll('[data-dm]').forEach(x => x.onclick = () => dmClaim(+x.dataset.dm));
+  const nGot = S.dm.list.filter(m => m.got).length;
+  $('dyChest').innerHTML = `<div class="dy-chest">${iconImg('d_bau_ouro')}<span><b>Baú das três missões</b><small>${S.dm.bonus ? 'Recebido hoje. Novas missões amanhã.' : 'Receba as três missões de hoje para abrir: item raro, chave e Fragmentos do Véu.'}</small></span><span class="pp">${[0, 1, 2].map(i => `<i class="${i < nGot ? 'on' : ''}"></i>`).join('')}</span></div>`;
+  if ($('daily').hidden) open('daily'); dayBadge();
+};
+
+/* ---------- Talentos ---------- */
+(() => {
+  const card = $('tree') && $('tree').querySelector('.ptcard'); if (!card) return;
+  const cv2 = $('ptCanvas'), info = $('ptInfo');
+  const wrap = document.createElement('div'); wrap.className = 'pt-wrap';
+  const stage = document.createElement('div'); stage.className = 'pt-stage';
+  const side = document.createElement('div'); side.className = 'pt-side';
+  cv2.before(wrap); stage.appendChild(cv2); wrap.append(stage, side);
+  const tools = document.createElement('div'); tools.className = 'pt-tools';
+  [['ptZin', '+', 'Aproximar'], ['ptZout', '−', 'Afastar'], ['ptCenter', '◎', 'Voltar ao centro']].forEach(([id, t, lbl]) => { const o = $(id); o.className = ''; o.textContent = t; o.title = lbl; o.setAttribute('aria-label', lbl); tools.appendChild(o); });
+  stage.appendChild(tools);
+  side.innerHTML = `<div class="pt-pts" id="ptPts2"></div><div class="pt-leg" id="ptLeg"></div>`;
+  side.appendChild(info);
+  const rs = $('ptReset'); rs.className = 'ghost pt-reset'; rs.textContent = 'Refazer a árvore'; side.appendChild(rs);
+})();
+function ptSideUpdate() {
+  const box = $('ptPts2'); if (!box || !S) return;
+  const n = ptPoints(), set = ptSet();
+  box.innerHTML = `<b>${n}</b><span>${n === 1 ? 'ponto livre' : 'pontos livres'}</span><small>${(S.ptree || []).length} talentos aprendidos</small>`;
+  const by = {}; for (const id of set) { const k = String(id).slice(0, 3); if (ATC[k]) by[k] = (by[k] || 0) + 1; }
+  $('ptLeg').innerHTML = STATS.map(([k, nm]) => `<span style="--c:${ATC[k]}"><i></i>${nm}<em>${by[k] || 0}</em></span>`).join('');
+}
+const _treeInfoN = treeInfo;
+treeInfo = function () {
+  _treeInfoN(); ptSideUpdate();
+  const box = $('ptInfo'); if (!TV.sel || !PT_NODES[TV.sel]) box.innerHTML = `<span><b>Escolha um talento</b>Toque num círculo para ver o que ele dá. Só dá para aprender talentos ligados aos que você já tem, começando pelo centro. As cores seguem os atributos da Ficha.</span>`;
+};
+const _openTreeN = openTree;
+openTree = function () { _openTreeN(); ptSideUpdate(); };
 
 start();
 window.__game = { W, get P() { return P; }, get PET() { return PET; }, S: () => S, SAVE: () => SAVE, castSkill, setTarget, loadZone, changeClass, evolveTo, gainXp, dropLoot, openSheet, playChar, openNpc, openShop, openBag, startGather, npcById, mkItem, giveItem, grant, CL, netConnect: () => netConnect(), netChat: t => netChat(t), NET: () => NET };
